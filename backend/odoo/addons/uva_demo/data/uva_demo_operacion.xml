@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="sol_0016" model="uva.solicitud">
+            <field name="name">UVA-0016</field>
+            <field name="partner_id" ref="cli_l"/>
+            <field name="cliente_nombre">[Cliente L] Lácteos y Quesos del Norte</field>
+            <field name="pozo_nombre">Pozo Rancho Los Encinos (ID-001)</field>
+            <field name="titulo_concesion">08ZAC104928/12FMDL18</field>
+            <field name="tipo">periodica</field>
+            <field name="cotizacion">COT-8921</field>
+            <field name="cotizacion_estado">enviada</field>
+            <field name="state">cotizacion</field>
+            <field name="fecha_registro">2026-10-18</field>
+            <field name="coordinador_id" ref="user_roberto"/>
+            <field name="coordinador_nombre">Ing. Roberto Silva</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Título de concesión o asignación', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 2, 'name': 'Certificado o dictamen de calibración del medidor', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 3, 'name': 'Factura del medidor', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 4, 'name': 'Identificación del representante legal', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 5, 'name': 'Manual de instalación del medidor', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 6, 'name': 'Reporte de instalación del equipo', 'requerido': False, 'completo': False})]"/>
+        </record>
+        <record id="sol_0015" model="uva.solicitud">
+            <field name="name">UVA-0015</field>
+            <field name="partner_id" ref="cli_k"/>
+            <field name="cliente_nombre">[Cliente K] Agrícola San Pedro SPR de RL</field>
+            <field name="pozo_nombre">Pozo Agrícola San Pedro #2</field>
+            <field name="titulo_concesion">08SON153921/09HGR81</field>
+            <field name="tipo">inicial</field>
+            <field name="cotizacion">COT-8914</field>
+            <field name="cotizacion_estado">aprobada</field>
+            <field name="state">documentacion</field>
+            <field name="fecha_registro">2026-10-15</field>
+            <field name="coordinador_id" eval="False"/>
+            <field name="coordinador_nombre">Lic. Mariana Gómez</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Título de concesión o asignación', 'requerido': True, 'completo': True, 'filename': 'Titulo_Concesion_08SON.pdf'}), (0, 0, {'sequence': 2, 'name': 'Certificado o dictamen de calibración del medidor', 'requerido': True, 'completo': True, 'filename': 'Cert_Calib_Krohne_2026.pdf'}), (0, 0, {'sequence': 3, 'name': 'Factura del medidor', 'requerido': True, 'completo': True, 'filename': 'Factura_A-4921.pdf'}), (0, 0, {'sequence': 4, 'name': 'Identificación del representante', 'requerido': True, 'completo': True, 'filename': 'INE_RepLegal.pdf'}), (0, 0, {'sequence': 5, 'name': 'Manual de instalación del medidor', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 6, 'name': 'Reporte de instalación del equipo', 'requerido': False, 'completo': False})]"/>
+        </record>
+        <record id="sol_0014" model="uva.solicitud">
+            <field name="name">UVA-0014</field>
+            <field name="cliente_nombre">[Cliente J] Parque Industrial El Salto</field>
+            <field name="pozo_nombre">Pozo Suministro Sector B</field>
+            <field name="titulo_concesion">08JAL193821/11EGR14</field>
+            <field name="tipo">extraordinaria</field>
+            <field name="cotizacion">COT-8899</field>
+            <field name="cotizacion_estado">aprobada</field>
+            <field name="state">lista</field>
+            <field name="fecha_registro">2026-10-12</field>
+            <field name="fecha_docs_completos">2026-10-19</field>
+            <field name="coordinador_id" ref="user_roberto"/>
+            <field name="coordinador_nombre">Ing. Roberto Silva</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Título de concesión o asignación', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 2, 'name': 'Certificado o dictamen de calibración del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 3, 'name': 'Factura del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 4, 'name': 'Identificación del representante', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 5, 'name': 'Manual de instalación del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 6, 'name': 'Reporte de instalación del equipo', 'requerido': True, 'completo': True})]"/>
+        </record>
+        <record id="sol_0013" model="uva.solicitud">
+            <field name="name">UVA-0013</field>
+            <field name="cliente_nombre">[Cliente I] Invernaderos de Michoacán</field>
+            <field name="pozo_nombre">Pozo Las Huertas #1</field>
+            <field name="titulo_concesion">08MCH103810/08MDR99</field>
+            <field name="tipo">inicial</field>
+            <field name="cotizacion">COT-8890</field>
+            <field name="cotizacion_estado">aprobada</field>
+            <field name="state">lista</field>
+            <field name="fecha_registro">2026-10-10</field>
+            <field name="fecha_docs_completos">2026-10-16</field>
+            <field name="coordinador_id" eval="False"/>
+            <field name="coordinador_nombre">Lic. Mariana Gómez</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Título de concesión o asignación', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 2, 'name': 'Certificado o dictamen de calibración del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 3, 'name': 'Factura del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 4, 'name': 'Identificación del representante', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 5, 'name': 'Manual de instalación del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 6, 'name': 'Reporte de instalación del equipo', 'requerido': True, 'completo': True})]"/>
+        </record>
+        <record id="sol_0012" model="uva.solicitud">
+            <field name="name">UVA-0012</field>
+            <field name="partner_id" ref="cli_g"/>
+            <field name="cliente_nombre">[Cliente G] Agroindustrias del Bajío, S.A.</field>
+            <field name="pozo_nombre">Pozo ID-001 San Juan</field>
+            <field name="titulo_concesion">08GTO128392/12HMDA19</field>
+            <field name="tipo">inicial</field>
+            <field name="cotizacion">COT-8865</field>
+            <field name="cotizacion_estado">aprobada</field>
+            <field name="state">programada</field>
+            <field name="fecha_registro">2026-10-01</field>
+            <field name="fecha_programada">2026-10-21</field>
+            <field name="fecha_docs_completos">2026-10-12</field>
+            <field name="coordinador_id" ref="user_roberto"/>
+            <field name="coordinador_nombre">Ing. Roberto Silva</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Título de concesión o asignación', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 2, 'name': 'Certificado o dictamen de calibración del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 3, 'name': 'Factura del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 4, 'name': 'Identificación del representante', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 5, 'name': 'Manual de instalación del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 6, 'name': 'Reporte de instalación del equipo', 'requerido': True, 'completo': True})]"/>
+        </record>
+        <record id="sol_0011" model="uva.solicitud">
+            <field name="name">UVA-0011</field>
+            <field name="cliente_nombre">[Cliente F] Textil Santa María, S.A.</field>
+            <field name="pozo_nombre">Pozo Planta 3</field>
+            <field name="titulo_concesion">08PUE104820/10HGR23</field>
+            <field name="tipo">periodica</field>
+            <field name="cotizacion">COT-8850</field>
+            <field name="cotizacion_estado">aprobada</field>
+            <field name="state">pago</field>
+            <field name="fecha_registro">2026-09-28</field>
+            <field name="coordinador_id" eval="False"/>
+            <field name="coordinador_nombre">Lic. Mariana Gómez</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Título de concesión o asignación', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 2, 'name': 'Certificado o dictamen de calibración del medidor', 'requerido': True, 'completo': True}), (0, 0, {'sequence': 3, 'name': 'Factura del medidor', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 4, 'name': 'Identificación del representante', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 5, 'name': 'Manual de instalación del medidor', 'requerido': True, 'completo': False}), (0, 0, {'sequence': 6, 'name': 'Reporte de instalación del equipo', 'requerido': False, 'completo': False})]"/>
+        </record>
+        <record id="vis_0010" model="uva.visita">
+            <field name="name">UVA-0010</field>
+            <field name="partner_id" ref="cli_h"/>
+            <field name="cliente_nombre">[Cliente H] Desarrollos Turísticos</field>
+            <field name="cliente_corto">Punta Paraíso</field>
+            <field name="sitio">Pozo Suministro</field>
+            <field name="lugar">Cancún, Q.Roo</field>
+            <field name="tipo_verificacion">periodica</field>
+            <field name="state">por_programar</field>
+            <field name="programar_antes">2026-10-19</field>
+            <field name="fecha_docs_completos">2026-10-05</field>
+        </record>
+        <record id="vis_0012" model="uva.visita">
+            <field name="name">UVA-0012</field>
+            <field name="solicitud_id" ref="sol_0012"/>
+            <field name="partner_id" ref="cli_g"/>
+            <field name="cliente_nombre">[Cliente G] Agroindustrias del Bajío</field>
+            <field name="cliente_corto">AgroBajío</field>
+            <field name="sitio">Pozo San Juan</field>
+            <field name="lugar">Irapuato, GTO</field>
+            <field name="tipo_verificacion">inicial</field>
+            <field name="state">propuesta</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="fecha">2026-10-21</field>
+            <field name="hora">09:00</field>
+            <field name="programar_antes">2026-10-26</field>
+            <field name="fecha_docs_completos">2026-10-12</field>
+            <field name="fecha_instalacion">2026-09-29</field>
+            <field name="sugerencia_ids" eval="[(0, 0, {'sequence': 1, 'verificador_id': ref('ver_i3'), 'fecha': '2026-10-21', 'razones': 'Misma zona: 28 km del pozo\nMenor carga del mes (3 visitas)', 'destacado': 'Equipo completo disponible ese día'}), (0, 0, {'sequence': 2, 'verificador_id': ref('ver_i5'), 'fecha': '2026-10-22', 'razones': 'Zona vecina: 84 km\n4 visitas este mes'})]"/>
+        </record>
+        <record id="vis_0013" model="uva.visita">
+            <field name="name">UVA-0013</field>
+            <field name="solicitud_id" ref="sol_0013"/>
+            <field name="cliente_nombre">[Cliente I] Invernaderos Michoacán</field>
+            <field name="cliente_corto">Invernaderos MICH</field>
+            <field name="sitio">Pozo Las Huertas #1</field>
+            <field name="lugar">Uruapan, MICH</field>
+            <field name="tipo_verificacion">inicial</field>
+            <field name="state">por_programar</field>
+            <field name="programar_antes">2026-10-30</field>
+            <field name="fecha_docs_completos">2026-10-16</field>
+            <field name="fecha_instalacion">2026-10-04</field>
+        </record>
+        <record id="vis_0014" model="uva.visita">
+            <field name="name">UVA-0014</field>
+            <field name="solicitud_id" ref="sol_0014"/>
+            <field name="cliente_nombre">[Cliente J] Parque El Salto</field>
+            <field name="cliente_corto">Parque Salto</field>
+            <field name="sitio">Pozo Suministro Sector B</field>
+            <field name="lugar">El Salto, JAL</field>
+            <field name="tipo_verificacion">extraordinaria</field>
+            <field name="state">por_programar</field>
+            <field name="programar_antes">2026-11-02</field>
+            <field name="fecha_docs_completos">2026-10-19</field>
+        </record>
+        <record id="vis_0007" model="uva.visita">
+            <field name="name">UVA-0007</field>
+            <field name="verificador_id" ref="ver_i1"/>
+            <field name="fecha">2026-10-19</field>
+            <field name="hora">09:00</field>
+            <field name="state">confirmada</field>
+            <field name="cliente_nombre">[Cliente A] Minera de la Sierra</field>
+            <field name="cliente_corto">Minera Sierra</field>
+            <field name="tipo_verificacion">periodica</field>
+        </record>
+        <record id="vis_0009" model="uva.visita">
+            <field name="name">UVA-0009</field>
+            <field name="verificador_id" ref="ver_i1"/>
+            <field name="fecha">2026-10-22</field>
+            <field name="hora">10:00</field>
+            <field name="state">programada</field>
+            <field name="cliente_nombre">[Cliente L] Lácteos y Quesos del Norte</field>
+            <field name="cliente_corto">Planta 2</field>
+            <field name="tipo_verificacion">periodica</field>
+        </record>
+        <record id="vis_0008" model="uva.visita">
+            <field name="name">UVA-0008</field>
+            <field name="verificador_id" ref="ver_i2"/>
+            <field name="fecha">2026-10-20</field>
+            <field name="hora">08:30</field>
+            <field name="state">confirmada</field>
+            <field name="cliente_nombre">[Cliente L] Lácteos y Quesos del Norte</field>
+            <field name="cliente_corto">Lácteos Norte</field>
+            <field name="tipo_verificacion">periodica</field>
+        </record>
+        <record id="vis_0005" model="uva.visita">
+            <field name="name">UVA-0005</field>
+            <field name="verificador_id" ref="ver_i4"/>
+            <field name="fecha">2026-10-19</field>
+            <field name="hora">09:00</field>
+            <field name="state">programada</field>
+            <field name="cliente_nombre">[Cliente F] Textil Santa María</field>
+            <field name="cliente_corto">Textil SM</field>
+            <field name="tipo_verificacion">periodica</field>
+        </record>
+        <record id="vis_0011" model="uva.visita">
+            <field name="name">UVA-0011</field>
+            <field name="verificador_id" ref="ver_i4"/>
+            <field name="fecha">2026-10-23</field>
+            <field name="hora">11:00</field>
+            <field name="state">confirmada</field>
+            <field name="cliente_nombre">[Cliente F] Textil Santa María</field>
+            <field name="cliente_corto">Textil SM</field>
+            <field name="tipo_verificacion">periodica</field>
+        </record>
+        <record id="vis_0006" model="uva.visita">
+            <field name="name">UVA-0006</field>
+            <field name="verificador_id" ref="ver_i5"/>
+            <field name="fecha">2026-10-20</field>
+            <field name="hora">09:30</field>
+            <field name="state">programada</field>
+            <field name="cliente_nombre">[Cliente M] Agro Export del Pacífico</field>
+            <field name="cliente_corto">Agro Export</field>
+            <field name="tipo_verificacion">periodica</field>
+        </record>
+        <record id="vis_0004" model="uva.visita">
+            <field name="name">UVA-0004</field>
+            <field name="verificador_id" ref="ver_i6"/>
+            <field name="fecha">2026-10-21</field>
+            <field name="hora">10:00</field>
+            <field name="state">confirmada</field>
+            <field name="cliente_nombre">[Cliente J] Parque Industrial El Salto</field>
+            <field name="cliente_corto">Parque Salto</field>
+            <field name="tipo_verificacion">extraordinaria</field>
+        </record>
+        <record id="vis_aus_i2" model="uva.visita">
+            <field name="tipo_registro">ausencia</field>
+            <field name="verificador_id" ref="ver_i2"/>
+            <field name="fecha">2026-10-23</field>
+            <field name="state">confirmada</field>
+            <field name="descripcion">Capacitación EMA</field>
+            <field name="detalle">Todo el día</field>
+        </record>
+        <record id="pres_0012" model="uva.prestamo">
+            <field name="visita_id" ref="vis_0012"/>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="state">entregado</field>
+            <field name="fecha_entrega">2026-10-21 13:30:00</field>
+            <field name="devolver_antes">2026-10-23</field>
+            <field name="equipos_texto">Flexómetro, multímetro, GPS, flujómetro</field>
+            <field name="linea_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-[0001]'}), (0, 0, {'sequence': 2, 'name': 'Multímetro industrial', 'inventario': 'INV-[0002]'}), (0, 0, {'sequence': 3, 'name': 'GPS de precisión', 'inventario': 'INV-[0020]'}), (0, 0, {'sequence': 4, 'name': 'Flujómetro ultrasónico', 'inventario': 'INV-[0021]', 'accesorios': False, 'comentario': 'Falta cable de sensor transductor B', 'destino': 'fuera_servicio'})]"/>
+        </record>
+        <record id="pres_0006" model="uva.prestamo">
+            <field name="visita_id" ref="vis_0006"/>
+            <field name="verificador_id" ref="ver_i5"/>
+            <field name="state">entregado</field>
+            <field name="fecha_entrega">2026-10-20 14:00:00</field>
+            <field name="devolver_antes">2026-10-22</field>
+            <field name="equipos_texto">Flexómetro, multímetro, GPS, flujómetro</field>
+            <field name="linea_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-[0013]'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-[0012]'}), (0, 0, {'sequence': 3, 'name': 'GPS', 'inventario': 'INV-[0011]'}), (0, 0, {'sequence': 4, 'name': 'Flujómetro ultrasónico', 'inventario': 'INV-[0022]'})]"/>
+        </record>
+        <record id="pres_0008" model="uva.prestamo">
+            <field name="visita_id" ref="vis_0008"/>
+            <field name="verificador_id" ref="ver_i2"/>
+            <field name="state">entregado</field>
+            <field name="fecha_entrega">2026-10-20 13:45:00</field>
+            <field name="devolver_antes">2026-10-20</field>
+            <field name="requerido_el">2026-10-22</field>
+            <field name="equipos_texto">Flexómetro, multímetro, GPS</field>
+            <field name="linea_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-[0006]'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-[0009]'}), (0, 0, {'sequence': 3, 'name': 'GPS', 'inventario': 'INV-[0015]'})]"/>
+        </record>
+        <record id="pres_0009" model="uva.prestamo">
+            <field name="visita_id" ref="vis_0009"/>
+            <field name="verificador_id" ref="ver_i1"/>
+            <field name="state">reservado</field>
+            <field name="devolver_antes">2026-10-24</field>
+            <field name="linea_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-[0005]'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-[0008]'})]"/>
+        </record>
+        <record id="pres_0011" model="uva.prestamo">
+            <field name="visita_id" ref="vis_0011"/>
+            <field name="verificador_id" ref="ver_i4"/>
+            <field name="state">reservado</field>
+            <field name="devolver_antes">2026-10-26</field>
+            <field name="linea_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-[0007]'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-[0014]'})]"/>
+        </record>
+    </data>
+</odoo>

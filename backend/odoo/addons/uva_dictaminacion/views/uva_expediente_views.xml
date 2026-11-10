@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_uva_expediente_list" model="ir.ui.view">
+        <field name="name">uva.expediente.list</field>
+        <field name="model">uva.expediente</field>
+        <field name="arch" type="xml">
+            <list string="Expedientes de campo">
+                <field name="name"/>
+                <field name="cliente_nombre"/>
+                <field name="titulo_concesion" optional="show"/>
+                <field name="pozo_nombre" optional="show"/>
+                <field name="verificador_id"/>
+                <field name="fecha_visita"/>
+                <field name="tipo_verificacion"/>
+                <field name="nc_count"/>
+                <field name="fecha_limite" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state in ('en_campo', 'por_revisar')"
+                       decoration-warning="state == 'devuelto'" decoration-success="state in ('autorizado', 'con_acuse')"
+                       decoration-danger="state == 'inconforme'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_expediente_form" model="ir.ui.view">
+        <field name="name">uva.expediente.form</field>
+        <field name="model">uva.expediente</field>
+        <field name="arch" type="xml">
+            <form string="Expediente">
+                <header>
+                    <button name="action_reenviar_revision" type="object" string="Enviar a revisión técnica"
+                            class="btn-primary" invisible="state not in ('en_campo', 'devuelto')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="en_campo,por_revisar,autorizado,con_acuse"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Cliente y aprovechamiento">
+                            <field name="solicitud_id"/>
+                            <field name="visita_id"/>
+                            <field name="partner_id"/>
+                            <field name="cliente_nombre"/>
+                            <field name="pozo_id"/>
+                            <field name="pozo_nombre"/>
+                            <field name="titulo_concesion"/>
+                        </group>
+                        <group string="Verificación">
+                            <field name="verificador_id"/>
+                            <field name="verificador_nombre"/>
+                            <field name="fecha_visita"/>
+                            <field name="tipo_verificacion"/>
+                            <field name="formato_id"/>
+                            <field name="fecha_limite"/>
+                            <field name="nc_count"/>
+                            <field name="num_fotos"/>
+                            <field name="num_docs"/>
+                            <field name="gps_actual"/>
+                            <field name="carpeta_sharepoint"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="comentario_revision"/>
+                    </group>
+                    <notebook>
+                        <page string="Puntos verificados" name="puntos">
+                            <field name="punto_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="seccion"/>
+                                    <field name="numero"/>
+                                    <field name="texto"/>
+                                    <field name="extra" optional="show"/>
+                                    <field name="respuesta"/>
+                                    <field name="observacion" optional="hide"/>
+                                    <field name="nota" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Fotografías" name="fotos">
+                            <field name="foto_ids">
+                                <list editable="bottom">
+                                    <field name="punto_id"/>
+                                    <field name="name"/>
+                                    <field name="descripcion"/>
+                                    <field name="imagen" widget="image" options="{'size': [64, 64]}"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Resumen y validaciones" name="resumen">
+                            <field name="seccion_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="numero"/>
+                                    <field name="name"/>
+                                    <field name="resumen"/>
+                                </list>
+                            </field>
+                            <field name="check_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="ok"/>
+                                    <field name="aviso"/>
+                                    <field name="name"/>
+                                    <field name="detalle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ficha del dictamen" name="ficha">
+                            <field name="dato_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="grupo"/>
+                                    <field name="clave"/>
+                                    <field name="valor"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documentos" name="documentos">
+                            <field name="documento_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="carpeta"/>
+                                    <field name="name"/>
+                                    <field name="estado"/>
+                                    <field name="archivo" filename="archivo_nombre"/>
+                                    <field name="archivo_nombre" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bitácora" name="bitacora">
+                            <field name="log_ids">
+                                <list editable="bottom">
+                                    <field name="fecha"/>
+                                    <field name="descripcion"/>
+                                    <field name="usuario"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Dictámenes" name="dictamenes">
+                            <field name="dictamen_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="fecha_emision"/>
+                                    <field name="resultado"/>
+                                    <field name="vigencia"/>
+                                    <field name="estado_conagua"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_expediente_search" model="ir.ui.view">
+        <field name="name">uva.expediente.search</field>
+        <field name="model">uva.expediente</field>
+        <field name="arch" type="xml">
+            <search string="Buscar expedientes">
+                <field name="name"/>
+                <field name="cliente_nombre"/>
+                <field name="titulo_concesion"/>
+                <field name="verificador_id"/>
+                <filter string="Por revisar" name="por_revisar" domain="[('state', '=', 'por_revisar')]"/>
+                <filter string="Devueltos" name="devueltos" domain="[('state', '=', 'devuelto')]"/>
+                <filter string="Autorizados" name="autorizados" domain="[('state', '=', 'autorizado')]"/>
+                <group>
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Verificador" name="group_verificador" context="{'group_by': 'verificador_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_expediente" model="ir.actions.act_window">
+        <field name="name">Expedientes de campo</field>
+        <field name="res_model">uva.expediente</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_expediente" name="Expedientes de campo" parent="uva_core.menu_uva_dictaminacion"
+              action="action_uva_expediente" sequence="10"/>
+</odoo>

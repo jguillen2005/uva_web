@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Fecha de referencia de la demostración (los plazos relativos se calculan contra ella). Bórrela en producción. -->
+        <record id="param_fecha_referencia" model="ir.config_parameter">
+            <field name="key">uva.fecha_referencia</field>
+            <field name="value">2026-10-21</field>
+        </record>
+        <record id="uva_core.seq_uva_folio" model="ir.sequence">
+            <field name="number_next" eval="17"/>
+        </record>
+        <record id="uva_solicitudes.seq_uva_cotizacion" model="ir.sequence">
+            <field name="number_next" eval="8922"/>
+        </record>
+        <record id="uva_dictaminacion.seq_uva_dictamen" model="ir.sequence">
+            <field name="number_next" eval="106"/>
+        </record>
+        <record id="user_karla" model="res.users">
+            <field name="name">[Administrador] Lic. Karla Pacheco</field>
+            <field name="login">kpacheco</field>
+            <field name="email">kpacheco@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_admin')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-19 16:00:00</field>
+        </record>
+        <record id="user_gerardo" model="res.users">
+            <field name="name">[Gerente Técnico] Ing. Gerardo Torres</field>
+            <field name="login">gtorres</field>
+            <field name="email">gtorres@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_gerente'), ref('uva_core.group_uva_admin')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-21 14:14:00</field>
+        </record>
+        <record id="user_roberto" model="res.users">
+            <field name="name">[Coordinador] Ing. Roberto Silva</field>
+            <field name="login">rsilva</field>
+            <field name="email">rsilva@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_coordinador')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-21 15:30:00</field>
+        </record>
+        <record id="user_samuel" model="res.users">
+            <field name="name">[Encargado CONAGUA] Lic. Samuel Rivas</field>
+            <field name="login">srivas</field>
+            <field name="email">srivas@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_conagua')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-20 23:40:00</field>
+        </record>
+        <record id="user_raul" model="res.users">
+            <field name="name">[Inspector 1] Ing. Raúl Sánchez</field>
+            <field name="login">rsanchez</field>
+            <field name="email">rsanchez@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_inspector')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-18 15:00:00</field>
+        </record>
+        <record id="user_ana" model="res.users">
+            <field name="name">[Inspector 2] Ing. Ana María Torres</field>
+            <field name="login">atorres</field>
+            <field name="email">atorres@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_inspector')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-19 15:00:00</field>
+        </record>
+        <record id="user_carlos" model="res.users">
+            <field name="name">[Inspector 3] Ing. Carlos Mendoza</field>
+            <field name="login">cmendoza</field>
+            <field name="email">cmendoza@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_inspector')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-21 13:10:00</field>
+        </record>
+        <record id="user_luis" model="res.users">
+            <field name="name">[Responsable de equipos] Téc. Luis Navarro</field>
+            <field name="login">lnavarro</field>
+            <field name="email">lnavarro@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_equipos')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-18 15:00:00</field>
+        </record>
+        <record id="user_alejandro" model="res.users">
+            <field name="name">[Dirección General] Dr. Alejandro Vega</field>
+            <field name="login">avega</field>
+            <field name="email">avega@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_consulta')])]"/>
+            <field name="uva_ultimo_acceso">2026-10-16 15:00:00</field>
+        </record>
+        <!-- Usuario técnico de integración: scripts/bootstrap genera su API key -->
+        <record id="user_api_uva" model="res.users">
+            <field name="name">API Sistema UVA</field>
+            <field name="login">api_uva</field>
+            <field name="email">api_uva@sistemauva.mx</field>
+            <field name="tz">America/Mexico_City</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('uva_core.group_uva_admin')])]"/>
+            <field name="uva_usuario_tecnico" eval="True"/>
+        </record>
+        <record id="base.user_admin" model="res.users">
+            <field name="uva_usuario_tecnico" eval="True"/>
+        </record>
+        <record id="ind_kpi_solicitudes" model="uva.indicador">
+            <field name="code">kpi_solicitudes</field>
+            <field name="name">KPI Solicitudes activas</field>
+            <field name="ajuste" eval="0"/>
+            <field name="texto">6 esperando documentos</field>
+        </record>
+        <record id="ind_kpi_revisar" model="uva.indicador">
+            <field name="code">kpi_revisar</field>
+            <field name="name">KPI Por revisar</field>
+            <field name="ajuste" eval="1"/>
+        </record>
+        <record id="ind_etapa_documentacion" model="uva.indicador">
+            <field name="code">etapa_documentacion</field>
+            <field name="name">Etapa Documentación pendiente</field>
+            <field name="ajuste" eval="3"/>
+        </record>
+        <record id="ind_etapa_campo" model="uva.indicador">
+            <field name="code">etapa_campo</field>
+            <field name="name">Etapa En campo / sincronizar</field>
+            <field name="ajuste" eval="1"/>
+        </record>
+        <record id="ind_etapa_revision" model="uva.indicador">
+            <field name="code">etapa_revision</field>
+            <field name="name">Etapa En revisión técnica</field>
+            <field name="ajuste" eval="1"/>
+        </record>
+        <record id="ind_etapa_acuse" model="uva.indicador">
+            <field name="code">etapa_acuse</field>
+            <field name="name">Etapa Acuse enviado (mes)</field>
+            <field name="ajuste" eval="8"/>
+        </record>
+        <record id="ind_bandeja_revisar" model="uva.indicador">
+            <field name="code">bandeja_revisar</field>
+            <field name="name">Bandeja Por revisar</field>
+            <field name="ajuste" eval="1"/>
+        </record>
+        <record id="ind_bandeja_autorizados" model="uva.indicador">
+            <field name="code">bandeja_autorizados</field>
+            <field name="name">Bandeja Autorizados</field>
+            <field name="ajuste" eval="1"/>
+        </record>
+        <record id="ind_bandeja_acuse" model="uva.indicador">
+            <field name="code">bandeja_acuse</field>
+            <field name="name">Bandeja Con acuse este mes</field>
+            <field name="ajuste" eval="8"/>
+        </record>
+        <record id="ind_alerta_calibracion" model="uva.indicador">
+            <field name="code">alerta_calibracion</field>
+            <field name="name">Alerta Calibración</field>
+            <field name="ajuste" eval="0"/>
+            <field name="texto2">Quedan 2 flujómetros disponibles</field>
+        </record>
+        <record id="ind_alerta_competencia" model="uva.indicador">
+            <field name="code">alerta_competencia</field>
+            <field name="name">Alerta Competencia</field>
+            <field name="ajuste" eval="0"/>
+            <field name="texto">[Inspector 4]: calificación vence en 18 días</field>
+        </record>
+        <record id="ind_alerta_oportunidad" model="uva.indicador">
+            <field name="code">alerta_oportunidad</field>
+            <field name="name">Alerta Oportunidad (dictámenes por vencer)</field>
+            <field name="ajuste" eval="2"/>
+        </record>
+        <record id="matriz_01" model="uva.matriz.permiso">
+            <field name="sequence" eval="1"/>
+            <field name="name">Tablero</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">V</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">V</field>
+            <field name="p_equipos">V</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_02" model="uva.matriz.permiso">
+            <field name="sequence" eval="2"/>
+            <field name="name">Formatos</field>
+            <field name="p_admin">E</field>
+            <field name="p_coordinador">—</field>
+            <field name="p_inspector">—</field>
+            <field name="p_gerente">A</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_03" model="uva.matriz.permiso">
+            <field name="sequence" eval="3"/>
+            <field name="name">Instrumentos</field>
+            <field name="p_admin">E</field>
+            <field name="p_coordinador">V</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">E</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">E</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_04" model="uva.matriz.permiso">
+            <field name="sequence" eval="4"/>
+            <field name="name">Calibración de instrumentos</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">—</field>
+            <field name="p_inspector">—</field>
+            <field name="p_gerente">A</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">E</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_05" model="uva.matriz.permiso">
+            <field name="sequence" eval="5"/>
+            <field name="name">Entrega y devolución de equipos</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">V</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">—</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">E</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_06" model="uva.matriz.permiso">
+            <field name="sequence" eval="6"/>
+            <field name="name">Verificadores</field>
+            <field name="p_admin">E</field>
+            <field name="p_coordinador">V</field>
+            <field name="p_inspector">—</field>
+            <field name="p_gerente">E</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_07" model="uva.matriz.permiso">
+            <field name="sequence" eval="7"/>
+            <field name="name">Usuarios y roles</field>
+            <field name="p_admin">E</field>
+            <field name="p_coordinador">—</field>
+            <field name="p_inspector">—</field>
+            <field name="p_gerente">—</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">—</field>
+        </record>
+        <record id="matriz_08" model="uva.matriz.permiso">
+            <field name="sequence" eval="8"/>
+            <field name="name">Clientes y aprovechamientos</field>
+            <field name="p_admin">E</field>
+            <field name="p_coordinador">E</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">V</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_09" model="uva.matriz.permiso">
+            <field name="sequence" eval="9"/>
+            <field name="name">Solicitudes (F-12)</field>
+            <field name="p_admin">E</field>
+            <field name="p_coordinador">E</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_10" model="uva.matriz.permiso">
+            <field name="sequence" eval="10"/>
+            <field name="name">Programación de visitas</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">E</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">V</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_11" model="uva.matriz.permiso">
+            <field name="sequence" eval="11"/>
+            <field name="name">Captura en campo</field>
+            <field name="p_admin">—</field>
+            <field name="p_coordinador">—</field>
+            <field name="p_inspector">E</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">—</field>
+        </record>
+        <record id="matriz_12" model="uva.matriz.permiso">
+            <field name="sequence" eval="12"/>
+            <field name="name">Revisión técnica</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">V</field>
+            <field name="p_inspector">V</field>
+            <field name="p_gerente">A</field>
+            <field name="p_conagua">—</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_13" model="uva.matriz.permiso">
+            <field name="sequence" eval="13"/>
+            <field name="name">Carga a CONAGUA</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">—</field>
+            <field name="p_inspector">—</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">E</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="matriz_14" model="uva.matriz.permiso">
+            <field name="sequence" eval="14"/>
+            <field name="name">Estadísticas</field>
+            <field name="p_admin">V</field>
+            <field name="p_coordinador">V</field>
+            <field name="p_inspector">—</field>
+            <field name="p_gerente">V</field>
+            <field name="p_conagua">V</field>
+            <field name="p_equipos">—</field>
+            <field name="p_consulta">V</field>
+        </record>
+        <record id="est_mes_2026_05" model="uva.estadistica.mes">
+            <field name="fecha">2026-05-01</field>
+            <field name="verificaciones" eval="21"/>
+            <field name="meta" eval="30"/>
+        </record>
+        <record id="est_mes_2026_06" model="uva.estadistica.mes">
+            <field name="fecha">2026-06-01</field>
+            <field name="verificaciones" eval="24"/>
+            <field name="meta" eval="30"/>
+        </record>
+        <record id="est_mes_2026_07" model="uva.estadistica.mes">
+            <field name="fecha">2026-07-01</field>
+            <field name="verificaciones" eval="27"/>
+            <field name="meta" eval="30"/>
+        </record>
+        <record id="est_mes_2026_08" model="uva.estadistica.mes">
+            <field name="fecha">2026-08-01</field>
+            <field name="verificaciones" eval="25"/>
+            <field name="meta" eval="30"/>
+        </record>
+        <record id="est_mes_2026_09" model="uva.estadistica.mes">
+            <field name="fecha">2026-09-01</field>
+            <field name="verificaciones" eval="31"/>
+            <field name="meta" eval="30"/>
+        </record>
+        <record id="est_mes_2026_10" model="uva.estadistica.mes">
+            <field name="fecha">2026-10-01</field>
+            <field name="verificaciones" eval="18"/>
+            <field name="meta" eval="30"/>
+        </record>
+        <record id="est_etapa_1" model="uva.estadistica.dato">
+            <field name="tipo">etapa</field>
+            <field name="sequence" eval="1"/>
+            <field name="name">Solicitud → documentación completa</field>
+            <field name="valor" eval="9"/>
+            <field name="maximo" eval="25"/>
+            <field name="es_total" eval="False"/>
+        </record>
+        <record id="est_etapa_2" model="uva.estadistica.dato">
+            <field name="tipo">etapa</field>
+            <field name="sequence" eval="2"/>
+            <field name="name">Documentación → visita en campo</field>
+            <field name="valor" eval="8"/>
+            <field name="maximo" eval="25"/>
+            <field name="es_total" eval="False"/>
+        </record>
+        <record id="est_etapa_3" model="uva.estadistica.dato">
+            <field name="tipo">etapa</field>
+            <field name="sequence" eval="3"/>
+            <field name="name">Visita → autorización técnica</field>
+            <field name="valor" eval="4"/>
+            <field name="maximo" eval="25"/>
+            <field name="es_total" eval="False"/>
+        </record>
+        <record id="est_etapa_4" model="uva.estadistica.dato">
+            <field name="tipo">etapa</field>
+            <field name="sequence" eval="4"/>
+            <field name="name">Autorización → acuse CONAGUA</field>
+            <field name="valor" eval="2"/>
+            <field name="maximo" eval="25"/>
+            <field name="es_total" eval="False"/>
+        </record>
+        <record id="est_etapa_5" model="uva.estadistica.dato">
+            <field name="tipo">etapa</field>
+            <field name="sequence" eval="5"/>
+            <field name="name">Total solicitud → acuse</field>
+            <field name="valor" eval="23"/>
+            <field name="maximo" eval="25"/>
+            <field name="es_total" eval="True"/>
+        </record>
+        <record id="est_nc_1" model="uva.estadistica.dato">
+            <field name="tipo">nc</field>
+            <field name="sequence" eval="1"/>
+            <field name="name">4.29 Material desecante en gabinete</field>
+            <field name="valor" eval="7"/>
+            <field name="maximo" eval="8"/>
+        </record>
+        <record id="est_nc_2" model="uva.estadistica.dato">
+            <field name="tipo">nc</field>
+            <field name="sequence" eval="2"/>
+            <field name="name">3.4 Longitud de tramos rectos (L1, L2)</field>
+            <field name="valor" eval="5"/>
+            <field name="maximo" eval="8"/>
+        </record>
+        <record id="est_nc_3" model="uva.estadistica.dato">
+            <field name="tipo">nc</field>
+            <field name="sequence" eval="3"/>
+            <field name="name">4.27 Opresores glandulares sin sello</field>
+            <field name="valor" eval="4"/>
+            <field name="maximo" eval="8"/>
+        </record>
+        <record id="est_nc_4" model="uva.estadistica.dato">
+            <field name="tipo">nc</field>
+            <field name="sequence" eval="4"/>
+            <field name="name">6.12 Envío correcto de trama a CONAGUA</field>
+            <field name="valor" eval="3"/>
+            <field name="maximo" eval="8"/>
+        </record>
+        <record id="est_nc_5" model="uva.estadistica.dato">
+            <field name="tipo">nc</field>
+            <field name="sequence" eval="5"/>
+            <field name="name">4.21 Baterías de respaldo agotadas</field>
+            <field name="valor" eval="3"/>
+            <field name="maximo" eval="8"/>
+        </record>
+        <record id="est_nc_6" model="uva.estadistica.dato">
+            <field name="tipo">nc</field>
+            <field name="sequence" eval="6"/>
+            <field name="name">2.7 Certificado de calibración ilegible</field>
+            <field name="valor" eval="2"/>
+            <field name="maximo" eval="8"/>
+        </record>
+    </data>
+</odoo>

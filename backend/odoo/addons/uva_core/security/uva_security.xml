@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="module_category_uva" model="ir.module.category">
+        <field name="name">Sistema UVA</field>
+        <field name="description">Unidad de Verificación de medidores de agua (NMX-AA-179-SCFI-2018 / CONAGUA)</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <record id="res_groups_privilege_uva" model="res.groups.privilege">
+        <field name="name">Sistema UVA</field>
+        <field name="sequence">40</field>
+        <field name="category_id" ref="module_category_uva"/>
+    </record>
+
+    <!-- Roles = columnas de UsuariosView. Cada rol es independiente (un usuario puede tener varios). -->
+    <record id="group_uva_consulta" model="res.groups">
+        <field name="name">Consulta</field>
+        <field name="comment">Consulta de toda la información del Sistema UVA, sin edición.</field>
+        <field name="sequence">70</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_uva_inspector" model="res.groups">
+        <field name="name">Inspector</field>
+        <field name="comment">Verificador de campo: captura de listas de verificación y evidencias.</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_uva_coordinador" model="res.groups">
+        <field name="name">Coordinador</field>
+        <field name="comment">Solicitudes, clientes y programación de visitas.</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_uva_gerente" model="res.groups">
+        <field name="name">Gerente Técnico</field>
+        <field name="comment">Revisión técnica, autorización de dictámenes y aprobación de formatos.</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_uva_conagua" model="res.groups">
+        <field name="name">Registro CONAGUA</field>
+        <field name="comment">Carga de dictámenes al portal CONAGUA y envío de acuses.</field>
+        <field name="sequence">40</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_uva_equipos" model="res.groups">
+        <field name="name">Responsable de equipos</field>
+        <field name="comment">Instrumentos de medición, calibraciones, entrega y devolución de equipos.</field>
+        <field name="sequence">50</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_uva_admin" model="res.groups">
+        <field name="name">Administrador</field>
+        <field name="comment">Administración completa del Sistema UVA (catálogos, usuarios y roles).</field>
+        <field name="sequence">60</field>
+        <field name="privilege_id" ref="res_groups_privilege_uva"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+</odoo>

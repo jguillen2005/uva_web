@@ -1,0 +1,6 @@
+{
+  "name": "Sistema UVA - NMX-AA-179-SCFI-2018",
+  "description": "Plataforma integral de gestión de verificación y dictaminación para Unidades de Verificación Acreditadas bajo la norma NMX-AA-179-SCFI-2018 y CONAGUA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

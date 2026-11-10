@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Instrumentos -->
+    <record id="view_uva_instrumento_list" model="ir.ui.view">
+        <field name="name">uva.instrumento.list</field>
+        <field name="model">uva.instrumento</field>
+        <field name="arch" type="xml">
+            <list string="Instrumentos de medición">
+                <field name="codigo"/>
+                <field name="tipo"/>
+                <field name="marca_modelo"/>
+                <field name="serie"/>
+                <field name="verificador_id"/>
+                <field name="fecha_vencimiento"/>
+                <field name="estado" optional="hide"/>
+                <field name="status" widget="badge" decoration-success="status in ('vigente', 'disponible')"
+                       decoration-warning="status in ('por_vencer', 'en_calibracion')"
+                       decoration-danger="status in ('vencido', 'fuera_servicio')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_instrumento_form" model="ir.ui.view">
+        <field name="name">uva.instrumento.form</field>
+        <field name="model">uva.instrumento</field>
+        <field name="arch" type="xml">
+            <form string="Instrumento de medición">
+                <header>
+                    <button name="action_iniciar_calibracion" type="object" string="Iniciar calibración"
+                            invisible="estado != 'operativo'"/>
+                    <button name="action_recalcular_estatus" type="object" string="Recalcular estatus"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="codigo"/>
+                        <h1><field name="codigo"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificación">
+                            <field name="tipo"/>
+                            <field name="marca_modelo"/>
+                            <field name="nombre_corto"/>
+                            <field name="serie"/>
+                            <field name="verificador_id"/>
+                            <field name="estado"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Calibración vigente">
+                            <field name="laboratorio"/>
+                            <field name="certificado"/>
+                            <field name="fecha_calibracion"/>
+                            <field name="fecha_vencimiento"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Calibraciones" name="calibraciones">
+                            <field name="calibracion_ids">
+                                <list>
+                                    <field name="fecha_calibracion"/>
+                                    <field name="laboratorio"/>
+                                    <field name="certificado"/>
+                                    <field name="nuevo_vencimiento"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_instrumento_search" model="ir.ui.view">
+        <field name="name">uva.instrumento.search</field>
+        <field name="model">uva.instrumento</field>
+        <field name="arch" type="xml">
+            <search string="Buscar instrumentos">
+                <field name="codigo"/>
+                <field name="tipo"/>
+                <field name="serie"/>
+                <field name="verificador_id"/>
+                <filter string="Por vencer" name="por_vencer" domain="[('status', '=', 'por_vencer')]"/>
+                <filter string="Vencidos" name="vencidos" domain="[('status', '=', 'vencido')]"/>
+                <filter string="Disponibles" name="disponibles" domain="[('status', '=', 'disponible')]"/>
+                <group>
+                    <filter string="Tipo" name="group_tipo" context="{'group_by': 'tipo'}"/>
+                    <filter string="Estatus" name="group_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_instrumento" model="ir.actions.act_window">
+        <field name="name">Instrumentos de medición</field>
+        <field name="res_model">uva.instrumento</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Calibraciones -->
+    <record id="view_uva_calibracion_list" model="ir.ui.view">
+        <field name="name">uva.calibracion.list</field>
+        <field name="model">uva.calibracion</field>
+        <field name="arch" type="xml">
+            <list string="Calibraciones">
+                <field name="instrumento_id"/>
+                <field name="laboratorio"/>
+                <field name="certificado"/>
+                <field name="fecha_calibracion"/>
+                <field name="nuevo_vencimiento"/>
+                <field name="pasos_hechos"/>
+                <field name="pasos_total"/>
+                <field name="state" widget="badge" decoration-warning="state == 'en_curso'"
+                       decoration-success="state == 'completada'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_calibracion_form" model="ir.ui.view">
+        <field name="name">uva.calibracion.form</field>
+        <field name="model">uva.calibracion</field>
+        <field name="arch" type="xml">
+            <form string="Calibración">
+                <header>
+                    <button name="action_completar_boton" type="object" string="Cerrar calibración y liberar equipo"
+                            class="btn-primary" invisible="state != 'en_curso'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="instrumento_id"/>
+                            <field name="laboratorio"/>
+                            <field name="laboratorio_corto"/>
+                            <field name="certificado"/>
+                            <field name="archivo" filename="archivo_nombre"/>
+                            <field name="archivo_nombre" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="fecha_calibracion"/>
+                            <field name="vigencia_meses"/>
+                            <field name="nuevo_vencimiento"/>
+                            <field name="vencimiento_anterior"/>
+                            <field name="pasos_hechos"/>
+                            <field name="pasos_total"/>
+                        </group>
+                    </group>
+                    <field name="paso_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="realizado"/>
+                            <field name="name"/>
+                            <field name="requerido"/>
+                            <field name="fecha"/>
+                            <field name="comentario"/>
+                        </list>
+                    </field>
+                    <group>
+                        <field name="notas"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_calibracion_search" model="ir.ui.view">
+        <field name="name">uva.calibracion.search</field>
+        <field name="model">uva.calibracion</field>
+        <field name="arch" type="xml">
+            <search string="Buscar calibraciones">
+                <field name="instrumento_id"/>
+                <field name="laboratorio"/>
+                <field name="certificado"/>
+                <filter string="En curso" name="en_curso" domain="[('state', '=', 'en_curso')]"/>
+                <filter string="Completadas" name="completadas" domain="[('state', '=', 'completada')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_calibracion" model="ir.actions.act_window">
+        <field name="name">Calibraciones</field>
+        <field name="res_model">uva.calibracion</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_instrumento" name="Instrumentos de medición" parent="uva_core.menu_uva_calidad"
+              action="action_uva_instrumento" sequence="10"/>
+    <menuitem id="menu_uva_calibracion" name="Calibraciones" parent="uva_core.menu_uva_calidad"
+              action="action_uva_calibracion" sequence="20"/>
+</odoo>

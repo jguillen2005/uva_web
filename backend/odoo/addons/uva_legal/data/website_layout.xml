@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Encabezado y pie propios (sin los de ejemplo de Odoo). Se actualizan con el módulo. -->
+    <template id="uva_header" name="UVA: encabezado legal">
+        <header class="o_uva_header">
+            <div class="container d-flex align-items-center justify-content-between gap-3">
+                <a href="/" class="o_uva_brand">
+                    <img src="/uva_legal/static/description/icon.png" alt="Logotipo Sistema UVA" width="36" height="36"/>
+                    <span>Sistema UVA</span>
+                </a>
+                <nav class="d-flex align-items-center gap-3">
+                    <a href="/terminos-y-condiciones" class="d-none d-md-inline">Términos</a>
+                    <a href="/aviso-de-privacidad" class="d-none d-md-inline">Privacidad</a>
+                    <a href="/" class="btn btn-primary btn-sm o_uva_btn">Ir al sistema</a>
+                </nav>
+            </div>
+        </header>
+    </template>
+    <template id="uva_footer" name="UVA: pie legal">
+        <footer class="o_uva_footer d-print-none">
+            <div class="container d-flex flex-wrap justify-content-between gap-2">
+                <span>Sistema UVA · NMX-AA-179-SCFI-2018</span>
+                <span>
+                    <a href="/terminos-y-condiciones">Términos y Condiciones de uso</a>
+                    <span class="mx-2">·</span>
+                    <a href="/aviso-de-privacidad">Aviso de Privacidad</a>
+                </span>
+            </div>
+        </footer>
+    </template>
+</odoo>

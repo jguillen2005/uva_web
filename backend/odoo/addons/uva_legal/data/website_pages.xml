@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Versión inicial de los textos. noupdate: lo editado en el sitio web de Odoo no se sobrescribe al actualizar el módulo. -->
+<odoo noupdate="1">
+        <record id="page_terminos_view" model="ir.ui.view">
+            <field name="name">Términos y Condiciones de uso</field>
+            <field name="type">qweb</field>
+            <field name="key">uva_legal.terminos_condiciones</field>
+            <field name="arch" type="xml">
+                <t t-name="uva_legal.terminos_condiciones">
+                    <t t-call="website.layout">
+                        <t t-set="pageName" t-value="'terminos_condiciones'"/>
+                        <t t-set="no_header" t-value="True"/>
+                        <t t-set="no_footer" t-value="True"/>
+                        <t t-call="uva_legal.uva_header"/>
+                        <div id="wrap" class="oe_structure o_uva_legal">
+                            <section class="s_title pt48 pb24">
+                                <div class="container">
+                                    <p class="o_uva_eyebrow">Sistema UVA · Legal</p>
+                                    <h1>Términos y Condiciones de uso</h1>
+                                    <p class="lead">Reglas para usar el Sistema UVA: quién puede entrar, qué se espera de cada usuario y cómo se cuida la información de los expedientes de verificación.</p>
+                                    <p class="o_uva_meta">Versión 1.0 · Última actualización: <mark class="o_uva_pendiente">[fecha de entrada en vigor]</mark></p>
+                                </div>
+                            </section>
+                            <section class="s_text_block pb64">
+                                <div class="container">
+                                    <div class="row">
+                                        <nav class="col-lg-3 d-print-none mb-4 o_uva_toc">
+                                            <p class="o_uva_eyebrow">Contenido</p>
+                                            <ol class="list-unstyled">
+                                                <li><a href="#objeto">1. Objeto</a></li>
+                                                <li><a href="#acceso">2. Usuarios autorizados y acceso</a></li>
+                                                <li><a href="#uso">3. Uso aceptable</a></li>
+                                                <li><a href="#integridad">4. Integridad técnica de los registros</a></li>
+                                                <li><a href="#confidencialidad">5. Confidencialidad</a></li>
+                                                <li><a href="#propiedad">6. Propiedad intelectual</a></li>
+                                                <li><a href="#disponibilidad">7. Disponibilidad y cambios</a></li>
+                                                <li><a href="#monitoreo">8. Bitácora y monitoreo</a></li>
+                                                <li><a href="#incumplimiento">9. Incumplimiento</a></li>
+                                                <li><a href="#modificaciones">10. Modificaciones y legislación aplicable</a></li>
+                                            </ol>
+                                            <p><a href="/aviso-de-privacidad">Ver Aviso de Privacidad →</a></p>
+                                        </nav>
+                                        <article class="col-lg-9">
+                                            <section id="objeto" class="o_uva_legal_section">
+                                                <h2 class="h4">1. Objeto</h2>
+                                                <p>Estos Términos regulan el uso del Sistema UVA (el "Sistema"), plataforma de <mark class="o_uva_pendiente">[Razón social de la Unidad de Verificación]</mark> (la "Unidad de Verificación") para gestionar solicitudes, visitas, revisión técnica, dictámenes y cargas a CONAGUA conforme a la NMX-AA-179-SCFI-2018.</p>
+                                                <p>Al iniciar sesión aceptas estos Términos y el Aviso de Privacidad. Si no estás de acuerdo, no uses el Sistema.</p>
+                                            </section>
+                                            <section id="acceso" class="o_uva_legal_section">
+                                                <h2 class="h4">2. Usuarios autorizados y acceso</h2>
+                                                <p>Solo pueden usar el Sistema el personal y los colaboradores de la Unidad de Verificación que tengan una cuenta institucional de Microsoft 365 y al menos un rol asignado.</p>
+                                                <ul>
+                                                    <li>La cuenta es personal e intransferible. No compartas tu contraseña ni tu segundo factor de autenticación.</li>
+                                                    <li>Cada rol da acceso solo a los módulos y acciones que aparecen en "Mis permisos".</li>
+                                                    <li>Cuando una cuenta se da de baja en Microsoft Entra ID, pierde el acceso de inmediato.</li>
+                                                    <li>Cierra sesión al terminar, sobre todo en equipos compartidos o dispositivos móviles de campo.</li>
+                                                </ul>
+                                            </section>
+                                            <section id="uso" class="o_uva_legal_section">
+                                                <h2 class="h4">3. Uso aceptable</h2>
+                                                <p>Te comprometes a usar el Sistema solo para las funciones de tu puesto. En particular, no debes:</p>
+                                                <ul>
+                                                    <li>Capturar información falsa, incompleta o alterada en solicitudes, listas de verificación, evidencias o dictámenes.</li>
+                                                    <li>Modificar, borrar u ocultar registros o evidencias después de su autorización, salvo por el procedimiento de corrección documentado.</li>
+                                                    <li>Intentar acceder a módulos, expedientes o datos para los que no tienes permiso.</li>
+                                                    <li>Descargar, copiar o enviar expedientes fuera de los canales institucionales (SharePoint, Outlook) sin autorización.</li>
+                                                    <li>Interferir con el funcionamiento del Sistema, probar sus vulnerabilidades o usar herramientas automatizadas no autorizadas.</li>
+                                                </ul>
+                                            </section>
+                                            <section id="integridad" class="o_uva_legal_section">
+                                                <h2 class="h4">4. Integridad técnica de los registros</h2>
+                                                <p>Los registros del Sistema forman parte del sistema de gestión de la Unidad de Verificación y pueden ser revisados por la entidad de acreditación y por las autoridades competentes.</p>
+                                                <p>Cada acción queda registrada con usuario, fecha y hora. La autorización o firma electrónica de un dictamen o de una revisión técnica equivale a tu firma y te hace responsable de su contenido.</p>
+                                            </section>
+                                            <section id="confidencialidad" class="o_uva_legal_section">
+                                                <h2 class="h4">5. Confidencialidad</h2>
+                                                <p>La información de clientes, aprovechamientos, títulos de concesión, mediciones y dictámenes es confidencial. Solo puedes usarla para prestar el servicio de verificación y debes protegerla aun después de dejar de colaborar con la Unidad de Verificación.</p>
+                                                <p>El tratamiento de datos personales se rige por el Aviso de Privacidad.</p>
+                                            </section>
+                                            <section id="propiedad" class="o_uva_legal_section">
+                                                <h2 class="h4">6. Propiedad intelectual</h2>
+                                                <p>El Sistema, sus formatos, plantillas y contenidos son propiedad de <mark class="o_uva_pendiente">[Razón social de la Unidad de Verificación]</mark> o se usan con licencia. No se otorga ningún derecho sobre ellos más allá de su uso para tus funciones.</p>
+                                            </section>
+                                            <section id="disponibilidad" class="o_uva_legal_section">
+                                                <h2 class="h4">7. Disponibilidad y cambios</h2>
+                                                <p>La Unidad de Verificación procurará que el Sistema esté disponible, pero puede suspenderlo para mantenimiento, actualizaciones o por causas de fuerza mayor. Las integraciones con terceros (Aspel SAE, Microsoft 365, portal de CONAGUA) dependen de esos proveedores.</p>
+                                                <p>Las funciones del Sistema pueden cambiar o ampliarse sin previo aviso.</p>
+                                            </section>
+                                            <section id="monitoreo" class="o_uva_legal_section">
+                                                <h2 class="h4">8. Bitácora y monitoreo</h2>
+                                                <p>Para seguridad y trazabilidad, el Sistema registra accesos, dispositivos y acciones de los usuarios. Esa información puede usarse en auditorías internas, investigaciones de incidentes y procesos de acreditación.</p>
+                                            </section>
+                                            <section id="incumplimiento" class="o_uva_legal_section">
+                                                <h2 class="h4">9. Incumplimiento</h2>
+                                                <p>El uso indebido puede llevar a la suspensión o cancelación del acceso y a las medidas laborales, contractuales o legales que correspondan.</p>
+                                                <p>Si detectas un uso indebido o un incidente de seguridad, repórtalo de inmediato a <mark class="o_uva_pendiente">[correo o área de soporte]</mark>.</p>
+                                            </section>
+                                            <section id="modificaciones" class="o_uva_legal_section">
+                                                <h2 class="h4">10. Modificaciones y legislación aplicable</h2>
+                                                <p>La Unidad de Verificación puede actualizar estos Términos. La versión vigente siempre estará disponible en el Sistema y se indicará su fecha de actualización.</p>
+                                                <p>Estos Términos se rigen por las leyes de los Estados Unidos Mexicanos. Para su interpretación y cumplimiento, las partes se someten a los tribunales competentes de <mark class="o_uva_pendiente">[ciudad y estado]</mark>.</p>
+                                            </section>
+                                        </article>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                        <t t-call="uva_legal.uva_footer"/>
+                    </t>
+                </t>
+            </field>
+        </record>
+        <record id="page_terminos" model="website.page">
+            <field name="url">/terminos-y-condiciones</field>
+            <field name="view_id" ref="page_terminos_view"/>
+            <field name="is_published" eval="True"/>
+            <field name="website_indexed" eval="True"/>
+        </record>
+
+        <record id="page_privacidad_view" model="ir.ui.view">
+            <field name="name">Aviso de Privacidad</field>
+            <field name="type">qweb</field>
+            <field name="key">uva_legal.aviso_privacidad</field>
+            <field name="arch" type="xml">
+                <t t-name="uva_legal.aviso_privacidad">
+                    <t t-call="website.layout">
+                        <t t-set="pageName" t-value="'aviso_privacidad'"/>
+                        <t t-set="no_header" t-value="True"/>
+                        <t t-set="no_footer" t-value="True"/>
+                        <t t-call="uva_legal.uva_header"/>
+                        <div id="wrap" class="oe_structure o_uva_legal">
+                            <section class="s_title pt48 pb24">
+                                <div class="container">
+                                    <p class="o_uva_eyebrow">Sistema UVA · Legal</p>
+                                    <h1>Aviso de Privacidad</h1>
+                                    <p class="lead">Qué datos personales trata el Sistema UVA, para qué los usa, con quién los comparte y cómo puedes ejercer tus derechos.</p>
+                                    <p class="o_uva_meta">Versión 1.0 · Última actualización: <mark class="o_uva_pendiente">[fecha de entrada en vigor]</mark></p>
+                                </div>
+                            </section>
+                            <section class="s_text_block pb64">
+                                <div class="container">
+                                    <div class="row">
+                                        <nav class="col-lg-3 d-print-none mb-4 o_uva_toc">
+                                            <p class="o_uva_eyebrow">Contenido</p>
+                                            <ol class="list-unstyled">
+                                                <li><a href="#responsable">1. Identidad y domicilio del responsable</a></li>
+                                                <li><a href="#datos">2. Datos personales que tratamos</a></li>
+                                                <li><a href="#finalidades">3. Finalidades</a></li>
+                                                <li><a href="#transferencias">4. Transferencias y remisiones</a></li>
+                                                <li><a href="#derechos">5. Derechos ARCO y revocación del consentimiento</a></li>
+                                                <li><a href="#tecnologias">6. Tecnologías de rastreo</a></li>
+                                                <li><a href="#seguridad">7. Medidas de seguridad y conservación</a></li>
+                                                <li><a href="#cambios">8. Cambios al aviso</a></li>
+                                            </ol>
+                                            <p><a href="/terminos-y-condiciones">Ver Términos y Condiciones de uso →</a></p>
+                                        </nav>
+                                        <article class="col-lg-9">
+                                            <section id="responsable" class="o_uva_legal_section">
+                                                <h2 class="h4">1. Identidad y domicilio del responsable</h2>
+                                                <p><mark class="o_uva_pendiente">[Razón social de la Unidad de Verificación]</mark>, con domicilio en <mark class="o_uva_pendiente">[Domicilio fiscal completo]</mark>, es responsable del tratamiento de los datos personales que se recaban a través del Sistema UVA, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares y demás normativa aplicable.</p>
+                                            </section>
+                                            <section id="datos" class="o_uva_legal_section">
+                                                <h2 class="h4">2. Datos personales que tratamos</h2>
+                                                <p>De usuarios del Sistema (personal y colaboradores):</p>
+                                                <ul>
+                                                    <li>Identificación y contacto: nombre, puesto, correo institucional y teléfono.</li>
+                                                    <li>Laborales: roles, competencias, calendario de visitas, equipo asignado y desempeño en verificaciones.</li>
+                                                    <li>Técnicos: usuario, registros de acceso, dispositivo, navegador y acciones realizadas en el Sistema.</li>
+                                                    <li>Evidencias de campo: fotografías y ubicación de las visitas, que pueden incluir a personas presentes.</li>
+                                                </ul>
+                                                <p>De clientes y sus representantes:</p>
+                                                <ul>
+                                                    <li>Nombre o razón social, RFC, domicilio fiscal y régimen.</li>
+                                                    <li>Nombre y datos de contacto del representante legal y de quien recibe avisos.</li>
+                                                    <li>Datos de los aprovechamientos: títulos de concesión, ubicación, volúmenes y lecturas de medidores.</li>
+                                                </ul>
+                                                <p>No tratamos datos personales sensibles.</p>
+                                            </section>
+                                            <section id="finalidades" class="o_uva_legal_section">
+                                                <h2 class="h4">3. Finalidades</h2>
+                                                <p>Finalidades necesarias para la relación con usted:</p>
+                                                <ul>
+                                                    <li>Prestar el servicio de verificación: solicitudes, programación de visitas, revisión técnica, dictámenes y carga a CONAGUA.</li>
+                                                    <li>Dar acceso al Sistema, administrar roles y mantener la trazabilidad de cada registro.</li>
+                                                    <li>Cumplir obligaciones de la norma NMX-AA-179-SCFI-2018, de la acreditación y de las autoridades.</li>
+                                                    <li>Facturación y cobranza (Aspel SAE).</li>
+                                                    <li>Seguridad de la información y atención de incidentes.</li>
+                                                </ul>
+                                                <p>Finalidades adicionales (puede negarse a ellas sin afectar el servicio):</p>
+                                                <ul>
+                                                    <li>Estadísticas internas de productividad y calidad.</li>
+                                                    <li>Encuestas de satisfacción.</li>
+                                                </ul>
+                                                <p>Si no desea que sus datos se usen para las finalidades adicionales, escriba a <mark class="o_uva_pendiente">[correo del área de privacidad]</mark>.</p>
+                                            </section>
+                                            <section id="transferencias" class="o_uva_legal_section">
+                                                <h2 class="h4">4. Transferencias y remisiones</h2>
+                                                <p>Sus datos pueden transferirse, sin requerir su consentimiento, a:</p>
+                                                <ul>
+                                                    <li>La Comisión Nacional del Agua (CONAGUA) y otras autoridades, para cumplir obligaciones legales y entregar dictámenes.</li>
+                                                    <li>La entidad de acreditación, para auditorías y evaluaciones de la Unidad de Verificación.</li>
+                                                </ul>
+                                                <p>Además, los compartimos con proveedores que los tratan por nuestra cuenta y bajo nuestras instrucciones (por ejemplo, Microsoft para correo, almacenamiento e identidad, y el proveedor de Aspel SAE). Ellos no pueden usarlos para fines propios.</p>
+                                            </section>
+                                            <section id="derechos" class="o_uva_legal_section">
+                                                <h2 class="h4">5. Derechos ARCO y revocación del consentimiento</h2>
+                                                <p>Usted puede acceder a sus datos, rectificarlos, cancelarlos u oponerse a su tratamiento (derechos ARCO), así como revocar su consentimiento o limitar el uso y divulgación de sus datos.</p>
+                                                <p>Envíe su solicitud a <mark class="o_uva_pendiente">[correo del área de privacidad]</mark> indicando su nombre, un medio para responderle, un documento que acredite su identidad (o la de su representante), los datos a los que se refiere y el derecho que desea ejercer. Le responderemos en los plazos que establece la ley.</p>
+                                                <p>Si considera que su derecho a la protección de datos ha sido vulnerado, puede acudir a la autoridad competente en la materia.</p>
+                                            </section>
+                                            <section id="tecnologias" class="o_uva_legal_section">
+                                                <h2 class="h4">6. Tecnologías de rastreo</h2>
+                                                <p>El Sistema usa almacenamiento local del navegador solo para mantener su sesión y preferencias de pantalla. No usamos cookies de publicidad ni herramientas de rastreo de terceros.</p>
+                                            </section>
+                                            <section id="seguridad" class="o_uva_legal_section">
+                                                <h2 class="h4">7. Medidas de seguridad y conservación</h2>
+                                                <p>Aplicamos medidas administrativas, técnicas y físicas para proteger sus datos: autenticación con Microsoft 365, permisos por rol, bitácora de acciones y respaldos.</p>
+                                                <p>Los expedientes se conservan durante el plazo que exigen la norma, la acreditación y las disposiciones fiscales; después se eliminan o anonimizan de forma segura.</p>
+                                            </section>
+                                            <section id="cambios" class="o_uva_legal_section">
+                                                <h2 class="h4">8. Cambios al aviso</h2>
+                                                <p>Este aviso puede cambiar por nuevas disposiciones legales, por políticas internas o por cambios en el servicio. La versión vigente estará siempre disponible en el Sistema, con su fecha de actualización.</p>
+                                            </section>
+                                        </article>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                        <t t-call="uva_legal.uva_footer"/>
+                    </t>
+                </t>
+            </field>
+        </record>
+        <record id="page_privacidad" model="website.page">
+            <field name="url">/aviso-de-privacidad</field>
+            <field name="view_id" ref="page_privacidad_view"/>
+            <field name="is_published" eval="True"/>
+            <field name="website_indexed" eval="True"/>
+        </record>
+</odoo>

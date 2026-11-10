@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_uva_solicitud_admin,uva.solicitud admin,model_uva_solicitud,uva_core.group_uva_admin,1,1,1,1
+access_uva_solicitud_coordinador,uva.solicitud coordinador,model_uva_solicitud,uva_core.group_uva_coordinador,1,1,1,1
+access_uva_solicitud_inspector,uva.solicitud inspector,model_uva_solicitud,uva_core.group_uva_inspector,1,0,0,0
+access_uva_solicitud_gerente,uva.solicitud gerente,model_uva_solicitud,uva_core.group_uva_gerente,1,0,0,0
+access_uva_solicitud_conagua,uva.solicitud conagua,model_uva_solicitud,uva_core.group_uva_conagua,1,0,0,0
+access_uva_solicitud_equipos,uva.solicitud equipos,model_uva_solicitud,uva_core.group_uva_equipos,1,0,0,0
+access_uva_solicitud_consulta,uva.solicitud consulta,model_uva_solicitud,uva_core.group_uva_consulta,1,0,0,0
+access_uva_solicitud_documento_admin,uva.solicitud.documento admin,model_uva_solicitud_documento,uva_core.group_uva_admin,1,1,1,1
+access_uva_solicitud_documento_coordinador,uva.solicitud.documento coordinador,model_uva_solicitud_documento,uva_core.group_uva_coordinador,1,1,1,1
+access_uva_solicitud_documento_inspector,uva.solicitud.documento inspector,model_uva_solicitud_documento,uva_core.group_uva_inspector,1,0,0,0
+access_uva_solicitud_documento_gerente,uva.solicitud.documento gerente,model_uva_solicitud_documento,uva_core.group_uva_gerente,1,0,0,0
+access_uva_solicitud_documento_conagua,uva.solicitud.documento conagua,model_uva_solicitud_documento,uva_core.group_uva_conagua,1,0,0,0
+access_uva_solicitud_documento_equipos,uva.solicitud.documento equipos,model_uva_solicitud_documento,uva_core.group_uva_equipos,1,0,0,0
+access_uva_solicitud_documento_consulta,uva.solicitud.documento consulta,model_uva_solicitud_documento,uva_core.group_uva_consulta,1,0,0,0

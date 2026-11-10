@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_uva_root" name="Sistema UVA" sequence="40"
+              groups="uva_core.group_uva_admin,uva_core.group_uva_coordinador,uva_core.group_uva_inspector,uva_core.group_uva_gerente,uva_core.group_uva_conagua,uva_core.group_uva_equipos,uva_core.group_uva_consulta"/>
+
+    <menuitem id="menu_uva_operacion" name="Operación" parent="menu_uva_root" sequence="10"/>
+    <menuitem id="menu_uva_dictaminacion" name="Dictaminación" parent="menu_uva_root" sequence="20"/>
+    <menuitem id="menu_uva_calidad" name="Calidad e instrumentos" parent="menu_uva_root" sequence="30"/>
+    <menuitem id="menu_uva_catalogos" name="Catálogos" parent="menu_uva_root" sequence="40"/>
+    <menuitem id="menu_uva_config" name="Configuración" parent="menu_uva_root" sequence="90"
+              groups="uva_core.group_uva_admin,uva_core.group_uva_gerente"/>
+</odoo>

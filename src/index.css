@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+/*
+ * Paleta del Sistema UVA, derivada del logotipo (azul #0060C0 → cian #00C0F0).
+ * Todos los colores del sitio salen de aquí: cambia un valor y se actualiza en todas las pantallas.
+ * Significado fijo de los colores de estado:
+ *   success = conforme / vigente · warn = por vencer / pendiente · danger = vencido / inconforme
+ *   brand   = acciones, enlaces e información
+ */
+@theme {
+  /* Marca (azul del logo) */
+  --color-brand-50: #F2F8FE;
+  --color-brand-100: #E5F0FC;
+  --color-brand-150: #D6E7FA;
+  --color-brand-200: #C7DDF7;
+  --color-brand-600: #0A5FC7;
+  --color-brand-700: #084EA6;
+  --color-brand-800: #0A3F86;
+  /* Acento (cian del logo), para resaltar sobre fondos oscuros */
+  --color-accent-300: #38C9F2;
+
+  /* Texto: grises con ligero tinte azul */
+  --color-ink-900: #13202E;
+  --color-ink-800: #233243;
+  --color-ink-700: #3B4B5C;
+  --color-ink-600: #475768;
+  --color-ink-500: #566577;
+  --color-ink-400: #637386;
+
+  /* Bordes y separadores */
+  --color-line-100: #E6EBF0;
+  --color-line-200: #DCE3EA;
+  --color-line-300: #C5CFDA;
+  --color-line-400: #A7B4C2;
+
+  /* Superficies */
+  --color-canvas: #F3F6F9;
+  --color-surface-50: #F8FAFC;
+  --color-surface-100: #EEF2F6;
+  --color-surface-200: #E3E9EF;
+  --color-surface-300: #D6DEE7;
+
+  /* Menú lateral (azul marino) */
+  --color-side-950: #081B36;
+  --color-side-900: #0B2447;
+  --color-side-800: #12305A;
+  --color-side-700: #183B6B;
+  --color-side-600: #22487E;
+  --color-side-500: #7F98BD;
+  --color-side-400: #8EA7CB;
+  --color-side-300: #9AB3D6;
+  --color-side-200: #BCD0EA;
+  --color-side-100: #DCE6F3;
+
+  /* Estados */
+  --color-success-50: #F1FAF4;
+  --color-success-100: #E2F4E8;
+  --color-success-600: #1F8049;
+  --color-success-700: #1D6B40;
+  --color-success-800: #165432;
+  --color-warn-25: #FEFBF8;
+  --color-warn-50: #FDF3E9;
+  --color-warn-100: #FBE7D3;
+  --color-warn-200: #F0CFAE;
+  --color-warn-500: #D9701F;
+  --color-warn-600: #B4560F;
+  --color-warn-700: #8A3E0B;
+  --color-warn-800: #6B3209;
+  --color-danger-50: #FDF7F6;
+  --color-danger-100: #FCE4E0;
+  --color-danger-200: #F5C7C0;
+  --color-danger-700: #9B2C1F;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace, ui-monospace;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-300);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-line-400);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS Safari hace zoom al enfocar campos con fuente < 16px; lo evitamos en móvil */
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Tablas con scroll horizontal: desplazamiento suave con el dedo */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Foco visible y selección con el color de marca */
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--color-brand-150);
+  color: var(--color-ink-900);
+}

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_uva_verificador_list" model="ir.ui.view">
+        <field name="name">uva.verificador.list</field>
+        <field name="model">uva.verificador</field>
+        <field name="arch" type="xml">
+            <list string="Verificadores">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="email"/>
+                <field name="zona"/>
+                <field name="fecha_competencia"/>
+                <field name="comp_status" widget="badge" decoration-success="comp_status == 'vigente'"
+                       decoration-warning="comp_status == 'por_vencer'" decoration-danger="comp_status == 'vencida'"/>
+                <field name="visitas_mes"/>
+                <field name="meta_mensual"/>
+                <field name="estado" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_verificador_form" model="ir.ui.view">
+        <field name="name">uva.verificador.form</field>
+        <field name="model">uva.verificador</field>
+        <field name="arch" type="xml">
+            <form string="Verificador">
+                <header>
+                    <button name="action_recalcular_competencia" type="object" string="Recalcular calificación"/>
+                    <field name="estado" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Datos generales">
+                            <field name="code"/>
+                            <field name="user_id"/>
+                            <field name="email" widget="email"/>
+                            <field name="zona"/>
+                            <field name="zona_corta"/>
+                            <field name="equipo_computo"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Calificación y carga">
+                            <field name="fecha_competencia"/>
+                            <field name="comp_status"/>
+                            <field name="texto_competencia"/>
+                            <field name="visitas_mes"/>
+                            <field name="meta_mensual"/>
+                            <field name="max_visitas_semana"/>
+                            <field name="texto_kit"/>
+                        </group>
+                        <group string="Ausencias">
+                            <field name="vacaciones_inicio"/>
+                            <field name="vacaciones_fin"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Equipos en resguardo" name="resguardo">
+                            <field name="resguardo_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="inventario"/>
+                                    <field name="estado"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_verificador_search" model="ir.ui.view">
+        <field name="name">uva.verificador.search</field>
+        <field name="model">uva.verificador</field>
+        <field name="arch" type="xml">
+            <search string="Buscar verificadores">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="zona"/>
+                <filter string="Calificación por vencer" name="por_vencer" domain="[('comp_status', '=', 'por_vencer')]"/>
+                <filter string="Activos" name="activos" domain="[('estado', '=', 'activo')]"/>
+                <group>
+                    <filter string="Zona" name="group_zona" context="{'group_by': 'zona'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_verificador" model="ir.actions.act_window">
+        <field name="name">Verificadores</field>
+        <field name="res_model">uva.verificador</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_verificador" name="Verificadores" parent="menu_uva_catalogos"
+              action="action_uva_verificador" sequence="30"/>
+</odoo>

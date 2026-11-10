@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_uva_folio" model="ir.sequence">
+            <field name="name">Folio de servicio UVA</field>
+            <field name="code">uva.folio</field>
+            <field name="prefix">UVA-</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

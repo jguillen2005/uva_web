@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="exp_0001" model="uva.expediente">
+            <field name="name">UVA-0001</field>
+            <field name="partner_id" ref="cli_a"/>
+            <field name="pozo_id" ref="pozo_a1"/>
+            <field name="cliente_nombre">[Cliente A] Minera de la Sierra</field>
+            <field name="pozo_nombre">Pozo 1 Beneficio</field>
+            <field name="titulo_concesion">08ZAC100293</field>
+            <field name="verificador_id" ref="ver_i1"/>
+            <field name="verificador_nombre">[Verificador 1] Ing. Raúl Sánchez</field>
+            <field name="fecha_visita">2026-10-16</field>
+            <field name="tipo_verificacion">inicial</field>
+            <field name="nc_count" eval="0"/>
+            <field name="num_fotos" eval="42"/>
+            <field name="num_docs" eval="6"/>
+            <field name="state">por_revisar</field>
+            <field name="fecha_limite">2026-10-23</field>
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="carpeta_sharepoint">/Clientes/MSI980412KJ1/UVA-0001</field>
+        </record>
+        <record id="exp_0002" model="uva.expediente">
+            <field name="name">UVA-0002</field>
+            <field name="partner_id" ref="cli_b"/>
+            <field name="pozo_id" ref="pozo_b1"/>
+            <field name="cliente_nombre">[Cliente B] Bebidas San Jerónimo</field>
+            <field name="pozo_nombre">Pozo Planta</field>
+            <field name="titulo_concesion">08SLP102839</field>
+            <field name="verificador_id" ref="ver_i2"/>
+            <field name="verificador_nombre">[Verificador 2] Ing. Ana María Torres</field>
+            <field name="fecha_visita">2026-10-14</field>
+            <field name="tipo_verificacion">periodica</field>
+            <field name="nc_count" eval="3"/>
+            <field name="num_fotos" eval="38"/>
+            <field name="num_docs" eval="5"/>
+            <field name="state">por_revisar</field>
+            <field name="fecha_limite">2026-10-29</field>
+            <field name="formato_id" ref="fmt_f18_15"/>
+        </record>
+        <record id="exp_0003" model="uva.expediente">
+            <field name="name">UVA-0003</field>
+            <field name="cliente_nombre">[Cliente C] Agrofrutícola del Centro</field>
+            <field name="pozo_nombre">Pozo 4</field>
+            <field name="titulo_concesion">08AGS109281</field>
+            <field name="verificador_id" ref="ver_i1"/>
+            <field name="verificador_nombre">[Verificador 1] Ing. Raúl Sánchez</field>
+            <field name="fecha_visita">2026-10-11</field>
+            <field name="tipo_verificacion">inicial</field>
+            <field name="nc_count" eval="0"/>
+            <field name="num_fotos" eval="40"/>
+            <field name="num_docs" eval="6"/>
+            <field name="state">devuelto</field>
+            <field name="fecha_limite">2026-10-27</field>
+            <field name="comentario_revision">Falta fotografía del precinto en la bornera de la unidad electrónica.</field>
+            <field name="formato_id" ref="fmt_f18_15"/>
+        </record>
+        <record id="exp_0004" model="uva.expediente">
+            <field name="name">UVA-0004</field>
+            <field name="cliente_nombre">[Cliente D] Tequilera Los Altos</field>
+            <field name="pozo_nombre">Pozo Maguey</field>
+            <field name="titulo_concesion">08JAL192830</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="verificador_nombre">[Verificador 3] Ing. Carlos Mendoza</field>
+            <field name="fecha_visita">2026-10-08</field>
+            <field name="tipo_verificacion">extraordinaria</field>
+            <field name="nc_count" eval="0"/>
+            <field name="num_fotos" eval="45"/>
+            <field name="num_docs" eval="7"/>
+            <field name="state">autorizado</field>
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="carpeta_sharepoint">/Clientes/TLA091024HJ2/PozoMaguey/2026/UVA-0004/</field>
+            <field name="documento_ids" eval="[(0, 0, {'sequence': 1, 'carpeta': '01_Solicitud', 'name': 'Solicitud de servicio F-12 firmada', 'estado': 'listo'}), (0, 0, {'sequence': 2, 'carpeta': '02_DocsCliente', 'name': 'Título, certificado calibración, factura medidor, manuales (6)', 'estado': 'listo'}), (0, 0, {'sequence': 3, 'carpeta': '03_Campo', 'name': 'Lista de verificación F-18 firmada + 45 fotos + archivos interrogador', 'estado': 'listo'}), (0, 0, {'sequence': 4, 'carpeta': '04_Dictamen', 'name': 'Dictamen F-17 firmado por el Gerente Técnico', 'estado': 'listo'}), (0, 0, {'sequence': 5, 'carpeta': '05_Acuse', 'name': 'Acuse oficial de registro ante CONAGUA', 'estado': 'pendiente'})]"/>
+        </record>
+        <record id="exp_0005" model="uva.expediente">
+            <field name="name">UVA-0005</field>
+            <field name="cliente_nombre">[Cliente E] Papelera de Oriente</field>
+            <field name="pozo_nombre">Pozo Calentador</field>
+            <field name="titulo_concesion">08VER102938</field>
+            <field name="verificador_id" ref="ver_i2"/>
+            <field name="verificador_nombre">[Verificador 2] Ing. Ana María Torres</field>
+            <field name="fecha_visita">2026-10-02</field>
+            <field name="tipo_verificacion">inicial</field>
+            <field name="nc_count" eval="0"/>
+            <field name="num_fotos" eval="41"/>
+            <field name="num_docs" eval="6"/>
+            <field name="state">con_acuse</field>
+            <field name="formato_id" ref="fmt_f18_15"/>
+        </record>
+        <record id="exp_0006" model="uva.expediente">
+            <field name="name">UVA-0006</field>
+            <field name="cliente_nombre">[Cliente F] Textil Santa María</field>
+            <field name="pozo_nombre">Pozo Planta 3</field>
+            <field name="titulo_concesion">08PUE104820</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="verificador_nombre">[Verificador 3] Ing. Carlos Mendoza</field>
+            <field name="fecha_visita">2026-09-28</field>
+            <field name="tipo_verificacion">periodica</field>
+            <field name="nc_count" eval="1"/>
+            <field name="num_fotos" eval="36"/>
+            <field name="num_docs" eval="5"/>
+            <field name="state">inconforme</field>
+            <field name="formato_id" ref="fmt_f18_15"/>
+        </record>
+        <record id="exp_0012" model="uva.expediente">
+            <field name="name">UVA-0012</field>
+            <field name="visita_id" ref="vis_0012"/>
+            <field name="solicitud_id" ref="sol_0012"/>
+            <field name="partner_id" ref="cli_g"/>
+            <field name="pozo_id" ref="pozo_g1"/>
+            <field name="cliente_nombre">[Cliente G] Agroindustrias del Bajío</field>
+            <field name="pozo_nombre">Pozo San Juan</field>
+            <field name="titulo_concesion">08GTO128392</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="verificador_nombre">[Verificador 3] Ing. Carlos Mendoza</field>
+            <field name="fecha_visita">2026-10-21</field>
+            <field name="tipo_verificacion">inicial</field>
+            <field name="state">en_campo</field>
+            <field name="num_fotos" eval="3"/>
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="gps_actual">20.6736° N, 101.3564° W</field>
+        </record>
+        <record id="exp12_p31" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0012"/>
+            <field name="sequence" eval="1"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.1</field>
+            <field name="texto">¿El sitio de medición es un tramo recto de tubería circular de diámetro uniforme y sin obstrucciones?</field>
+            <field name="extra">Visual · [7.1]</field>
+            <field name="respuesta">C</field>
+        </record>
+        <record id="exp12_p32" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0012"/>
+            <field name="sequence" eval="2"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.2</field>
+            <field name="texto">¿El medidor está instalado de forma tal que el tubo esté lleno de agua bajo condiciones normales de operación?</field>
+            <field name="extra">Visual · [7.1 a]</field>
+        </record>
+        <record id="exp12_f31" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0012"/>
+            <field name="punto_id" ref="exp12_p31"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">UVA-0012_3.1_01.jpg</field>
+            <field name="descripcion">10:38:51 · 20.6736° N, 101.3563° W</field>
+        </record>
+        <record id="exp12_f32_1" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0012"/>
+            <field name="punto_id" ref="exp12_p32"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">UVA-0012_3.2_01.jpg</field>
+            <field name="descripcion">10:42:15 · 20.6736° N, 101.3563° W</field>
+        </record>
+        <record id="exp12_f32_2" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0012"/>
+            <field name="punto_id" ref="exp12_p32"/>
+            <field name="sequence" eval="2"/>
+            <field name="name">UVA-0012_3.2_02.jpg</field>
+            <field name="descripcion">10:43:02 · 20.6737° N, 101.3562° W</field>
+        </record>
+        <record id="exp1_p3_1" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="1"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.1</field>
+            <field name="texto">¿El sitio de medición es un tramo recto de tubería circular de diámetro uniforme y sin obstrucciones?</field>
+            <field name="extra">Visual · [7.1]</field>
+            <field name="respuesta">C</field>
+        </record>
+        <record id="exp1_p3_1_f1" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="punto_id" ref="exp1_p3_1"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">foto_3.1_01.jpg</field>
+        </record>
+        <record id="exp1_p3_1_f2" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="punto_id" ref="exp1_p3_1"/>
+            <field name="sequence" eval="2"/>
+            <field name="name">foto_3.1_02.jpg</field>
+        </record>
+        <record id="exp1_p3_2" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="2"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.2</field>
+            <field name="texto">¿El medidor está instalado de forma tal que el tubo esté lleno de agua bajo condiciones normales de operación?</field>
+            <field name="extra">Visual · [7.1 a]</field>
+            <field name="respuesta">C</field>
+            <field name="nota">La foto no permite ver el arreglo en omega completo. ¿Hay otra toma desde un ángulo más abierto? Si no, documentarlo en observaciones.</field>
+        </record>
+        <record id="exp1_p3_2_f1" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="punto_id" ref="exp1_p3_2"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">foto_3.2_01.jpg</field>
+        </record>
+        <record id="exp1_p3_3" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="3"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.3</field>
+            <field name="texto">¿La posición del medidor es horizontal, o bien vertical siempre y cuando el gasto sea ascendente?</field>
+            <field name="extra">Visual · [7.1 b]</field>
+            <field name="respuesta">C</field>
+        </record>
+        <record id="exp1_p3_3_f1" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="punto_id" ref="exp1_p3_3"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">foto_3.3_01.jpg</field>
+        </record>
+        <record id="exp1_p3_4" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="4"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.4</field>
+            <field name="texto">Longitud del tramo de tubería y de los tramos aguas arriba y aguas abajo.</field>
+            <field name="extra">Medición · L: 3.20 m · L1: 1.80 m · L2: 1.40 m · L3: 0.00 m · Cumple contra certificado</field>
+            <field name="respuesta">C</field>
+        </record>
+        <record id="exp1_p3_4_f1" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="punto_id" ref="exp1_p3_4"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">foto_3.4_01.jpg</field>
+        </record>
+        <record id="exp1_p3_4_f2" model="uva.expediente.foto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="punto_id" ref="exp1_p3_4"/>
+            <field name="sequence" eval="2"/>
+            <field name="name">foto_3.4_02.jpg</field>
+        </record>
+        <record id="exp1_p3_5" model="uva.expediente.punto">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="5"/>
+            <field name="seccion">3</field>
+            <field name="numero">3.5</field>
+            <field name="texto">No existen bifurcaciones o válvulas de seccionamiento antes de la ubicación del medidor.</field>
+            <field name="extra">Visual · [7.1 e]</field>
+            <field name="respuesta">N/A</field>
+        </record>
+        <record id="exp1_sec_1" model="uva.expediente.seccion">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="1"/>
+            <field name="numero">1</field>
+            <field name="name">1 Datos generales</field>
+            <field name="resumen">Completo</field>
+        </record>
+        <record id="exp1_sec_2" model="uva.expediente.seccion">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="2"/>
+            <field name="numero">2</field>
+            <field name="name">2 Medidor</field>
+            <field name="resumen">10 C</field>
+        </record>
+        <record id="exp1_sec_3" model="uva.expediente.seccion">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="3"/>
+            <field name="numero">3</field>
+            <field name="name">3 Estación de aforo</field>
+            <field name="resumen">6 C · 1 N/A · 1 nota</field>
+        </record>
+        <record id="exp1_sec_4" model="uva.expediente.seccion">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="4"/>
+            <field name="numero">4</field>
+            <field name="name">4 Componentes</field>
+            <field name="resumen">33 C · 2 N/A</field>
+        </record>
+        <record id="exp1_sec_5" model="uva.expediente.seccion">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="5"/>
+            <field name="numero">5</field>
+            <field name="name">5 Gasto</field>
+            <field name="resumen">N/A (inicial)</field>
+        </record>
+        <record id="exp1_sec_6" model="uva.expediente.seccion">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="6"/>
+            <field name="numero">6</field>
+            <field name="name">6 Pruebas</field>
+            <field name="resumen">12 C · 2 N/A</field>
+        </record>
+        <record id="exp1_chk_1" model="uva.expediente.check">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="1"/>
+            <field name="ok" eval="True"/>
+            <field name="aviso" eval="False"/>
+            <field name="name">Datos del medidor coinciden con solicitud F-12</field>
+            <field name="detalle">Marca Krohne, modelo Waterflux, serie WF-2022-83921 y DN 150 mm</field>
+        </record>
+        <record id="exp1_chk_2" model="uva.expediente.check">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="2"/>
+            <field name="ok" eval="True"/>
+            <field name="aviso" eval="False"/>
+            <field name="name">Verificación inicial dentro de los 30 días</field>
+            <field name="detalle">Instalación: 29/09/2026 · Visita: 16/10/2026 (17 días transcurridos)</field>
+        </record>
+        <record id="exp1_chk_3" model="uva.expediente.check">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="3"/>
+            <field name="ok" eval="True"/>
+            <field name="aviso" eval="False"/>
+            <field name="name">Evidencias fotográficas obligatorias completas</field>
+            <field name="detalle">42 fotografías con sello de agua y metadatos GPS válidos</field>
+        </record>
+        <record id="exp1_chk_4" model="uva.expediente.check">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="4"/>
+            <field name="ok" eval="True"/>
+            <field name="aviso" eval="False"/>
+            <field name="name">Instrumentos con calibración vigente al día de visita</field>
+            <field name="detalle">Flexómetro, multímetro, GPS y flujómetro vigentes ante EMA</field>
+        </record>
+        <record id="exp1_chk_5" model="uva.expediente.check">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="5"/>
+            <field name="ok" eval="True"/>
+            <field name="aviso" eval="False"/>
+            <field name="name">Firmas digitales completas</field>
+            <field name="detalle">Verificador, usuario / representante legal y 2 testigos de asistencia</field>
+        </record>
+        <record id="exp1_chk_6" model="uva.expediente.check">
+            <field name="expediente_id" ref="exp_0001"/>
+            <field name="sequence" eval="6"/>
+            <field name="ok" eval="False"/>
+            <field name="aviso" eval="True"/>
+            <field name="name">Coordenadas GPS con leve variación respecto al título</field>
+            <field name="detalle">Diferencia de 28 metros calculada. Requiere ratificación en dictamen.</field>
+        </record>
+        <record id="exp4_dato_01" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="1"/>
+            <field name="grupo">Dictamen oficial</field>
+            <field name="clave">No. de dictamen</field>
+            <field name="valor">DV-0104</field>
+        </record>
+        <record id="exp4_dato_02" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="2"/>
+            <field name="grupo">Dictamen oficial</field>
+            <field name="clave">Fecha de emisión</field>
+            <field name="valor">08/10/2026</field>
+        </record>
+        <record id="exp4_dato_03" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="3"/>
+            <field name="grupo">Dictamen oficial</field>
+            <field name="clave">Vigencia oficial</field>
+            <field name="valor">08/10/2028 · 2 años</field>
+        </record>
+        <record id="exp4_dato_04" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="4"/>
+            <field name="grupo">Usuario y aprovechamiento</field>
+            <field name="clave">Razón social</field>
+            <field name="valor">[Cliente D] Tequilera Los Altos, S.A. de C.V.</field>
+        </record>
+        <record id="exp4_dato_05" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="5"/>
+            <field name="grupo">Usuario y aprovechamiento</field>
+            <field name="clave">RFC</field>
+            <field name="valor">TLA091024HJ2</field>
+        </record>
+        <record id="exp4_dato_06" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="6"/>
+            <field name="grupo">Usuario y aprovechamiento</field>
+            <field name="clave">Título de concesión</field>
+            <field name="valor">08JAL192830 · anexo 01</field>
+        </record>
+        <record id="exp4_dato_07" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="7"/>
+            <field name="grupo">Usuario y aprovechamiento</field>
+            <field name="clave">Identificador del pozo</field>
+            <field name="valor">ID-001 (Pozo Maguey)</field>
+        </record>
+        <record id="exp4_dato_08" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="8"/>
+            <field name="grupo">Usuario y aprovechamiento</field>
+            <field name="clave">Uso / fuente</field>
+            <field name="valor">Industrial · Subterránea</field>
+        </record>
+        <record id="exp4_dato_09" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="9"/>
+            <field name="grupo">Usuario y aprovechamiento</field>
+            <field name="clave">Volumen concesionado</field>
+            <field name="valor">280,000 m³ anuales</field>
+        </record>
+        <record id="exp4_dato_10" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="10"/>
+            <field name="grupo">Sistema de medición</field>
+            <field name="clave">Medidor</field>
+            <field name="valor">Krohne Waterflux 3070 · NSM WF-2022-991</field>
+        </record>
+        <record id="exp4_dato_11" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="11"/>
+            <field name="grupo">Sistema de medición</field>
+            <field name="clave">Unidad electrónica</field>
+            <field name="valor">NSUE-88210</field>
+        </record>
+        <record id="exp4_dato_12" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="12"/>
+            <field name="grupo">Sistema de medición</field>
+            <field name="clave">Unidad de transmisión</field>
+            <field name="valor">NSUT-44810 · GSM · FTP</field>
+        </record>
+        <record id="exp4_dato_13" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="13"/>
+            <field name="grupo">Sistema de medición</field>
+            <field name="clave">Diámetro nominal</field>
+            <field name="valor">150 mm (6")</field>
+        </record>
+        <record id="exp4_dato_14" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="14"/>
+            <field name="grupo">Sistema de medición</field>
+            <field name="clave">Certificado de calibración</field>
+            <field name="valor">Krohne México EMA · 10/05/2026</field>
+        </record>
+        <record id="exp4_dato_15" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="15"/>
+            <field name="grupo">Sistema de medición</field>
+            <field name="clave">Coordenadas WGS84</field>
+            <field name="valor">20.8124° N, 102.7641° W</field>
+        </record>
+        <record id="exp4_dato_16" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="16"/>
+            <field name="grupo">Seguridad y precintos</field>
+            <field name="clave">Holograma oficial UVA</field>
+            <field name="valor">Folio UVA-HOL-009214</field>
+        </record>
+        <record id="exp4_dato_17" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="17"/>
+            <field name="grupo">Seguridad y precintos</field>
+            <field name="clave">Precintos numerados</field>
+            <field name="valor">Folios P-8821 y P-8822</field>
+        </record>
+        <record id="exp4_dato_18" model="uva.expediente.dato">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="sequence" eval="18"/>
+            <field name="grupo">Seguridad y precintos</field>
+            <field name="clave">Calcomanías de inviolabilidad</field>
+            <field name="valor">Folio CAL-9921</field>
+        </record>
+        <record id="exp4_log_1" model="uva.expediente.log">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha">2026-10-08 22:30:00</field>
+            <field name="descripcion">Dictamen autorizado y firmado electrónicamente</field>
+            <field name="usuario">Ing. Gerardo Torres [Gerente Técnico]</field>
+        </record>
+        <record id="exp4_log_2" model="uva.expediente.log">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha">2026-10-08 18:15:00</field>
+            <field name="descripcion">Corrección sincronizada desde campo (foto adicional de precinto)</field>
+            <field name="usuario">[Verificador 3] Carlos Mendoza</field>
+        </record>
+        <record id="exp4_log_3" model="uva.expediente.log">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha">2026-10-08 00:20:00</field>
+            <field name="descripcion">Devuelto en revisión: faltaba foto del precinto en bornera</field>
+            <field name="usuario">Ing. Gerardo Torres [Gerente Técnico]</field>
+        </record>
+        <record id="exp4_log_4" model="uva.expediente.log">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha">2026-10-07 20:10:00</field>
+            <field name="descripcion">Expediente sincronizado desde app (45 fotos y firmas completas)</field>
+            <field name="usuario">[Verificador 3] Carlos Mendoza</field>
+        </record>
+        <record id="exp4_log_5" model="uva.expediente.log">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha">2026-09-25 17:00:00</field>
+            <field name="descripcion">Visita de campo asignada y equipos reservados</field>
+            <field name="usuario">Ing. Roberto Silva [Coordinador]</field>
+        </record>
+        <record id="exp4_log_6" model="uva.expediente.log">
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha">2026-09-22 15:30:00</field>
+            <field name="descripcion">Solicitud F-12 registrada · cotización Aspel COT-8899</field>
+            <field name="usuario">Ing. Roberto Silva [Coordinador]</field>
+        </record>
+        <record id="dv_0104" model="uva.dictamen">
+            <field name="name">DV-0104</field>
+            <field name="expediente_id" ref="exp_0004"/>
+            <field name="fecha_emision">2026-10-08</field>
+            <field name="resultado">conforme</field>
+            <field name="nc_count" eval="0"/>
+            <field name="autorizado_id" ref="user_gerardo"/>
+            <field name="autorizado_por">Ing. Gerardo Torres</field>
+        </record>
+        <record id="dv_0103" model="uva.dictamen">
+            <field name="name">DV-0103</field>
+            <field name="expediente_id" ref="exp_0005"/>
+            <field name="fecha_emision">2026-10-02</field>
+            <field name="resultado">conforme</field>
+            <field name="nc_count" eval="0"/>
+            <field name="autorizado_id" ref="user_gerardo"/>
+            <field name="autorizado_por">Ing. Gerardo Torres</field>
+        </record>
+        <record id="dv_0102" model="uva.dictamen">
+            <field name="name">DV-0102</field>
+            <field name="expediente_id" ref="exp_0006"/>
+            <field name="fecha_emision">2026-09-28</field>
+            <field name="resultado">inconforme</field>
+            <field name="nc_count" eval="1"/>
+            <field name="autorizado_id" ref="user_gerardo"/>
+            <field name="autorizado_por">Ing. Gerardo Torres</field>
+        </record>
+        <record id="dv_0087" model="uva.dictamen">
+            <field name="name">DV-0087</field>
+            <field name="folio">UVA-0051</field>
+            <field name="cliente_nombre">[Cliente G] Agroindustrias del Bajío</field>
+            <field name="pozo_nombre">Pozo 2 Invernadero</field>
+            <field name="titulo_concesion">08GTO128392</field>
+            <field name="fecha_emision">2024-11-20</field>
+            <field name="resultado">conforme</field>
+            <field name="nc_count" eval="0"/>
+            <field name="texto_vigencia">En 45 días (20/11/2026)</field>
+            <field name="estado_conagua">con_acuse</field>
+            <field name="autorizado_id" ref="user_gerardo"/>
+            <field name="autorizado_por">Ing. Gerardo Torres</field>
+        </record>
+        <record id="dv_0081" model="uva.dictamen">
+            <field name="name">DV-0081</field>
+            <field name="folio">UVA-0047</field>
+            <field name="cliente_nombre">[Cliente H] Desarrollos Turísticos</field>
+            <field name="pozo_nombre">Pozo Suministro</field>
+            <field name="titulo_concesion">08QRO102931</field>
+            <field name="fecha_emision">2024-12-05</field>
+            <field name="resultado">conforme</field>
+            <field name="nc_count" eval="0"/>
+            <field name="texto_vigencia">En 58 días (05/12/2026)</field>
+            <field name="estado_conagua">con_acuse</field>
+            <field name="autorizado_id" ref="user_gerardo"/>
+            <field name="autorizado_por">Ing. Gerardo Torres</field>
+        </record>
+        <record id="carga_0104" model="uva.conagua.carga">
+            <field name="dictamen_id" ref="dv_0104"/>
+            <field name="state">pendiente</field>
+            <field name="fecha_lista">2026-10-20</field>
+        </record>
+        <record id="carga_0105" model="uva.conagua.carga">
+            <field name="no_dictamen">DV-0105</field>
+            <field name="cliente_nombre">[Cliente A] Minera de la Sierra</field>
+            <field name="pozo_nombre">Pozo Beneficio</field>
+            <field name="titulo_concesion">08ZAC100293</field>
+            <field name="resultado">conforme</field>
+            <field name="fecha_autorizacion">2026-10-09</field>
+            <field name="autorizado_por">Ing. Gerardo Torres</field>
+            <field name="state">pendiente</field>
+            <field name="fecha_lista">2026-10-21</field>
+        </record>
+        <record id="carga_0102" model="uva.conagua.carga">
+            <field name="dictamen_id" ref="dv_0102"/>
+            <field name="state">acuse_por_enviar</field>
+            <field name="fecha_lista">2026-09-28</field>
+            <field name="fecha_carga">2026-09-29</field>
+            <field name="modo">bot</field>
+            <field name="acuse_nombre">Acuse_CONAGUA_DV-0102.pdf</field>
+        </record>
+        <record id="carga_0103" model="uva.conagua.carga">
+            <field name="dictamen_id" ref="dv_0103"/>
+            <field name="state">acuse_enviado</field>
+            <field name="fecha_lista">2026-10-02</field>
+            <field name="fecha_carga">2026-10-02</field>
+            <field name="modo">bot</field>
+            <field name="acuse_nombre">Acuse_CONAGUA_DV-0103.pdf</field>
+            <field name="fecha_envio_cliente">2026-10-02</field>
+        </record>
+    </data>
+</odoo>

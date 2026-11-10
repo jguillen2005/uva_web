@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formatos -->
+    <record id="view_uva_formato_list" model="ir.ui.view">
+        <field name="name">uva.formato.list</field>
+        <field name="model">uva.formato</field>
+        <field name="arch" type="xml">
+            <list string="Formatos">
+                <field name="sequence" widget="handle"/>
+                <field name="codigo"/>
+                <field name="name"/>
+                <field name="subtitulo" optional="show"/>
+                <field name="etapa"/>
+                <field name="version"/>
+                <field name="tipo_estructura"/>
+                <field name="detalle_estructura" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'vigente'"
+                       decoration-warning="state == 'en_aprobacion'" decoration-muted="state == 'obsoleto'"/>
+                <field name="fecha_modificacion"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_formato_form" model="ir.ui.view">
+        <field name="name">uva.formato.form</field>
+        <field name="model">uva.formato</field>
+        <field name="arch" type="xml">
+            <form string="Formato">
+                <header>
+                    <button name="action_enviar_aprobacion" type="object" string="Enviar a aprobación"
+                            class="btn-primary" invisible="state != 'borrador'"/>
+                    <button name="action_aprobar" type="object" string="Aprobar y publicar"
+                            class="btn-primary" invisible="state != 'en_aprobacion'"
+                            groups="uva_core.group_uva_gerente,uva_core.group_uva_admin"/>
+                    <button name="action_regresar_borrador" type="object" string="Regresar a borrador"
+                            invisible="state != 'en_aprobacion'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="borrador,en_aprobacion,vigente"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="state in ('vigente', 'obsoleto')"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="codigo" readonly="state in ('vigente', 'obsoleto')"/>
+                            <field name="version" readonly="state in ('vigente', 'obsoleto')"/>
+                            <field name="subtitulo"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="etapa"/>
+                            <field name="tipo_estructura"/>
+                            <field name="detalle_estructura"/>
+                            <field name="fecha_modificacion"/>
+                            <field name="punto_count" invisible="tipo_estructura != 'cuestionario'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rubros / pasos" name="rubros" invisible="tipo_estructura != 'checklist'">
+                            <field name="rubro_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="requerido"/>
+                                    <field name="pide_fecha"/>
+                                    <field name="pide_comentario"/>
+                                    <field name="pide_archivo"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Secciones" name="secciones" invisible="tipo_estructura != 'cuestionario'">
+                            <field name="seccion_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="numero"/>
+                                    <field name="name"/>
+                                    <field name="etiqueta_conteo"/>
+                                    <field name="tipos_respuesta" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Plantilla Word" name="word" invisible="tipo_estructura != 'word'">
+                            <group>
+                                <field name="plantilla" filename="plantilla_nombre"/>
+                                <field name="plantilla_nombre" invisible="1"/>
+                            </group>
+                            <field name="campo_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="clave"/>
+                                    <field name="mapeo"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_formato_search" model="ir.ui.view">
+        <field name="name">uva.formato.search</field>
+        <field name="model">uva.formato</field>
+        <field name="arch" type="xml">
+            <search string="Buscar formatos">
+                <field name="codigo"/>
+                <field name="name"/>
+                <filter string="Vigentes" name="vigentes" domain="[('state', '=', 'vigente')]"/>
+                <filter string="En aprobación" name="en_aprobacion" domain="[('state', '=', 'en_aprobacion')]"/>
+                <filter string="Borradores" name="borradores" domain="[('state', '=', 'borrador')]"/>
+                <group>
+                    <filter string="Etapa" name="group_etapa" context="{'group_by': 'etapa'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_formato" model="ir.actions.act_window">
+        <field name="name">Formatos</field>
+        <field name="res_model">uva.formato</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Puntos normativos -->
+    <record id="view_uva_formato_punto_list" model="ir.ui.view">
+        <field name="name">uva.formato.punto.list</field>
+        <field name="model">uva.formato.punto</field>
+        <field name="arch" type="xml">
+            <list string="Puntos normativos">
+                <field name="formato_id"/>
+                <field name="seccion_id"/>
+                <field name="sequence" widget="handle"/>
+                <field name="numero"/>
+                <field name="pregunta"/>
+                <field name="tipo_verificacion"/>
+                <field name="referencia"/>
+                <field name="tipo_respuesta_id"/>
+                <field name="evidencia"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_formato_punto_form" model="ir.ui.view">
+        <field name="name">uva.formato.punto.form</field>
+        <field name="model">uva.formato.punto</field>
+        <field name="arch" type="xml">
+            <form string="Punto normativo">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="seccion_id"/>
+                            <field name="formato_id"/>
+                            <field name="numero"/>
+                            <field name="referencia"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="tipo_verificacion"/>
+                            <field name="tipo_respuesta_id"/>
+                            <field name="evidencia"/>
+                            <field name="min_fotos" invisible="evidencia == 'ninguna'"/>
+                        </group>
+                    </group>
+                    <group string="Pregunta y criterio">
+                        <field name="pregunta"/>
+                        <field name="criterio"/>
+                    </group>
+                    <group string="Aplica en">
+                        <field name="aplica_inicial"/>
+                        <field name="aplica_periodica"/>
+                        <field name="aplica_extraordinaria"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_formato_punto_search" model="ir.ui.view">
+        <field name="name">uva.formato.punto.search</field>
+        <field name="model">uva.formato.punto</field>
+        <field name="arch" type="xml">
+            <search string="Buscar puntos">
+                <field name="numero"/>
+                <field name="pregunta"/>
+                <field name="formato_id"/>
+                <group>
+                    <filter string="Formato" name="group_formato" context="{'group_by': 'formato_id'}"/>
+                    <filter string="Sección" name="group_seccion" context="{'group_by': 'seccion_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_formato_punto" model="ir.actions.act_window">
+        <field name="name">Puntos normativos</field>
+        <field name="res_model">uva.formato.punto</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Tipos de respuesta -->
+    <record id="view_uva_formato_tipo_list" model="ir.ui.view">
+        <field name="name">uva.formato.tipo.list</field>
+        <field name="model">uva.formato.tipo</field>
+        <field name="arch" type="xml">
+            <list string="Tipos de respuesta">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="etiqueta_corta"/>
+                <field name="clase"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_formato_tipo_form" model="ir.ui.view">
+        <field name="name">uva.formato.tipo.form</field>
+        <field name="model">uva.formato.tipo</field>
+        <field name="arch" type="xml">
+            <form string="Tipo de respuesta">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="etiqueta_corta"/>
+                            <field name="clase"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group invisible="clase != 'grupo'">
+                            <field name="con_evaluacion"/>
+                            <field name="etiqueta_evaluacion" invisible="not con_evaluacion"/>
+                            <field name="por_campo"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="valores" invisible="clase != 'opciones'"/>
+                        <field name="campos" invisible="clase != 'grupo'"/>
+                        <field name="usos"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_uva_formato_tipo" model="ir.actions.act_window">
+        <field name="name">Tipos de respuesta</field>
+        <field name="res_model">uva.formato.tipo</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_formatos" name="Formatos" parent="uva_core.menu_uva_catalogos" sequence="50"/>
+    <menuitem id="menu_uva_formato" name="Formatos" parent="menu_uva_formatos"
+              action="action_uva_formato" sequence="10"/>
+    <menuitem id="menu_uva_formato_punto" name="Puntos normativos" parent="menu_uva_formatos"
+              action="action_uva_formato_punto" sequence="20"/>
+    <menuitem id="menu_uva_formato_tipo" name="Tipos de respuesta" parent="menu_uva_formatos"
+              action="action_uva_formato_tipo" sequence="30"/>
+</odoo>

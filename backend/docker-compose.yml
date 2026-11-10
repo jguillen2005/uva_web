@@ -1,0 +1,92 @@
+# Sistema UVA — backend on-premise: PostgreSQL 17 + Odoo 19 + 6 microservicios + API gateway
+# Uso:  cp .env.example .env   &&   ./scripts/bootstrap.sh   (o scripts\bootstrap.ps1 en Windows)
+
+x-service: &service
+  build: ./services
+  restart: unless-stopped
+  depends_on:
+    odoo:
+      condition: service_healthy
+  environment: &service-env
+    ODOO_URL: http://odoo:8069
+    ODOO_DB: ${ODOO_DB:-uva}
+    ODOO_API_KEY: ${ODOO_API_KEY:-}
+    PORT: "4000"
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - uva-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  odoo:
+    image: odoo:19.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+    volumes:
+      - uva-odoo-data:/var/lib/odoo
+      - ./odoo/config:/etc/odoo
+      - ./odoo/addons:/mnt/extra-addons
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8069/web/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  svc-reportes:
+    <<: *service
+    environment: { <<: *service-env, SERVICE: reportes }
+  svc-catalogos:
+    <<: *service
+    environment: { <<: *service-env, SERVICE: catalogos }
+  svc-solicitudes:
+    <<: *service
+    environment: { <<: *service-env, SERVICE: solicitudes }
+  svc-operacion:
+    <<: *service
+    environment: { <<: *service-env, SERVICE: operacion }
+  svc-calidad:
+    <<: *service
+    environment: { <<: *service-env, SERVICE: calidad }
+  svc-dictaminacion:
+    <<: *service
+    environment: { <<: *service-env, SERVICE: dictaminacion }
+
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - svc-reportes
+      - svc-catalogos
+      - svc-solicitudes
+      - svc-operacion
+      - svc-calidad
+      - svc-dictaminacion
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../dist:/usr/share/nginx/html:ro
+
+volumes:
+  uva-db:
+  uva-odoo-data:

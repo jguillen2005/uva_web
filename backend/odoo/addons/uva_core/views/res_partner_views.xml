@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_uva" model="ir.ui.view">
+        <field name="name">res.partner.form.uva</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Sistema UVA" name="uva">
+                    <group>
+                        <group>
+                            <field name="uva_es_cliente"/>
+                            <field name="uva_tipo_fiscal" invisible="not uva_es_cliente"/>
+                            <field name="uva_codigo_aspel" invisible="not uva_es_cliente"/>
+                            <field name="uva_carpeta_sharepoint" invisible="not uva_es_cliente"/>
+                        </group>
+                        <group>
+                            <field name="uva_domicilio_fiscal" invisible="not uva_es_cliente"/>
+                            <field name="uva_representante_legal" invisible="not uva_es_cliente"/>
+                            <field name="uva_contacto_avisos" invisible="not uva_es_cliente"/>
+                        </group>
+                    </group>
+                    <field name="uva_pozo_ids" invisible="not uva_es_cliente">
+                        <list>
+                            <field name="identificador"/>
+                            <field name="name"/>
+                            <field name="titulo_concesion"/>
+                            <field name="uso"/>
+                            <field name="medidor_marca"/>
+                            <field name="medidor_serie"/>
+                            <field name="proxima_inspeccion"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_list_uva" model="ir.ui.view">
+        <field name="name">res.partner.list.uva</field>
+        <field name="model">res.partner</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Clientes UVA">
+                <field name="name"/>
+                <field name="vat" string="RFC"/>
+                <field name="uva_codigo_aspel"/>
+                <field name="uva_representante_legal"/>
+                <field name="phone"/>
+                <field name="uva_pozo_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_uva_clientes" model="ir.actions.act_window">
+        <field name="name">Clientes y aprovechamientos</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('uva_es_cliente', '=', True)]</field>
+        <field name="context">{'default_uva_es_cliente': True, 'default_is_company': True}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_partner_list_uva')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('base.view_partner_form')})]"/>
+    </record>
+
+    <menuitem id="menu_uva_clientes" name="Clientes y aprovechamientos" parent="menu_uva_catalogos"
+              action="action_uva_clientes" sequence="10"/>
+</odoo>

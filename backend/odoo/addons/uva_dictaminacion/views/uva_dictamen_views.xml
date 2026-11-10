@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dictámenes -->
+    <record id="view_uva_dictamen_list" model="ir.ui.view">
+        <field name="name">uva.dictamen.list</field>
+        <field name="model">uva.dictamen</field>
+        <field name="arch" type="xml">
+            <list string="Dictámenes y actas">
+                <field name="name"/>
+                <field name="folio"/>
+                <field name="cliente_nombre"/>
+                <field name="pozo_nombre"/>
+                <field name="titulo_concesion"/>
+                <field name="fecha_emision"/>
+                <field name="resultado" widget="badge" decoration-success="resultado == 'conforme'"
+                       decoration-danger="resultado == 'inconforme'"/>
+                <field name="vigencia"/>
+                <field name="estado_conagua"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_dictamen_form" model="ir.ui.view">
+        <field name="name">uva.dictamen.form</field>
+        <field name="model">uva.dictamen</field>
+        <field name="arch" type="xml">
+            <form string="Dictamen">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="expediente_id"/>
+                            <field name="folio"/>
+                            <field name="cliente_nombre"/>
+                            <field name="pozo_nombre"/>
+                            <field name="titulo_concesion"/>
+                        </group>
+                        <group>
+                            <field name="fecha_emision"/>
+                            <field name="resultado"/>
+                            <field name="nc_count" invisible="resultado != 'inconforme'"/>
+                            <field name="vigencia"/>
+                            <field name="texto_vigencia"/>
+                            <field name="autorizado_id"/>
+                            <field name="autorizado_por"/>
+                            <field name="estado_conagua"/>
+                            <field name="pdf" filename="pdf_nombre"/>
+                            <field name="pdf_nombre" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="carga_ids">
+                        <list>
+                            <field name="fecha_lista"/>
+                            <field name="state"/>
+                            <field name="modo"/>
+                            <field name="fecha_carga"/>
+                            <field name="folio_acuse"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_dictamen_search" model="ir.ui.view">
+        <field name="name">uva.dictamen.search</field>
+        <field name="model">uva.dictamen</field>
+        <field name="arch" type="xml">
+            <search string="Buscar dictámenes">
+                <field name="name"/>
+                <field name="folio"/>
+                <field name="cliente_nombre"/>
+                <field name="titulo_concesion"/>
+                <filter string="Conformes" name="conformes" domain="[('resultado', '=', 'conforme')]"/>
+                <filter string="Inconformes" name="inconformes" domain="[('resultado', '=', 'inconforme')]"/>
+                <filter string="Pendientes de carga" name="pendientes" domain="[('estado_conagua', '=', 'pendiente')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_dictamen" model="ir.actions.act_window">
+        <field name="name">Dictámenes y actas</field>
+        <field name="res_model">uva.dictamen</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Cargas CONAGUA -->
+    <record id="view_uva_conagua_carga_list" model="ir.ui.view">
+        <field name="name">uva.conagua.carga.list</field>
+        <field name="model">uva.conagua.carga</field>
+        <field name="arch" type="xml">
+            <list string="Carga a CONAGUA">
+                <field name="no_dictamen"/>
+                <field name="cliente_nombre"/>
+                <field name="pozo_nombre"/>
+                <field name="titulo_concesion"/>
+                <field name="resultado"/>
+                <field name="fecha_autorizacion"/>
+                <field name="fecha_lista"/>
+                <field name="state" widget="badge" decoration-warning="state == 'pendiente'"
+                       decoration-info="state == 'acuse_por_enviar'" decoration-success="state == 'acuse_enviado'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_conagua_carga_form" model="ir.ui.view">
+        <field name="name">uva.conagua.carga.form</field>
+        <field name="model">uva.conagua.carga</field>
+        <field name="arch" type="xml">
+            <form string="Carga a CONAGUA">
+                <header>
+                    <button name="action_registrar_carga_boton" type="object" string="Ejecutar bot de carga"
+                            class="btn-primary" invisible="state != 'pendiente'"/>
+                    <button name="action_enviar_acuse" type="object" string="Enviar acuse al cliente"
+                            class="btn-primary" invisible="state != 'acuse_por_enviar'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Dictamen">
+                            <field name="dictamen_id"/>
+                            <field name="expediente_id"/>
+                            <field name="no_dictamen"/>
+                            <field name="cliente_nombre"/>
+                            <field name="pozo_nombre"/>
+                            <field name="titulo_concesion"/>
+                            <field name="resultado"/>
+                            <field name="fecha_autorizacion"/>
+                            <field name="autorizado_por"/>
+                        </group>
+                        <group string="Carga y acuse">
+                            <field name="fecha_lista"/>
+                            <field name="modo"/>
+                            <field name="fecha_carga"/>
+                            <field name="folio_acuse"/>
+                            <field name="acuse" filename="acuse_nombre"/>
+                            <field name="acuse_nombre"/>
+                            <field name="fecha_envio_cliente"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_conagua_carga_search" model="ir.ui.view">
+        <field name="name">uva.conagua.carga.search</field>
+        <field name="model">uva.conagua.carga</field>
+        <field name="arch" type="xml">
+            <search string="Buscar cargas">
+                <field name="no_dictamen"/>
+                <field name="cliente_nombre"/>
+                <filter string="Pendientes de carga" name="pendientes" domain="[('state', '=', 'pendiente')]"/>
+                <filter string="Acuse por enviar" name="por_enviar" domain="[('state', '=', 'acuse_por_enviar')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_conagua_carga" model="ir.actions.act_window">
+        <field name="name">Carga a CONAGUA</field>
+        <field name="res_model">uva.conagua.carga</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_dictamen" name="Dictámenes y actas" parent="uva_core.menu_uva_dictaminacion"
+              action="action_uva_dictamen" sequence="20"/>
+    <menuitem id="menu_uva_conagua_carga" name="Carga a CONAGUA" parent="uva_core.menu_uva_dictaminacion"
+              action="action_uva_conagua_carga" sequence="30"/>
+</odoo>

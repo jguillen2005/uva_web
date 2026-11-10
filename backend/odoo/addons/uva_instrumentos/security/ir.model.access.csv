@@ -1,0 +1,22 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_uva_instrumento_admin,uva.instrumento admin,model_uva_instrumento,uva_core.group_uva_admin,1,1,1,1
+access_uva_instrumento_coordinador,uva.instrumento coordinador,model_uva_instrumento,uva_core.group_uva_coordinador,1,0,0,0
+access_uva_instrumento_inspector,uva.instrumento inspector,model_uva_instrumento,uva_core.group_uva_inspector,1,0,0,0
+access_uva_instrumento_gerente,uva.instrumento gerente,model_uva_instrumento,uva_core.group_uva_gerente,1,1,1,1
+access_uva_instrumento_conagua,uva.instrumento conagua,model_uva_instrumento,uva_core.group_uva_conagua,1,0,0,0
+access_uva_instrumento_equipos,uva.instrumento equipos,model_uva_instrumento,uva_core.group_uva_equipos,1,1,1,1
+access_uva_instrumento_consulta,uva.instrumento consulta,model_uva_instrumento,uva_core.group_uva_consulta,1,0,0,0
+access_uva_calibracion_admin,uva.calibracion admin,model_uva_calibracion,uva_core.group_uva_admin,1,1,1,1
+access_uva_calibracion_coordinador,uva.calibracion coordinador,model_uva_calibracion,uva_core.group_uva_coordinador,1,0,0,0
+access_uva_calibracion_inspector,uva.calibracion inspector,model_uva_calibracion,uva_core.group_uva_inspector,1,0,0,0
+access_uva_calibracion_gerente,uva.calibracion gerente,model_uva_calibracion,uva_core.group_uva_gerente,1,1,1,1
+access_uva_calibracion_conagua,uva.calibracion conagua,model_uva_calibracion,uva_core.group_uva_conagua,1,0,0,0
+access_uva_calibracion_equipos,uva.calibracion equipos,model_uva_calibracion,uva_core.group_uva_equipos,1,1,1,1
+access_uva_calibracion_consulta,uva.calibracion consulta,model_uva_calibracion,uva_core.group_uva_consulta,1,0,0,0
+access_uva_calibracion_paso_admin,uva.calibracion.paso admin,model_uva_calibracion_paso,uva_core.group_uva_admin,1,1,1,1
+access_uva_calibracion_paso_coordinador,uva.calibracion.paso coordinador,model_uva_calibracion_paso,uva_core.group_uva_coordinador,1,0,0,0
+access_uva_calibracion_paso_inspector,uva.calibracion.paso inspector,model_uva_calibracion_paso,uva_core.group_uva_inspector,1,0,0,0
+access_uva_calibracion_paso_gerente,uva.calibracion.paso gerente,model_uva_calibracion_paso,uva_core.group_uva_gerente,1,1,1,1
+access_uva_calibracion_paso_conagua,uva.calibracion.paso conagua,model_uva_calibracion_paso,uva_core.group_uva_conagua,1,0,0,0
+access_uva_calibracion_paso_equipos,uva.calibracion.paso equipos,model_uva_calibracion_paso,uva_core.group_uva_equipos,1,1,1,1
+access_uva_calibracion_paso_consulta,uva.calibracion.paso consulta,model_uva_calibracion_paso,uva_core.group_uva_consulta,1,0,0,0

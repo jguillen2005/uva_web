@@ -1,0 +1,1165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cli_a" model="res.partner">
+            <field name="name">[Cliente A] Minera de la Sierra, S.A. de C.V.</field>
+            <field name="is_company" eval="True"/>
+            <field name="uva_es_cliente" eval="True"/>
+            <field name="vat">MSI980412KJ1</field>
+            <field name="uva_tipo_fiscal">moral</field>
+            <field name="uva_domicilio_fiscal">Av. Hidalgo 1240, Col. Centro, Zacatecas, ZAC, C.P. 98000</field>
+            <field name="uva_codigo_aspel">CLI-00142</field>
+            <field name="uva_representante_legal">Ing. Fernando Treviño Garza</field>
+            <field name="uva_contacto_avisos">contacto@minerasierra.com · (492) 839-2010</field>
+            <field name="phone">(492) 839-2010</field>
+            <field name="uva_carpeta_sharepoint">/Clientes/MSI980412KJ1</field>
+        </record>
+        <record id="cli_b" model="res.partner">
+            <field name="name">[Cliente B] Bebidas y Embotelladora San Jerónimo</field>
+            <field name="is_company" eval="True"/>
+            <field name="uva_es_cliente" eval="True"/>
+            <field name="vat">BSJ040819TX3</field>
+            <field name="uva_tipo_fiscal">moral</field>
+            <field name="uva_domicilio_fiscal">Carretera Central km 14.5, San Luis Potosí, SLP</field>
+            <field name="uva_codigo_aspel">CLI-00201</field>
+            <field name="uva_representante_legal">Lic. Patricia Alarcón R.</field>
+            <field name="uva_contacto_avisos">medicion@embotelladorasj.com · (444) 912-3840</field>
+            <field name="phone">(444) 912-3840</field>
+            <field name="uva_carpeta_sharepoint">/Clientes/BSJ040819TX3</field>
+        </record>
+        <record id="cli_g" model="res.partner">
+            <field name="name">[Cliente G] Agroindustrias del Bajío, S.A. de C.V.</field>
+            <field name="is_company" eval="True"/>
+            <field name="uva_es_cliente" eval="True"/>
+            <field name="vat">ABA091012KL8</field>
+            <field name="uva_tipo_fiscal">moral</field>
+            <field name="uva_domicilio_fiscal">Calzada de los Héroes 450, Col. Centro, Irapuato, GTO, C.P. 36500</field>
+            <field name="uva_codigo_aspel">CLI-00389</field>
+            <field name="uva_representante_legal">Ing. Salvador Mora Villalobos</field>
+            <field name="uva_contacto_avisos">smora@agrobajio.com.mx · (462) 624-9000</field>
+            <field name="phone">(462) 624-9000</field>
+            <field name="uva_carpeta_sharepoint">/Clientes/ABA091012KL8</field>
+        </record>
+        <record id="cli_h" model="res.partner">
+            <field name="name">[Cliente H] Desarrollos Turísticos Punta Paraíso</field>
+            <field name="is_company" eval="True"/>
+            <field name="uva_es_cliente" eval="True"/>
+            <field name="vat">DTP120309QA4</field>
+            <field name="uva_tipo_fiscal">moral</field>
+            <field name="uva_domicilio_fiscal">Blvd. Kukulcán km 19, Cancún, Q.Roo</field>
+            <field name="uva_codigo_aspel">CLI-00412</field>
+            <field name="uva_representante_legal">Arq. Mónica Estrada Solís</field>
+            <field name="uva_contacto_avisos">mantenimiento@puntaparaiso.com</field>
+            <field name="phone">(998) 881-4000</field>
+            <field name="uva_carpeta_sharepoint">/Clientes/DTP120309QA4</field>
+        </record>
+        <record id="cli_k" model="res.partner">
+            <field name="name">[Cliente K] Agrícola San Pedro SPR de RL</field>
+            <field name="is_company" eval="True"/>
+            <field name="uva_es_cliente" eval="True"/>
+            <field name="vat">ASP150720MN2</field>
+            <field name="uva_tipo_fiscal">moral</field>
+            <field name="uva_domicilio_fiscal">Valle del Yaqui s/n, Cd. Obregón, SON</field>
+            <field name="uva_codigo_aspel">CLI-00445</field>
+            <field name="uva_representante_legal">Don Pedro Ochoa Valenzuela</field>
+            <field name="uva_contacto_avisos">pochoa@agricolasanpedro.com</field>
+            <field name="phone">(644) 410-2918</field>
+            <field name="uva_carpeta_sharepoint">/Clientes/ASP150720MN2</field>
+        </record>
+        <record id="cli_l" model="res.partner">
+            <field name="name">[Cliente L] Lácteos y Quesos del Norte, S.A.</field>
+            <field name="is_company" eval="True"/>
+            <field name="uva_es_cliente" eval="True"/>
+            <field name="vat">LQN180902KK9</field>
+            <field name="uva_tipo_fiscal">moral</field>
+            <field name="uva_domicilio_fiscal">Av. Industrial 800, Cuauhtémoc, CHIH</field>
+            <field name="uva_codigo_aspel">CLI-00510</field>
+            <field name="uva_representante_legal">Ing. Gerhard Dyck Penner</field>
+            <field name="uva_contacto_avisos">calidad@lacteosnorte.mx</field>
+            <field name="phone">(625) 581-3000</field>
+            <field name="uva_carpeta_sharepoint">/Clientes/LQN180902KK9</field>
+        </record>
+        <record id="pozo_a1" model="uva.pozo">
+            <field name="partner_id" ref="cli_a"/>
+            <field name="identificador">[ID-001]</field>
+            <field name="name">[Pozo 1 - Beneficio]</field>
+            <field name="titulo_concesion">08ZAC100293</field>
+            <field name="anexo">01</field>
+            <field name="uso">Industrial</field>
+            <field name="fuente">subterranea</field>
+            <field name="volumen_anual" eval="450000.0"/>
+            <field name="coordenadas">22.7709° N, 102.5832° W</field>
+            <field name="diametro_descarga">150 mm (6")</field>
+            <field name="medidor_marca">Krohne</field>
+            <field name="medidor_modelo">Waterflux 3070</field>
+            <field name="medidor_serie">WF-2022-83921</field>
+            <field name="medidor_dn">150</field>
+            <field name="fecha_instalacion">2023-03-15</field>
+            <field name="factura_proveedor">Krohne México · Factura A-3920</field>
+            <field name="serie_unidad_electronica">NSUE-99214</field>
+            <field name="serie_unidad_transmision">NSUT-44819</field>
+            <field name="ultima_inspeccion">Conforme</field>
+            <field name="fecha_ultima_inspeccion">2024-10-24</field>
+            <field name="proxima_urgente" eval="False"/>
+        </record>
+        <record id="pozo_a2" model="uva.pozo">
+            <field name="partner_id" ref="cli_a"/>
+            <field name="identificador">[ID-002]</field>
+            <field name="name">[Pozo 2 - Servicios]</field>
+            <field name="titulo_concesion">08ZAC100293</field>
+            <field name="anexo">02</field>
+            <field name="uso">Servicios</field>
+            <field name="fuente">subterranea</field>
+            <field name="volumen_anual" eval="120000.0"/>
+            <field name="coordenadas">22.7745° N, 102.5801° W</field>
+            <field name="diametro_descarga">100 mm (4")</field>
+            <field name="medidor_marca">Endress+Hauser</field>
+            <field name="medidor_modelo">Promag W 400</field>
+            <field name="medidor_serie">EH-8839201</field>
+            <field name="medidor_dn">100</field>
+            <field name="fecha_instalacion">2024-06-10</field>
+            <field name="factura_proveedor">E+H México · Factura B-1102</field>
+            <field name="serie_unidad_electronica">NSUE-10492</field>
+            <field name="serie_unidad_transmision">NSUT-55912</field>
+            <field name="ultima_inspeccion">Conforme</field>
+            <field name="fecha_ultima_inspeccion">2024-08-12</field>
+            <field name="proxima_urgente" eval="False"/>
+        </record>
+        <record id="pozo_b1" model="uva.pozo">
+            <field name="partner_id" ref="cli_b"/>
+            <field name="identificador">[ID-001]</field>
+            <field name="name">[Pozo Planta Embotellado]</field>
+            <field name="titulo_concesion">08SLP102839</field>
+            <field name="anexo">01</field>
+            <field name="uso">Industrial</field>
+            <field name="fuente">subterranea</field>
+            <field name="volumen_anual" eval="380000.0"/>
+            <field name="coordenadas">22.1565° N, 100.9855° W</field>
+            <field name="diametro_descarga">150 mm</field>
+            <field name="medidor_marca">Siemens</field>
+            <field name="medidor_modelo">MAG 8000</field>
+            <field name="medidor_serie">SIE-891024</field>
+            <field name="medidor_dn">150</field>
+            <field name="fecha_instalacion">2023-01-20</field>
+            <field name="factura_proveedor">Siemens México · Factura 4409</field>
+            <field name="serie_unidad_electronica">NSUE-88129</field>
+            <field name="serie_unidad_transmision">NSUT-12903</field>
+            <field name="ultima_inspeccion">Conforme</field>
+            <field name="fecha_ultima_inspeccion">2024-11-05</field>
+            <field name="proxima_urgente" eval="False"/>
+        </record>
+        <record id="pozo_g1" model="uva.pozo">
+            <field name="partner_id" ref="cli_g"/>
+            <field name="identificador">[ID-001]</field>
+            <field name="name">[Pozo 1 - Riego Tecnificado]</field>
+            <field name="titulo_concesion">08GTO128392</field>
+            <field name="anexo">01</field>
+            <field name="uso">Agrícola</field>
+            <field name="fuente">subterranea</field>
+            <field name="volumen_anual" eval="620000.0"/>
+            <field name="coordenadas">20.6736° N, 101.3563° W</field>
+            <field name="diametro_descarga">200 mm (8")</field>
+            <field name="medidor_marca">Krohne</field>
+            <field name="medidor_modelo">Waterflux 3070 F</field>
+            <field name="medidor_serie">WF-2023-99120</field>
+            <field name="medidor_dn">200</field>
+            <field name="fecha_instalacion">2026-09-29</field>
+            <field name="factura_proveedor">Krohne México · Factura KM-9428</field>
+            <field name="serie_unidad_electronica">NSUE-78219</field>
+            <field name="serie_unidad_transmision">NSUT-39102</field>
+            <field name="ultima_inspeccion">Conforme · 20/10/2024</field>
+            <field name="fecha_ultima_inspeccion">2024-10-20</field>
+            <field name="proxima_urgente" eval="False"/>
+        </record>
+        <record id="pozo_g2" model="uva.pozo">
+            <field name="partner_id" ref="cli_g"/>
+            <field name="identificador">[ID-002]</field>
+            <field name="name">[Pozo 2 - Invernadero Norte]</field>
+            <field name="titulo_concesion">08GTO128392</field>
+            <field name="anexo">02</field>
+            <field name="uso">Agrícola</field>
+            <field name="fuente">subterranea</field>
+            <field name="volumen_anual" eval="340000.0"/>
+            <field name="coordenadas">20.6811° N, 101.3490° W</field>
+            <field name="diametro_descarga">150 mm (6")</field>
+            <field name="medidor_marca">Badger Meter</field>
+            <field name="medidor_modelo">M-2000 Mag Meter</field>
+            <field name="medidor_serie">BM-2022-7718</field>
+            <field name="medidor_dn">150</field>
+            <field name="fecha_instalacion">2022-11-14</field>
+            <field name="factura_proveedor">Equipos Hidráulicos · Factura EH-301</field>
+            <field name="serie_unidad_electronica">NSUE-66291</field>
+            <field name="serie_unidad_transmision">NSUT-88192</field>
+            <field name="ultima_inspeccion">Conforme · 18/11/2024</field>
+            <field name="fecha_ultima_inspeccion">2024-11-18</field>
+            <field name="texto_proxima_inspeccion">Periódica: en 11 días</field>
+            <field name="proxima_urgente" eval="True"/>
+        </record>
+        <record id="pozo_g3" model="uva.pozo">
+            <field name="partner_id" ref="cli_g"/>
+            <field name="identificador">[ID-003]</field>
+            <field name="name">[Pozo 3 - Empacadora]</field>
+            <field name="titulo_concesion">08GTO128392</field>
+            <field name="anexo">03</field>
+            <field name="uso">Agroindustrial</field>
+            <field name="fuente">subterranea</field>
+            <field name="volumen_anual" eval="180000.0"/>
+            <field name="coordenadas">20.6790° N, 101.3520° W</field>
+            <field name="diametro_descarga">100 mm (4")</field>
+            <field name="medidor_marca">Endress+Hauser</field>
+            <field name="medidor_modelo">Promag W 400</field>
+            <field name="medidor_serie">EH-2026-00492</field>
+            <field name="medidor_dn">100</field>
+            <field name="fecha_instalacion">2026-10-01</field>
+            <field name="factura_proveedor">E+H México · Factura 89201</field>
+            <field name="serie_unidad_electronica">NSUE-90182</field>
+            <field name="serie_unidad_transmision">NSUT-90183</field>
+            <field name="ultima_inspeccion">Sin verificación previa</field>
+            <field name="proxima_urgente" eval="False"/>
+            <field name="folio_activo">UVA-0012</field>
+        </record>
+        <record id="ver_i1" model="uva.verificador">
+            <field name="code">I1</field>
+            <field name="name">[Inspector 1] Ing. Raúl Sánchez</field>
+            <field name="email">rsanchez@sistemauva.mx</field>
+            <field name="zona">Zona [A] Centro-Norte</field>
+            <field name="fecha_competencia">2027-08-15</field>
+            <field name="comp_status">vigente</field>
+            <field name="visitas_mes" eval="4"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">activo</field>
+            <field name="equipo_computo">Laptop Dell Rugged y Samsung Galaxy XCover</field>
+            <field name="user_id" ref="user_raul"/>
+            <field name="resguardo_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-0005', 'estado': 'vigente'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-0008', 'estado': 'vigente'}), (0, 0, {'sequence': 3, 'name': 'GPS', 'inventario': 'INV-0010', 'estado': 'vigente'})]"/>
+        </record>
+        <record id="ver_i2" model="uva.verificador">
+            <field name="code">I2</field>
+            <field name="name">[Inspector 2] Ing. Ana María Torres</field>
+            <field name="email">atorres@sistemauva.mx</field>
+            <field name="zona">Zona [A] Centro-Norte</field>
+            <field name="fecha_competencia">2027-09-20</field>
+            <field name="comp_status">vigente</field>
+            <field name="visitas_mes" eval="5"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">activo</field>
+            <field name="equipo_computo">Laptop Lenovo ThinkPad y Celular Cat S62</field>
+            <field name="user_id" ref="user_ana"/>
+            <field name="resguardo_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-0006', 'estado': 'vigente'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-0009', 'estado': 'vigente'}), (0, 0, {'sequence': 3, 'name': 'GPS', 'inventario': 'INV-0015', 'estado': 'vigente'})]"/>
+        </record>
+        <record id="ver_i3" model="uva.verificador">
+            <field name="code">I3</field>
+            <field name="name">[Inspector 3] Ing. Carlos Mendoza</field>
+            <field name="email">cmendoza@sistemauva.mx</field>
+            <field name="zona">Zona [B] Bajío-Occidente</field>
+            <field name="fecha_competencia">2027-12-10</field>
+            <field name="comp_status">vigente</field>
+            <field name="visitas_mes" eval="3"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">activo</field>
+            <field name="equipo_computo">Laptop Dell Latitude y Celular Samsung Pro</field>
+            <field name="user_id" ref="user_carlos"/>
+            <field name="resguardo_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-0001', 'estado': 'vigente'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-0002', 'estado': 'vigente'}), (0, 0, {'sequence': 3, 'name': 'GPS', 'inventario': 'INV-0003', 'estado': 'vigente'}), (0, 0, {'sequence': 4, 'name': 'Flujómetro ultrasónico', 'inventario': 'INV-0004', 'estado': 'por_vencer'})]"/>
+        </record>
+        <record id="ver_i4" model="uva.verificador">
+            <field name="code">I4</field>
+            <field name="name">[Inspector 4] Ing. Laura Valdés</field>
+            <field name="email">lvaldes@sistemauva.mx</field>
+            <field name="zona">Zona [B] Bajío-Occidente</field>
+            <field name="fecha_competencia">2026-11-25</field>
+            <field name="comp_status">por_vencer</field>
+            <field name="texto_competencia">Vence en 18 días (25/11/2026)</field>
+            <field name="visitas_mes" eval="4"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">activo</field>
+            <field name="equipo_computo">Laptop HP EliteBook y Celular XCover</field>
+            <field name="resguardo_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-0007', 'estado': 'vigente'}), (0, 0, {'sequence': 2, 'name': 'Multímetro', 'inventario': 'INV-0014', 'estado': 'vigente'})]"/>
+        </record>
+        <record id="ver_i5" model="uva.verificador">
+            <field name="code">I5</field>
+            <field name="name">[Inspector 5] Ing. Jorge Morales</field>
+            <field name="email">jmorales@sistemauva.mx</field>
+            <field name="zona">Zona [C] Noreste-Pacífico</field>
+            <field name="zona_corta">Zona [C] Noreste</field>
+            <field name="fecha_competencia">2027-04-04</field>
+            <field name="comp_status">vigente</field>
+            <field name="visitas_mes" eval="4"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">activo</field>
+            <field name="equipo_computo">Laptop Dell y Celular Rugged</field>
+            <field name="resguardo_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Flexómetro', 'inventario': 'INV-0013', 'estado': 'vigente'}), (0, 0, {'sequence': 2, 'name': 'GPS', 'inventario': 'INV-0011', 'estado': 'vigente'})]"/>
+        </record>
+        <record id="ver_i6" model="uva.verificador">
+            <field name="code">I6</field>
+            <field name="name">[Inspector 6] Ing. Diana Domínguez</field>
+            <field name="email">ddominguez@sistemauva.mx</field>
+            <field name="zona">Zona [C] Noreste-Pacífico</field>
+            <field name="zona_corta">Zona [C] Noreste</field>
+            <field name="fecha_competencia">2027-06-14</field>
+            <field name="comp_status">vigente</field>
+            <field name="visitas_mes" eval="5"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">activo</field>
+            <field name="equipo_computo">Laptop Lenovo y Celular Cat</field>
+            <field name="resguardo_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Kit completo estándar', 'inventario': 'KIT-06', 'estado': 'vigente'})]"/>
+        </record>
+        <record id="ver_i7" model="uva.verificador">
+            <field name="code">I7</field>
+            <field name="name">[Inspector 7] Ing. Héctor Beltrán</field>
+            <field name="email">hbeltran@sistemauva.mx</field>
+            <field name="zona">Zona [A] Centro-Norte</field>
+            <field name="fecha_competencia">2027-11-30</field>
+            <field name="comp_status">vigente</field>
+            <field name="visitas_mes" eval="0"/>
+            <field name="meta_mensual" eval="5"/>
+            <field name="max_visitas_semana" eval="2"/>
+            <field name="estado">vacaciones</field>
+            <field name="equipo_computo">Laptop en resguardo de almacén</field>
+            <field name="vacaciones_inicio">2026-10-19</field>
+            <field name="vacaciones_fin">2026-10-30</field>
+            <field name="resguardo_ids" eval="[]"/>
+        </record>
+        <record id="est_insp_1" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="1"/>
+            <field name="name">[Inspector 1] Raúl Sánchez</field>
+            <field name="valor" eval="22"/>
+            <field name="valor2" eval="1"/>
+            <field name="verificador_id" ref="ver_i1"/>
+        </record>
+        <record id="est_insp_2" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="2"/>
+            <field name="name">[Inspector 2] Ana María Torres</field>
+            <field name="valor" eval="24"/>
+            <field name="valor2" eval="3"/>
+            <field name="verificador_id" ref="ver_i2"/>
+        </record>
+        <record id="est_insp_3" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="3"/>
+            <field name="name">[Inspector 3] Carlos Mendoza</field>
+            <field name="valor" eval="19"/>
+            <field name="valor2" eval="0"/>
+            <field name="verificador_id" ref="ver_i3"/>
+        </record>
+        <record id="est_insp_4" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="4"/>
+            <field name="name">[Inspector 4] Laura Valdés</field>
+            <field name="valor" eval="21"/>
+            <field name="valor2" eval="2"/>
+            <field name="verificador_id" ref="ver_i4"/>
+        </record>
+        <record id="est_insp_5" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="5"/>
+            <field name="name">[Inspector 5] Jorge Morales</field>
+            <field name="valor" eval="20"/>
+            <field name="valor2" eval="1"/>
+            <field name="verificador_id" ref="ver_i5"/>
+        </record>
+        <record id="est_insp_6" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="6"/>
+            <field name="name">[Inspector 6] Diana Domínguez</field>
+            <field name="valor" eval="25"/>
+            <field name="valor2" eval="2"/>
+            <field name="verificador_id" ref="ver_i6"/>
+        </record>
+        <record id="est_insp_7" model="uva.estadistica.dato">
+            <field name="tipo">inspector</field>
+            <field name="sequence" eval="7"/>
+            <field name="name">[Inspector 7] Héctor Beltrán</field>
+            <field name="valor" eval="15"/>
+            <field name="valor2" eval="0"/>
+            <field name="verificador_id" ref="ver_i7"/>
+        </record>
+        <record id="inst_i1" model="uva.instrumento">
+            <field name="tipo">Flexómetro</field>
+            <field name="marca_modelo">Stanley FatMax 10m</field>
+            <field name="serie">ST-991024</field>
+            <field name="codigo">INV-[0001]</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="fecha_vencimiento">2026-11-14</field>
+            <field name="estado">operativo</field>
+            <field name="status">vigente</field>
+            <field name="laboratorio">Metrología Integral del Centro, S.A.</field>
+            <field name="certificado">MIC-2025-FL-081</field>
+            <field name="fecha_calibracion">2025-11-14</field>
+            <field name="nombre_corto">Stanley FatMax</field>
+        </record>
+        <record id="cal_i1_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i1"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i1_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i1"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i2" model="uva.instrumento">
+            <field name="tipo">Multímetro</field>
+            <field name="marca_modelo">Fluke 87V Industrial</field>
+            <field name="serie">FL-882910</field>
+            <field name="codigo">INV-[0002]</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="fecha_vencimiento">2027-01-08</field>
+            <field name="estado">operativo</field>
+            <field name="status">vigente</field>
+            <field name="laboratorio">Laboratorios Metrológicos Acreditados EMA</field>
+            <field name="certificado">LMA-EL-2026-112</field>
+            <field name="fecha_calibracion">2026-01-08</field>
+            <field name="nombre_corto">Fluke 87V</field>
+        </record>
+        <record id="cal_i2_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i2"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i2_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i2"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i3" model="uva.instrumento">
+            <field name="tipo">GPS</field>
+            <field name="marca_modelo">Garmin GPSMAP 66sr</field>
+            <field name="serie">GM-772910</field>
+            <field name="codigo">INV-[0003]</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="fecha_vencimiento">2027-02-22</field>
+            <field name="estado">operativo</field>
+            <field name="status">vigente</field>
+            <field name="laboratorio">Centro Nacional de Metrología (CENAM)</field>
+            <field name="certificado">CEN-GEO-26-094</field>
+            <field name="fecha_calibracion">2026-02-22</field>
+        </record>
+        <record id="cal_i3_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i3"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i3_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i3"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i4" model="uva.instrumento">
+            <field name="tipo">Flujómetro ultrasónico portátil</field>
+            <field name="marca_modelo">Flexim FLUXUS F601</field>
+            <field name="serie">FX-601-8841</field>
+            <field name="codigo">INV-[0004]</field>
+            <field name="verificador_id" ref="ver_i3"/>
+            <field name="fecha_vencimiento">2026-11-12</field>
+            <field name="estado">operativo</field>
+            <field name="status">por_vencer</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="certificado">KCC-FLUX-2025-44</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+        </record>
+        <record id="cal_i4_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i4"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i4_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i4"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i5" model="uva.instrumento">
+            <field name="tipo">GPS</field>
+            <field name="marca_modelo">Garmin Montana 700</field>
+            <field name="serie">GM-551029</field>
+            <field name="codigo">INV-[0011]</field>
+            <field name="verificador_id" ref="ver_i5"/>
+            <field name="fecha_vencimiento">2026-09-18</field>
+            <field name="estado">operativo</field>
+            <field name="status">vencido</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="certificado">MIC-2024-GEO-19</field>
+            <field name="fecha_calibracion">2024-09-18</field>
+        </record>
+        <record id="cal_i5_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i5"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i5_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i5"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i6" model="uva.instrumento">
+            <field name="tipo">Multímetro</field>
+            <field name="marca_modelo">Fluke 179 True-RMS</field>
+            <field name="serie">FL-330192</field>
+            <field name="codigo">INV-[0012]</field>
+            <field name="verificador_id" ref="ver_i5"/>
+            <field name="fecha_vencimiento">2027-05-04</field>
+            <field name="estado">operativo</field>
+            <field name="status">vigente</field>
+            <field name="laboratorio">Laboratorios EMA</field>
+            <field name="certificado">EMA-8829-E</field>
+            <field name="fecha_calibracion">2026-05-04</field>
+        </record>
+        <record id="cal_i6_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i6"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i6_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i6"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i7" model="uva.instrumento">
+            <field name="tipo">GPS</field>
+            <field name="marca_modelo">Garmin GPSMAP 65s</field>
+            <field name="serie">GM-440192</field>
+            <field name="codigo">INV-[0020]</field>
+            <field name="fecha_vencimiento">2027-04-15</field>
+            <field name="estado">operativo</field>
+            <field name="status">disponible</field>
+            <field name="laboratorio">CENAM</field>
+            <field name="certificado">CEN-2026-99</field>
+            <field name="fecha_calibracion">2026-04-15</field>
+            <field name="nombre_corto">Garmin 65s</field>
+        </record>
+        <record id="cal_i7_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i7"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i7_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i7"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="inst_i8" model="uva.instrumento">
+            <field name="tipo">Flujómetro ultrasónico portátil</field>
+            <field name="marca_modelo">GE Sensing PT878</field>
+            <field name="serie">GE-991028</field>
+            <field name="codigo">INV-[0021]</field>
+            <field name="estado">operativo</field>
+            <field name="status">en_calibracion</field>
+            <field name="laboratorio">Metrología Avanzada de Flujo</field>
+            <field name="certificado">En proceso</field>
+            <field name="nombre_corto">GE Sensing PT878</field>
+        </record>
+        <record id="cal_i8_2024" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i8"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Metrología Integral EMA</field>
+            <field name="laboratorio_corto">Metrología EMA</field>
+            <field name="fecha_calibracion">2024-11-10</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <record id="cal_i8_2025" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i8"/>
+            <field name="state">completada</field>
+            <field name="laboratorio">Krohne Calibration Center EMA</field>
+            <field name="laboratorio_corto">Krohne Calibration</field>
+            <field name="fecha_calibracion">2025-11-12</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="paso_ids" eval="[]"/>
+        </record>
+        <!-- Calibración en curso del flujómetro INV-[0004] (CalibracionView) -->
+        <record id="cal_i4_actual" model="uva.calibracion">
+            <field name="instrumento_id" ref="inst_i4"/>
+            <field name="state">en_curso</field>
+            <field name="laboratorio">Laboratorio Metrológico de Flujo EMA, S.A.</field>
+            <field name="certificado">EMA-FLUX-2026-9921</field>
+            <field name="fecha_calibracion">2026-10-18</field>
+            <field name="vigencia_meses" eval="12"/>
+            <field name="vencimiento_anterior">2026-10-12</field>
+            <field name="archivo_nombre">Certificado_EMA_2026.pdf</field>
+            <field name="notas">Calibración anual programada conforme a NMX-AA-179-SCFI-2018.</field>
+            <field name="paso_ids" eval="[(0, 0, {'sequence': 1, 'name': 'Retirar el equipo de servicio y marcarlo &quot;En calibración&quot;', 'requerido': True, 'realizado': True, 'comentario': 'Enviado a almacén', 'fecha': '2026-10-10'}), (0, 0, {'sequence': 2, 'name': 'Revisar estado físico, transductores, accesorios y cables', 'requerido': True, 'realizado': True, 'comentario': 'Sin daño visible', 'fecha': '2026-10-10'}), (0, 0, {'sequence': 3, 'name': 'Respaldar configuración de parámetros y mediciones previas', 'requerido': False, 'realizado': True, 'comentario': 'Respaldo en nube', 'fecha': '2026-10-10'}), (0, 0, {'sequence': 4, 'name': 'Enviar al laboratorio acreditado (registrar guía o entrega directa)', 'requerido': True, 'realizado': True, 'comentario': 'Guía DHL 94810293', 'fecha': '2026-10-11'}), (0, 0, {'sequence': 5, 'name': 'Recibir equipo de regreso y paquete con certificado oficial', 'requerido': True, 'realizado': True, 'comentario': 'Recibido en almacén', 'fecha': '2026-10-18'}), (0, 0, {'sequence': 6, 'name': 'Revisar que el número de serie del certificado coincida con el instrumento', 'requerido': True, 'realizado': False, 'comentario': False}), (0, 0, {'sequence': 7, 'name': 'Revisar que los errores de medición estén dentro de la tolerancia de la NMX-AA-179', 'requerido': True, 'realizado': False, 'comentario': False}), (0, 0, {'sequence': 8, 'name': 'Colocar etiqueta física de calibración vigente en el equipo', 'requerido': False, 'realizado': False, 'comentario': False}), (0, 0, {'sequence': 9, 'name': 'Realizar prueba de encendido y funcionamiento antes de liberar', 'requerido': True, 'realizado': False, 'comentario': False})]"/>
+        </record>
+        <record id="tipo_1" model="uva.formato.tipo">
+            <field name="sequence" eval="1"/>
+            <field name="name">1. Una sola opción (option box)</field>
+            <field name="etiqueta_corta">Option box · C/NC/NA</field>
+            <field name="clase">opciones</field>
+            <field name="valores">C
+NC
+N/A</field>
+            <field name="con_evaluacion" eval="False"/>
+            <field name="por_campo" eval="False"/>
+            <field name="usos">C/NC/NA en la mayoría de los puntos (2.3, 3.1–3.7, 4.1…). Otros valores: FTP / SMS (4.33), Subterránea / Superficial (2.2), Inicial / Periódica / Extraordinaria.</field>
+        </record>
+        <record id="tipo_2" model="uva.formato.tipo">
+            <field name="sequence" eval="2"/>
+            <field name="name">2. Varias opciones (checkbox)</field>
+            <field name="etiqueta_corta">Checkbox · varias opciones</field>
+            <field name="clase">opciones</field>
+            <field name="valores">GSM/GPRS/3G/4G/5G
+Wi-Fi
+Ethernet
+Enlace satelital
+Otro</field>
+            <field name="con_evaluacion" eval="False"/>
+            <field name="por_campo" eval="False"/>
+            <field name="usos">4.32 Tecnología empleada para la transmisión remota de mediciones a CONAGUA.</field>
+        </record>
+        <record id="tipo_3" model="uva.formato.tipo">
+            <field name="sequence" eval="3"/>
+            <field name="name">3. Texto libre</field>
+            <field name="etiqueta_corta">Texto libre</field>
+            <field name="clase">texto</field>
+            <field name="con_evaluacion" eval="False"/>
+            <field name="por_campo" eval="False"/>
+            <field name="usos">Observaciones generales, 6.13 y 6.14 (folios de etiquetas y precintos colocados), nombre del representante presente.</field>
+        </record>
+        <record id="tipo_4" model="uva.formato.tipo">
+            <field name="sequence" eval="4"/>
+            <field name="name">4. Grupo de campos con texto libre</field>
+            <field name="etiqueta_corta">Grupo de campos</field>
+            <field name="clase">grupo</field>
+            <field name="campos">Marca|40
+Modelo|40
+Número de serie|30</field>
+            <field name="con_evaluacion" eval="False"/>
+            <field name="por_campo" eval="False"/>
+            <field name="usos">Encabezados de 4.4 (unidad electrónica), 4.15 (memoria no volátil) y 4.22 (gabinete); 1.2 datos generales, 1.4 instrumentos, 2.1 coordenadas, sección 5.</field>
+        </record>
+        <record id="tipo_5" model="uva.formato.tipo">
+            <field name="sequence" eval="5"/>
+            <field name="name">5. Grupo de campos + C/NC/NA por grupo</field>
+            <field name="etiqueta_corta">Grupo + C/NC/NA por grupo</field>
+            <field name="clase">grupo</field>
+            <field name="campos">L (m)|10
+L1 (m)|10
+L2 (m)|10
+L3 (m)|10</field>
+            <field name="con_evaluacion" eval="True"/>
+            <field name="etiqueta_evaluacion">Una evaluación global para todo el grupo</field>
+            <field name="por_campo" eval="False"/>
+            <field name="usos">3.4 longitudes de tramo recto, 6.1–6.5 voltajes y corriente de alimentación, 4.20 alimentación (DC / AC).</field>
+        </record>
+        <record id="tipo_6" model="uva.formato.tipo">
+            <field name="sequence" eval="6"/>
+            <field name="name">6. Grupo de campos + C/NC/NA por punto</field>
+            <field name="etiqueta_corta">Grupo + C/NC/NA por punto</field>
+            <field name="clase">grupo</field>
+            <field name="campos">Fecha (aaaammdd)|8
+Hora (hhmmss)|6
+Lectura acumulada (Lec)|20</field>
+            <field name="con_evaluacion" eval="False"/>
+            <field name="por_campo" eval="True"/>
+            <field name="usos">4.6 variables de la unidad electrónica: cada campo lleva su propia evaluación independiente C/NC/NA.</field>
+        </record>
+        <record id="fmt_f12" model="uva.formato">
+            <field name="sequence" eval="1"/>
+            <field name="codigo">F-12-AC</field>
+            <field name="name">Solicitud de servicio</field>
+            <field name="subtitulo">Contrato y datos del cliente</field>
+            <field name="etapa">contratacion</field>
+            <field name="version">1.2</field>
+            <field name="tipo_estructura">word</field>
+            <field name="detalle_estructura">Variables de contrato y firma</field>
+            <field name="state">vigente</field>
+            <field name="fecha_modificacion">2026-04-12</field>
+        </record>
+        <record id="fmt_cldoc" model="uva.formato">
+            <field name="sequence" eval="2"/>
+            <field name="codigo">CL-DOC</field>
+            <field name="name">Lista de verificación de documentación requerida</field>
+            <field name="subtitulo">Se muestra en Solicitudes › Documentos del cliente</field>
+            <field name="etapa">solicitud</field>
+            <field name="version">1.0</field>
+            <field name="tipo_estructura">checklist</field>
+            <field name="detalle_estructura">6 rubros obligatorios</field>
+            <field name="state">vigente</field>
+            <field name="fecha_modificacion">2026-02-01</field>
+        </record>
+        <record id="fmt_f18_15" model="uva.formato">
+            <field name="sequence" eval="3"/>
+            <field name="codigo">F-18-AC</field>
+            <field name="name">Lista de verificación de campo</field>
+            <field name="subtitulo">Numeral 10 · NMX-AA-179-SCFI-2018</field>
+            <field name="etapa">campo</field>
+            <field name="version">1.5</field>
+            <field name="tipo_estructura">cuestionario</field>
+            <field name="detalle_estructura">6 secciones · 72 puntos</field>
+            <field name="state">vigente</field>
+            <field name="fecha_modificacion">2026-06-15</field>
+        </record>
+        <record id="fmt_f18_16" model="uva.formato">
+            <field name="sequence" eval="4"/>
+            <field name="codigo">F-18-AC</field>
+            <field name="name">Lista de verificación de campo</field>
+            <field name="subtitulo">Ajuste de criterios sección 4 (opresores y sellos)</field>
+            <field name="etapa">campo</field>
+            <field name="version">1.6</field>
+            <field name="tipo_estructura">cuestionario</field>
+            <field name="detalle_estructura">6 secciones · 72 puntos</field>
+            <field name="state">en_aprobacion</field>
+            <field name="fecha_modificacion">2026-10-14</field>
+        </record>
+        <record id="fmt_f17" model="uva.formato">
+            <field name="sequence" eval="5"/>
+            <field name="codigo">F-17-AC</field>
+            <field name="name">Dictamen de verificación</field>
+            <field name="subtitulo">Resultado conforme o inconforme oficial</field>
+            <field name="etapa">emision</field>
+            <field name="version">2.0</field>
+            <field name="tipo_estructura">word</field>
+            <field name="detalle_estructura">Firma electrónica y sellos CONAGUA</field>
+            <field name="state">vigente</field>
+            <field name="fecha_modificacion">2026-05-10</field>
+        </record>
+        <record id="fmt_clcal" model="uva.formato">
+            <field name="sequence" eval="6"/>
+            <field name="codigo">CL-CAL</field>
+            <field name="name">Lista de verificación de calibración de equipos</field>
+            <field name="subtitulo">Se muestra en Instrumentos › Registrar calibración</field>
+            <field name="etapa">calibracion</field>
+            <field name="version">1.0</field>
+            <field name="tipo_estructura">checklist</field>
+            <field name="detalle_estructura">9 pasos normativos</field>
+            <field name="state">vigente</field>
+            <field name="fecha_modificacion">2026-03-20</field>
+        </record>
+        <record id="rubro_cldoc_1" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_cldoc"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">Título de concesión o asignación</field>
+            <field name="requerido" eval="True"/>
+        </record>
+        <record id="rubro_cldoc_2" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_cldoc"/>
+            <field name="sequence" eval="2"/>
+            <field name="name">Certificado o dictamen de calibración del medidor</field>
+            <field name="requerido" eval="True"/>
+        </record>
+        <record id="rubro_cldoc_3" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_cldoc"/>
+            <field name="sequence" eval="3"/>
+            <field name="name">Factura del medidor</field>
+            <field name="requerido" eval="True"/>
+        </record>
+        <record id="rubro_cldoc_4" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_cldoc"/>
+            <field name="sequence" eval="4"/>
+            <field name="name">Identificación del representante legal</field>
+            <field name="requerido" eval="True"/>
+        </record>
+        <record id="rubro_cldoc_5" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_cldoc"/>
+            <field name="sequence" eval="5"/>
+            <field name="name">Manual de instalación del medidor</field>
+            <field name="requerido" eval="True"/>
+        </record>
+        <record id="rubro_cldoc_6" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_cldoc"/>
+            <field name="sequence" eval="6"/>
+            <field name="name">Reporte de instalación del equipo</field>
+            <field name="requerido" eval="False"/>
+        </record>
+        <record id="rubro_clcal_1" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="1"/>
+            <field name="name">Retirar el equipo de servicio y marcarlo "En calibración"</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_2" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="2"/>
+            <field name="name">Revisar estado físico, transductores, accesorios y cables</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_3" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="3"/>
+            <field name="name">Respaldar configuración de parámetros y mediciones previas</field>
+            <field name="requerido" eval="False"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_4" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="4"/>
+            <field name="name">Enviar al laboratorio acreditado (registrar guía o entrega directa)</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_5" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="5"/>
+            <field name="name">Recibir equipo de regreso y paquete con certificado oficial</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_6" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="6"/>
+            <field name="name">Revisar que el número de serie del certificado coincida con el instrumento</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_7" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="7"/>
+            <field name="name">Revisar que los errores de medición estén dentro de la tolerancia de la NMX-AA-179</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_8" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="8"/>
+            <field name="name">Colocar etiqueta física de calibración vigente en el equipo</field>
+            <field name="requerido" eval="False"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="rubro_clcal_9" model="uva.formato.rubro">
+            <field name="formato_id" ref="fmt_clcal"/>
+            <field name="sequence" eval="9"/>
+            <field name="name">Realizar prueba de encendido y funcionamiento antes de liberar</field>
+            <field name="requerido" eval="True"/>
+            <field name="pide_archivo" eval="False"/>
+        </record>
+        <record id="campo_f17_1" model="uva.formato.campo">
+            <field name="formato_id" ref="fmt_f17"/>
+            <field name="sequence" eval="1"/>
+            <field name="clave">RazonSocial</field>
+            <field name="mapeo">Cliente › Razón social</field>
+        </record>
+        <record id="campo_f17_2" model="uva.formato.campo">
+            <field name="formato_id" ref="fmt_f17"/>
+            <field name="sequence" eval="2"/>
+            <field name="clave">RFC</field>
+            <field name="mapeo">Cliente › RFC</field>
+        </record>
+        <record id="campo_f17_3" model="uva.formato.campo">
+            <field name="formato_id" ref="fmt_f17"/>
+            <field name="sequence" eval="3"/>
+            <field name="clave">TituloConcesion</field>
+            <field name="mapeo">Aprovechamiento › No. de título</field>
+        </record>
+        <record id="campo_f17_4" model="uva.formato.campo">
+            <field name="formato_id" ref="fmt_f17"/>
+            <field name="sequence" eval="4"/>
+            <field name="clave">NumeroDictamen</field>
+            <field name="mapeo">Dictamen › Folio</field>
+        </record>
+        <record id="campo_f17_5" model="uva.formato.campo">
+            <field name="formato_id" ref="fmt_f17"/>
+            <field name="sequence" eval="5"/>
+            <field name="clave">Resultado</field>
+            <field name="mapeo">Dictamen › Conforme / Inconforme</field>
+        </record>
+        <record id="sec_f18_15_1" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="sequence" eval="1"/>
+            <field name="numero">1</field>
+            <field name="name">Datos generales</field>
+            <field name="etiqueta_conteo">4 bloques</field>
+        </record>
+        <record id="sec_f18_15_2" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="sequence" eval="2"/>
+            <field name="numero">2</field>
+            <field name="name">Ubicación y características del medidor</field>
+            <field name="etiqueta_conteo">10 puntos</field>
+        </record>
+        <record id="sec_f18_15_3" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="sequence" eval="3"/>
+            <field name="numero">3</field>
+            <field name="name">Estación de aforo</field>
+            <field name="etiqueta_conteo">7 puntos</field>
+        </record>
+        <record id="sec_f18_15_4" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="sequence" eval="4"/>
+            <field name="numero">4</field>
+            <field name="name">Componentes del medidor</field>
+            <field name="etiqueta_conteo">35 puntos</field>
+        </record>
+        <record id="sec_f18_15_5" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="sequence" eval="5"/>
+            <field name="numero">5</field>
+            <field name="name">Determinación del gasto</field>
+            <field name="etiqueta_conteo">Tabla Apéndice B</field>
+        </record>
+        <record id="sec_f18_15_6" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_15"/>
+            <field name="sequence" eval="6"/>
+            <field name="numero">6</field>
+            <field name="name">Pruebas y verificaciones</field>
+            <field name="etiqueta_conteo">14 puntos</field>
+        </record>
+        <record id="sec_f18_16_1" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_16"/>
+            <field name="sequence" eval="1"/>
+            <field name="numero">1</field>
+            <field name="name">Datos generales</field>
+            <field name="etiqueta_conteo">4 bloques</field>
+            <field name="tipos_respuesta">Grupo de campos con texto libre · Una sola opción (tipo de verificación, persona física o moral)</field>
+        </record>
+        <record id="sec_f18_16_2" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_16"/>
+            <field name="sequence" eval="2"/>
+            <field name="numero">2</field>
+            <field name="name">Ubicación y características</field>
+            <field name="etiqueta_conteo">10</field>
+            <field name="tipos_respuesta">Grupo de campos (2.1 coordenadas) · Una sola opción (2.2 fuente) y C/NC/NA en 2.3–2.10</field>
+        </record>
+        <record id="sec_f18_16_3" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_16"/>
+            <field name="sequence" eval="3"/>
+            <field name="numero">3</field>
+            <field name="name">Estación de aforo</field>
+            <field name="etiqueta_conteo">7</field>
+            <field name="tipos_respuesta">Una sola opción C/NC/NA · Grupo + C/NC/NA por grupo (3.4 longitudes de tramo)</field>
+        </record>
+        <record id="sec_f18_16_4" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_16"/>
+            <field name="sequence" eval="4"/>
+            <field name="numero">4</field>
+            <field name="name">Componentes del medidor</field>
+            <field name="etiqueta_conteo">35</field>
+            <field name="tipos_respuesta">Grupo de campos (4.4, 4.15, 4.22) · C/NC/NA · por punto (4.6) · por grupo (4.20) · Varias opciones (4.32) · Una sola opción (4.33)</field>
+        </record>
+        <record id="sec_f18_16_5" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_16"/>
+            <field name="sequence" eval="5"/>
+            <field name="numero">5</field>
+            <field name="name">Determinación del gasto</field>
+            <field name="etiqueta_conteo">Ap. B</field>
+            <field name="tipos_respuesta">Grupo de campos con texto libre (aforo volumétrico y velocidad de flujo)</field>
+        </record>
+        <record id="sec_f18_16_6" model="uva.formato.seccion">
+            <field name="formato_id" ref="fmt_f18_16"/>
+            <field name="sequence" eval="6"/>
+            <field name="numero">6</field>
+            <field name="name">Pruebas y verificaciones</field>
+            <field name="etiqueta_conteo">14</field>
+            <field name="tipos_respuesta">Grupo + C/NC/NA por grupo (6.1–6.5) · C/NC/NA (6.6–6.12) · Texto libre (6.13, 6.14 precintos)</field>
+        </record>
+        <record id="pto_f18_15_3_1" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="1"/>
+            <field name="numero">3.1</field>
+            <field name="pregunta">¿El sitio de medición es un tramo recto de tubería circular de diámetro uniforme y sin obstrucciones?</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_15_3_2" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="2"/>
+            <field name="numero">3.2</field>
+            <field name="pregunta">¿El medidor está instalado de forma tal que el tubo esté lleno de agua bajo condiciones normales de operación?</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 a</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+            <field name="criterio">Se da por bueno si bajo condiciones normales de operación el tubo se encuentra completamente lleno en la sección del medidor. Por ejemplo, con un arreglo en omega o elevación aguas abajo.</field>
+        </record>
+        <record id="pto_f18_15_3_3" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="3"/>
+            <field name="numero">3.3</field>
+            <field name="pregunta">¿La posición del medidor es horizontal, o bien vertical siempre y cuando el gasto sea ascendente?</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 b</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_15_3_4" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="4"/>
+            <field name="numero">3.4</field>
+            <field name="pregunta">Longitud del tramo de tubería y de los tramos aguas arriba y aguas abajo (L, L1, L2, L3).</field>
+            <field name="tipo_verificacion">medicion</field>
+            <field name="referencia">7.1</field>
+            <field name="tipo_respuesta_id" ref="tipo_5"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_15_3_5" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="5"/>
+            <field name="numero">3.5</field>
+            <field name="pregunta">No existen bifurcaciones o válvulas de seccionamiento antes de la ubicación del medidor.</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 e</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">si_nc</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_15_3_6" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="6"/>
+            <field name="numero">3.6</field>
+            <field name="pregunta">El sitio contiene las estructuras adecuadas que permiten la remoción del medidor.</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 f</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">si_nc</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_15_3_7" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_15_3"/>
+            <field name="sequence" eval="7"/>
+            <field name="numero">3.7</field>
+            <field name="pregunta">La ubicación del equipo permite el acceso sencillo para la toma de lectura.</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 g</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">si_nc</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_16_3_1" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="1"/>
+            <field name="numero">3.1</field>
+            <field name="pregunta">¿El sitio de medición es un tramo recto de tubería circular de diámetro uniforme y sin obstrucciones?</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_16_3_2" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="2"/>
+            <field name="numero">3.2</field>
+            <field name="pregunta">¿El medidor está instalado de forma tal que el tubo esté lleno de agua bajo condiciones normales de operación?</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 a</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+            <field name="criterio">Se da por bueno si bajo condiciones normales de operación el tubo se encuentra lleno en la sección del medidor. Por ejemplo, con un arreglo en omega.</field>
+        </record>
+        <record id="pto_f18_16_3_3" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="3"/>
+            <field name="numero">3.3</field>
+            <field name="pregunta">¿La posición del medidor es horizontal, o bien vertical siempre y cuando el gasto sea ascendente?</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 b</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_16_3_4" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="4"/>
+            <field name="numero">3.4</field>
+            <field name="pregunta">Longitud del tramo de tubería y de los tramos aguas arriba y aguas abajo (L, L1, L2, L3).</field>
+            <field name="tipo_verificacion">medicion</field>
+            <field name="referencia">7.1</field>
+            <field name="tipo_respuesta_id" ref="tipo_5"/>
+            <field name="evidencia">obligatoria</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_16_3_5" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="5"/>
+            <field name="numero">3.5</field>
+            <field name="pregunta">No existen bifurcaciones o válvulas de seccionamiento antes de la ubicación del medidor.</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 e</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">si_nc</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_16_3_6" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="6"/>
+            <field name="numero">3.6</field>
+            <field name="pregunta">El sitio contiene las estructuras adecuadas que permiten la remoción del medidor.</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 f</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">si_nc</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+        <record id="pto_f18_16_3_7" model="uva.formato.punto">
+            <field name="seccion_id" ref="sec_f18_16_3"/>
+            <field name="sequence" eval="7"/>
+            <field name="numero">3.7</field>
+            <field name="pregunta">La ubicación del equipo permite el acceso sencillo para la toma de lectura.</field>
+            <field name="tipo_verificacion">visual</field>
+            <field name="referencia">7.1 g</field>
+            <field name="tipo_respuesta_id" ref="tipo_1"/>
+            <field name="evidencia">si_nc</field>
+            <field name="min_fotos" eval="1"/>
+        </record>
+    </data>
+</odoo>

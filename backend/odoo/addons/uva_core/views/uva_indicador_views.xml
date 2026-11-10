@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ajustes de indicadores -->
+    <record id="view_uva_indicador_list" model="ir.ui.view">
+        <field name="name">uva.indicador.list</field>
+        <field name="model">uva.indicador</field>
+        <field name="arch" type="xml">
+            <list string="Ajustes de indicadores" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="ajuste"/>
+                <field name="texto"/>
+                <field name="texto2"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_indicador_search" model="ir.ui.view">
+        <field name="name">uva.indicador.search</field>
+        <field name="model">uva.indicador</field>
+        <field name="arch" type="xml">
+            <search string="Buscar indicadores">
+                <field name="code"/>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_indicador" model="ir.actions.act_window">
+        <field name="name">Ajustes de indicadores</field>
+        <field name="res_model">uva.indicador</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Estadística mensual -->
+    <record id="view_uva_estadistica_mes_list" model="ir.ui.view">
+        <field name="name">uva.estadistica.mes.list</field>
+        <field name="model">uva.estadistica.mes</field>
+        <field name="arch" type="xml">
+            <list string="Verificaciones por mes" editable="bottom">
+                <field name="fecha"/>
+                <field name="name"/>
+                <field name="verificaciones"/>
+                <field name="meta"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_uva_estadistica_mes" model="ir.actions.act_window">
+        <field name="name">Verificaciones por mes</field>
+        <field name="res_model">uva.estadistica.mes</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Datos estadísticos -->
+    <record id="view_uva_estadistica_dato_list" model="ir.ui.view">
+        <field name="name">uva.estadistica.dato.list</field>
+        <field name="model">uva.estadistica.dato</field>
+        <field name="arch" type="xml">
+            <list string="Datos estadísticos" editable="bottom">
+                <field name="tipo"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="valor"/>
+                <field name="valor2" invisible="tipo != 'inspector'"/>
+                <field name="maximo"/>
+                <field name="es_total" invisible="tipo != 'etapa'"/>
+                <field name="verificador_id" invisible="tipo != 'inspector'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_estadistica_dato_search" model="ir.ui.view">
+        <field name="name">uva.estadistica.dato.search</field>
+        <field name="model">uva.estadistica.dato</field>
+        <field name="arch" type="xml">
+            <search string="Buscar datos">
+                <field name="name"/>
+                <filter string="Tiempos por etapa" name="etapa" domain="[('tipo', '=', 'etapa')]"/>
+                <filter string="No conformidades" name="nc" domain="[('tipo', '=', 'nc')]"/>
+                <filter string="Productividad" name="inspector" domain="[('tipo', '=', 'inspector')]"/>
+                <group>
+                    <filter string="Tipo" name="group_tipo" context="{'group_by': 'tipo'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_estadistica_dato" model="ir.actions.act_window">
+        <field name="name">Datos estadísticos</field>
+        <field name="res_model">uva.estadistica.dato</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Matriz de permisos -->
+    <record id="view_uva_matriz_permiso_list" model="ir.ui.view">
+        <field name="name">uva.matriz.permiso.list</field>
+        <field name="model">uva.matriz.permiso</field>
+        <field name="arch" type="xml">
+            <list string="Matriz de permisos" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="p_admin"/>
+                <field name="p_coordinador"/>
+                <field name="p_inspector"/>
+                <field name="p_gerente"/>
+                <field name="p_conagua"/>
+                <field name="p_equipos"/>
+                <field name="p_consulta"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_uva_matriz_permiso" model="ir.actions.act_window">
+        <field name="name">Matriz de permisos</field>
+        <field name="res_model">uva.matriz.permiso</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_uva_indicador" name="Ajustes de indicadores" parent="menu_uva_config"
+              action="action_uva_indicador" sequence="10"/>
+    <menuitem id="menu_uva_estadistica_mes" name="Verificaciones por mes" parent="menu_uva_config"
+              action="action_uva_estadistica_mes" sequence="20"/>
+    <menuitem id="menu_uva_estadistica_dato" name="Datos estadísticos" parent="menu_uva_config"
+              action="action_uva_estadistica_dato" sequence="30"/>
+    <menuitem id="menu_uva_matriz_permiso" name="Matriz de permisos" parent="menu_uva_config"
+              action="action_uva_matriz_permiso" sequence="40"/>
+</odoo>

@@ -1,0 +1,21 @@
+{
+    'name': 'Sistema UVA - Núcleo',
+    'summary': 'Roles, clientes, pozos, verificadores y folios de la Unidad de Verificación (NMX-AA-179-SCFI-2018)',
+    'version': '19.0.1.1.0',
+    'category': 'Services',
+    'author': 'Sistema UVA',
+    'license': 'LGPL-3',
+    'depends': ['base', 'mail'],
+    'data': [
+        'security/uva_security.xml',
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'views/uva_menus.xml',
+        'views/res_partner_views.xml',
+        'views/uva_pozo_views.xml',
+        'views/uva_verificador_views.xml',
+        'views/uva_indicador_views.xml',
+    ],
+    'application': True,
+    'installable': True,
+}

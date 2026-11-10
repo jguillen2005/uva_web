@@ -1,0 +1,16 @@
+{
+  "name": "uva-services",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Microservicios de dominio del Sistema UVA (fachada HTTP sobre la API JSON-2 de Odoo 19)",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:all": "node dev-all.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

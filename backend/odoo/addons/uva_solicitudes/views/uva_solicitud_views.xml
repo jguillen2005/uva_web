@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_uva_solicitud_list" model="ir.ui.view">
+        <field name="name">uva.solicitud.list</field>
+        <field name="model">uva.solicitud</field>
+        <field name="arch" type="xml">
+            <list string="Solicitudes">
+                <field name="name"/>
+                <field name="cliente_nombre"/>
+                <field name="pozo_nombre"/>
+                <field name="titulo_concesion" optional="show"/>
+                <field name="tipo"/>
+                <field name="cotizacion" optional="show"/>
+                <field name="docs_count" string="Docs"/>
+                <field name="total_docs" string="De"/>
+                <field name="fecha_registro"/>
+                <field name="coordinador_nombre" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state in ('cotizacion', 'pago')"
+                       decoration-warning="state == 'documentacion'" decoration-success="state in ('lista', 'programada')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_solicitud_form" model="ir.ui.view">
+        <field name="name">uva.solicitud.form</field>
+        <field name="model">uva.solicitud</field>
+        <field name="arch" type="xml">
+            <form string="Solicitud de servicio F-12">
+                <header>
+                    <button name="action_solicitar_cotizacion_aspel" type="object" string="Cotizar en Aspel"
+                            invisible="cotizacion"/>
+                    <button name="action_aprobar_cotizacion" type="object" string="Aprobar cotización"
+                            invisible="cotizacion_estado == 'aprobada'"/>
+                    <button name="action_registrar_pago" type="object" string="Registrar pago"
+                            invisible="state not in ('cotizacion', 'pago')"/>
+                    <button name="action_lista_para_programar" type="object" string="Enviar a programación"
+                            class="btn-primary" invisible="state != 'documentacion'"/>
+                    <field name="state" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Cliente y aprovechamiento">
+                            <field name="partner_id"/>
+                            <field name="cliente_nombre"/>
+                            <field name="pozo_id"/>
+                            <field name="pozo_nombre"/>
+                            <field name="titulo_concesion"/>
+                            <field name="tipo"/>
+                        </group>
+                        <group string="Seguimiento">
+                            <field name="cotizacion"/>
+                            <field name="cotizacion_estado"/>
+                            <field name="fecha_registro"/>
+                            <field name="fecha_docs_completos"/>
+                            <field name="fecha_programada"/>
+                            <field name="coordinador_id"/>
+                            <field name="coordinador_nombre"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Documentos del cliente" name="documentos">
+                            <group>
+                                <field name="docs_count"/>
+                                <field name="total_docs"/>
+                                <field name="docs_requeridos_completos"/>
+                            </group>
+                            <field name="documento_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="requerido"/>
+                                    <field name="completo"/>
+                                    <field name="filename"/>
+                                    <field name="archivo" filename="filename"/>
+                                    <field name="fecha"/>
+                                    <field name="comentario" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_solicitud_search" model="ir.ui.view">
+        <field name="name">uva.solicitud.search</field>
+        <field name="model">uva.solicitud</field>
+        <field name="arch" type="xml">
+            <search string="Buscar solicitudes">
+                <field name="name"/>
+                <field name="cliente_nombre"/>
+                <field name="pozo_nombre"/>
+                <field name="titulo_concesion"/>
+                <filter string="Documentación pendiente" name="documentacion" domain="[('state', '=', 'documentacion')]"/>
+                <filter string="Listas para programar" name="lista" domain="[('state', '=', 'lista')]"/>
+                <filter string="Programadas" name="programada" domain="[('state', '=', 'programada')]"/>
+                <group>
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Tipo" name="group_tipo" context="{'group_by': 'tipo'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_solicitud" model="ir.actions.act_window">
+        <field name="name">Solicitudes (F-12)</field>
+        <field name="res_model">uva.solicitud</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_solicitud" name="Solicitudes (F-12)" parent="uva_core.menu_uva_operacion"
+              action="action_uva_solicitud" sequence="10"/>
+</odoo>

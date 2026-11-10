@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Visitas -->
+    <record id="view_uva_visita_list" model="ir.ui.view">
+        <field name="name">uva.visita.list</field>
+        <field name="model">uva.visita</field>
+        <field name="arch" type="xml">
+            <list string="Visitas">
+                <field name="fecha"/>
+                <field name="hora"/>
+                <field name="name"/>
+                <field name="tipo_registro" optional="hide"/>
+                <field name="cliente_nombre"/>
+                <field name="descripcion" optional="hide"/>
+                <field name="tipo_verificacion"/>
+                <field name="verificador_id"/>
+                <field name="lugar" optional="show"/>
+                <field name="programar_antes" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state in ('por_programar', 'propuesta')"
+                       decoration-success="state in ('confirmada', 'realizada')" decoration-warning="state == 'programada'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_visita_calendar" model="ir.ui.view">
+        <field name="name">uva.visita.calendar</field>
+        <field name="model">uva.visita</field>
+        <field name="arch" type="xml">
+            <calendar string="Agenda de visitas" date_start="fecha" color="verificador_id" mode="week">
+                <field name="name"/>
+                <field name="verificador_id"/>
+                <field name="hora"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_uva_visita_form" model="ir.ui.view">
+        <field name="name">uva.visita.form</field>
+        <field name="model">uva.visita</field>
+        <field name="arch" type="xml">
+            <form string="Visita">
+                <header>
+                    <button name="action_proponer" type="object" string="Marcar como propuesta"
+                            invisible="state != 'por_programar'"/>
+                    <button name="action_confirmar" type="object" string="Confirmar visita" class="btn-primary"
+                            invisible="state not in ('por_programar', 'propuesta', 'programada')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="por_programar,propuesta,confirmada,realizada"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="UVA-0000"/></h1>
+                    </div>
+                    <group>
+                        <group string="Visita">
+                            <field name="tipo_registro"/>
+                            <field name="solicitud_id" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="partner_id" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="cliente_nombre" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="cliente_corto" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="sitio" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="lugar" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="tipo_verificacion" invisible="tipo_registro == 'ausencia'"/>
+                            <field name="descripcion" invisible="tipo_registro != 'ausencia'"/>
+                            <field name="detalle" invisible="tipo_registro != 'ausencia'"/>
+                        </group>
+                        <group string="Agenda">
+                            <field name="verificador_id"/>
+                            <field name="fecha"/>
+                            <field name="hora"/>
+                            <field name="programar_antes"/>
+                            <field name="texto_plazo"/>
+                            <field name="fecha_docs_completos"/>
+                            <field name="fecha_instalacion"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Inspectores sugeridos" name="sugerencias">
+                            <field name="sugerencia_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="verificador_id"/>
+                                    <field name="fecha"/>
+                                    <field name="razones"/>
+                                    <field name="destacado"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Préstamos de equipo" name="prestamos">
+                            <field name="prestamo_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="verificador_id"/>
+                                    <field name="equipos_texto"/>
+                                    <field name="fecha_entrega"/>
+                                    <field name="devolver_antes"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_visita_search" model="ir.ui.view">
+        <field name="name">uva.visita.search</field>
+        <field name="model">uva.visita</field>
+        <field name="arch" type="xml">
+            <search string="Buscar visitas">
+                <field name="name"/>
+                <field name="cliente_nombre"/>
+                <field name="verificador_id"/>
+                <filter string="Por programar" name="por_programar" domain="[('state', 'in', ('por_programar', 'propuesta'))]"/>
+                <filter string="Confirmadas" name="confirmadas" domain="[('state', '=', 'confirmada')]"/>
+                <filter string="Ausencias" name="ausencias" domain="[('tipo_registro', '=', 'ausencia')]"/>
+                <group>
+                    <filter string="Inspector" name="group_verificador" context="{'group_by': 'verificador_id'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_visita" model="ir.actions.act_window">
+        <field name="name">Programación de visitas</field>
+        <field name="res_model">uva.visita</field>
+        <field name="view_mode">list,calendar,form</field>
+    </record>
+
+    <!-- Préstamos -->
+    <record id="view_uva_prestamo_list" model="ir.ui.view">
+        <field name="name">uva.prestamo.list</field>
+        <field name="model">uva.prestamo</field>
+        <field name="arch" type="xml">
+            <list string="Préstamos de equipo">
+                <field name="name"/>
+                <field name="verificador_id"/>
+                <field name="equipos_texto"/>
+                <field name="fecha_entrega"/>
+                <field name="devolver_antes"/>
+                <field name="requerido_el" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'reservado'"
+                       decoration-warning="state == 'entregado'" decoration-success="state == 'devuelto'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_prestamo_form" model="ir.ui.view">
+        <field name="name">uva.prestamo.form</field>
+        <field name="model">uva.prestamo</field>
+        <field name="arch" type="xml">
+            <form string="Préstamo de equipo">
+                <header>
+                    <button name="action_entregar" type="object" string="Registrar entrega" class="btn-primary"
+                            invisible="state != 'reservado'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="visita_id"/>
+                            <field name="name"/>
+                            <field name="verificador_id"/>
+                            <field name="equipos_texto"/>
+                        </group>
+                        <group>
+                            <field name="fecha_entrega"/>
+                            <field name="devolver_antes"/>
+                            <field name="requerido_el"/>
+                            <field name="fecha_devolucion"/>
+                            <field name="receptor"/>
+                        </group>
+                    </group>
+                    <field name="linea_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="inventario"/>
+                            <field name="instrumento_id"/>
+                            <field name="recibido"/>
+                            <field name="accesorios"/>
+                            <field name="funciona"/>
+                            <field name="comentario"/>
+                            <field name="destino"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_prestamo_search" model="ir.ui.view">
+        <field name="name">uva.prestamo.search</field>
+        <field name="model">uva.prestamo</field>
+        <field name="arch" type="xml">
+            <search string="Buscar préstamos">
+                <field name="name"/>
+                <field name="verificador_id"/>
+                <filter string="En campo" name="entregados" domain="[('state', '=', 'entregado')]"/>
+                <filter string="Reservados" name="reservados" domain="[('state', '=', 'reservado')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_prestamo" model="ir.actions.act_window">
+        <field name="name">Entrega y devolución de equipos</field>
+        <field name="res_model">uva.prestamo</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_visita" name="Programación de visitas" parent="uva_core.menu_uva_operacion"
+              action="action_uva_visita" sequence="20"/>
+    <menuitem id="menu_uva_prestamo" name="Entrega y devolución de equipos" parent="uva_core.menu_uva_calidad"
+              action="action_uva_prestamo" sequence="30"/>
+</odoo>

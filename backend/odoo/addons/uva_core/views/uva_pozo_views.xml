@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_uva_pozo_list" model="ir.ui.view">
+        <field name="name">uva.pozo.list</field>
+        <field name="model">uva.pozo</field>
+        <field name="arch" type="xml">
+            <list string="Pozos">
+                <field name="partner_id"/>
+                <field name="identificador"/>
+                <field name="name"/>
+                <field name="titulo_concesion"/>
+                <field name="uso"/>
+                <field name="medidor_marca"/>
+                <field name="medidor_serie"/>
+                <field name="fecha_ultima_inspeccion"/>
+                <field name="proxima_inspeccion"/>
+                <field name="proxima_urgente" widget="boolean"/>
+                <field name="folio_activo"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_uva_pozo_form" model="ir.ui.view">
+        <field name="name">uva.pozo.form</field>
+        <field name="model">uva.pozo</field>
+        <field name="arch" type="xml">
+            <form string="Pozo / aprovechamiento">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Nombre del pozo"/></h1>
+                    </div>
+                    <group>
+                        <group string="Aprovechamiento">
+                            <field name="partner_id"/>
+                            <field name="identificador"/>
+                            <field name="titulo_concesion"/>
+                            <field name="anexo"/>
+                            <field name="uso"/>
+                            <field name="fuente"/>
+                            <field name="volumen_anual"/>
+                            <field name="coordenadas"/>
+                            <field name="diametro_descarga"/>
+                        </group>
+                        <group string="Sistema de medición">
+                            <field name="medidor_marca"/>
+                            <field name="medidor_modelo"/>
+                            <field name="medidor_serie"/>
+                            <field name="medidor_dn"/>
+                            <field name="fecha_instalacion"/>
+                            <field name="factura_proveedor"/>
+                            <field name="serie_unidad_electronica"/>
+                            <field name="serie_unidad_transmision"/>
+                        </group>
+                        <group string="Verificaciones">
+                            <field name="ultima_inspeccion"/>
+                            <field name="fecha_ultima_inspeccion"/>
+                            <field name="proxima_inspeccion"/>
+                            <field name="texto_proxima_inspeccion"/>
+                            <field name="proxima_urgente"/>
+                            <field name="folio_activo"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_uva_pozo_search" model="ir.ui.view">
+        <field name="name">uva.pozo.search</field>
+        <field name="model">uva.pozo</field>
+        <field name="arch" type="xml">
+            <search string="Buscar pozos">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="titulo_concesion"/>
+                <field name="medidor_serie"/>
+                <filter string="Verificación urgente" name="urgente" domain="[('proxima_urgente', '=', True)]"/>
+                <filter string="Archivados" name="inactivos" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Cliente" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Uso" name="group_uso" context="{'group_by': 'uso'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_uva_pozo" model="ir.actions.act_window">
+        <field name="name">Pozos / aprovechamientos</field>
+        <field name="res_model">uva.pozo</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_uva_pozo" name="Pozos / aprovechamientos" parent="menu_uva_catalogos"
+              action="action_uva_pozo" sequence="20"/>
+</odoo>
