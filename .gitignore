@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Python compilado (Odoo lo regenera)
+__pycache__/
+*.pyc
