@@ -43,29 +43,40 @@ class UvaApiDictaminacion(models.AbstractModel):
         return {'kpis': kpis, 'expedientes': [e._uva_bandeja_json(hoy) for e in expedientes]}
 
     @api.model
-    def get_revision(self, folio=None, **kwargs):
+    def get_revision(self, folio=None, login=None, **kwargs):
         exp = self.env['uva.expediente']._uva_buscar(folio)
+        usuario = self._usuario_actual(login)
+        conflicto = exp._uva_conflicto_autorizador(usuario)
+        verificadores = ', '.join(ut.sin_prefijo(v.name or '') for v in exp._uva_verificadores_visita())
         return {
             'steps': exp._uva_pasos_revision(),
             'sectionsSummary': exp._uva_resumen_secciones(),
             'pointsList': [p._uva_json() for p in exp.punto_ids],
             'checks': [c._uva_json() for c in exp.check_ids],
+            'autorizacion': {
+                'permitida': not conflicto,
+                'autorizador': ut.sin_prefijo(usuario.name or ''),
+                'verificador': verificadores,
+                'motivo': ('Realizaste la visita de este expediente; la autorización debe hacerla otra persona.'
+                           if conflicto else ''),
+            },
         }
 
     @api.model
-    def registrar_decision(self, folio=None, decision=None, comentario=None, **kwargs):
+    def registrar_decision(self, folio=None, decision=None, comentario=None, login=None, **kwargs):
         exp = self.env['uva.expediente']._uva_buscar(folio)
+        autorizador = self._usuario_actual(login)
         decision = (decision or '').strip().lower()
         hoy = self._hoy()
         if decision == 'autorizar':
             if exp.nc_count:
                 raise UserError('El expediente %s tiene %d no conformidad(es); emita dictamen inconforme o devuélvalo '
                                 'al verificador.' % (exp.name, exp.nc_count))
-            dictamen = exp._uva_emitir_dictamen('conforme', comentario)
+            dictamen = exp._uva_emitir_dictamen('conforme', comentario, autorizador)
             return self._ok('Dictamen %s firmado electrónicamente y autorizado. Folio oficial generado.' % dictamen.name,
                             dictamen=dictamen._uva_json(hoy))
         if decision == 'inconforme':
-            dictamen = exp._uva_emitir_dictamen('inconforme', comentario)
+            dictamen = exp._uva_emitir_dictamen('inconforme', comentario, autorizador)
             return self._ok('Dictamen inconforme %s emitido y firmado electrónicamente.' % dictamen.name,
                             dictamen=dictamen._uva_json(hoy))
         if decision == 'devolver':

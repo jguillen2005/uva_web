@@ -663,12 +663,26 @@ export interface RevisionCheck {
   detail: string;
 }
 
+/**
+ * Regla de imparcialidad: quien autoriza el dictamen no puede ser quien realizó la visita.
+ * Odoo la valida siempre; este bloque solo sirve para avisar en pantalla antes de firmar.
+ */
+export interface RevisionAutorizacion {
+  permitida: boolean;
+  /** Usuario que firmaría (usuario actual). */
+  autorizador: string;
+  /** Verificador(es) que realizaron la visita. */
+  verificador: string;
+  motivo: string;
+}
+
 /** GET /dictaminacion/revision/{folio} */
 export interface RevisionData {
   steps: RevisionStep[];
   sectionsSummary: RevisionSectionSummary[];
   pointsList: RevisionPoint[];
   checks: RevisionCheck[];
+  autorizacion?: RevisionAutorizacion;
 }
 
 export type RevisionDecision = 'autorizar' | 'devolver' | 'inconforme';

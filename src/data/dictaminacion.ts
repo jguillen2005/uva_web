@@ -124,6 +124,12 @@ export const mockBandeja: BandejaData = {
 /** Revisión técnica por folio (sin corchetes). */
 export const mockRevisiones: Record<string, RevisionData> = {
   'UVA-0001': {
+    autorizacion: {
+      permitida: true,
+      autorizador: 'Ing. Gerardo Torres',
+      verificador: 'Ing. Raúl Sánchez',
+      motivo: '',
+    },
     steps: [
       { name: 'Solicitud F-12', state: 'done' },
       { name: 'Visita en campo', state: 'done' },

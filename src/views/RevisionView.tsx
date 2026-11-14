@@ -3,7 +3,7 @@ import { RevisionData, ScreenKey } from '../types';
 import { dictaminacion } from '../api/endpoints';
 import { useApi, errorMessage } from '../api/useApi';
 import { AsyncState } from '../components/AsyncState';
-import { ArrowLeft, CheckCircle2, AlertTriangle, MessageSquare, ExternalLink, ShieldCheck, Eye, KeyRound } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, MessageSquare, ExternalLink, ShieldCheck, ShieldAlert, Eye, KeyRound, UserCheck } from 'lucide-react';
 
 interface RevisionViewProps {
   onNavigate: (screen: ScreenKey) => void;
@@ -28,7 +28,12 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
   const [activeMainTab, setActiveMainTab] = useState('Lista de verificación');
   const [selectedSec, setSelectedSec] = useState('3');
   const [filterNC, setFilterNC] = useState(false);
-  const [decision, setDecision] = useState<'autorizar' | 'devolver' | 'inconforme'>('autorizar');
+  // Regla de imparcialidad: quien hizo la visita no puede autorizar ni emitir el dictamen.
+  const auth = data.autorizacion;
+  const puedeAutorizar = auth?.permitida !== false;
+  const [decision, setDecision] = useState<'autorizar' | 'devolver' | 'inconforme'>(
+    puedeAutorizar ? 'autorizar' : 'devolver'
+  );
   const [observations, setObservations] = useState('');
   const [showSignModal, setShowSignModal] = useState(false);
   const [eFirmaKey, setEFirmaKey] = useState('••••••••••••');
@@ -307,17 +312,39 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
               Decisión del Gerente Técnico
             </h3>
 
+            {auth &&
+              (puedeAutorizar ? (
+                <div className="flex gap-2 p-2.5 rounded-lg bg-surface-50 border border-line-200 text-[11px] text-ink-600 leading-snug">
+                  <UserCheck className="w-4 h-4 text-success-600 shrink-0 mt-px" aria-hidden="true" />
+                  <span>
+                    Imparcialidad verificada: la visita la realizó <strong className="text-ink-900">{auth.verificador || 'otro verificador'}</strong>; autoriza{' '}
+                    <strong className="text-ink-900">{auth.autorizador}</strong>.
+                  </span>
+                </div>
+              ) : (
+                <div role="alert" className="flex gap-2 p-3 rounded-lg bg-warn-50 border border-warn-200 text-xs text-warn-800 leading-snug">
+                  <ShieldAlert className="w-4 h-4 shrink-0 mt-px" aria-hidden="true" />
+                  <span>
+                    <strong className="block">No puedes autorizar este dictamen</strong>
+                    {auth.motivo} Solo puedes devolverlo; pide al Gerente Técnico o a su suplente que lo autorice.
+                  </span>
+                </div>
+              ))}
+
             <div className="space-y-2 text-xs font-semibold">
               <label
-                className={`p-3 rounded-lg border flex items-center gap-2.5 cursor-pointer transition-colors ${
-                  decision === 'autorizar'
-                    ? 'border-brand-600 bg-brand-50 text-brand-800'
-                    : 'border-line-300 hover:bg-surface-50 text-ink-900'
+                className={`p-3 rounded-lg border flex items-center gap-2.5 transition-colors ${
+                  !puedeAutorizar
+                    ? 'border-line-200 bg-surface-50 text-ink-400 cursor-not-allowed'
+                    : decision === 'autorizar'
+                      ? 'border-brand-600 bg-brand-50 text-brand-800 cursor-pointer'
+                      : 'border-line-300 hover:bg-surface-50 text-ink-900 cursor-pointer'
                 }`}
               >
                 <input
                   type="radio"
                   name="dec"
+                  disabled={!puedeAutorizar}
                   checked={decision === 'autorizar'}
                   onChange={() => setDecision('autorizar')}
                   className="text-brand-600"
@@ -343,15 +370,18 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
               </label>
 
               <label
-                className={`p-3 rounded-lg border flex items-center gap-2.5 cursor-pointer transition-colors ${
-                  decision === 'inconforme'
-                    ? 'border-brand-600 bg-brand-50 text-brand-800'
-                    : 'border-line-300 hover:bg-surface-50 text-ink-900'
+                className={`p-3 rounded-lg border flex items-center gap-2.5 transition-colors ${
+                  !puedeAutorizar
+                    ? 'border-line-200 bg-surface-50 text-ink-400 cursor-not-allowed'
+                    : decision === 'inconforme'
+                      ? 'border-brand-600 bg-brand-50 text-brand-800 cursor-pointer'
+                      : 'border-line-300 hover:bg-surface-50 text-ink-900 cursor-pointer'
                 }`}
               >
                 <input
                   type="radio"
                   name="dec"
+                  disabled={!puedeAutorizar}
                   checked={decision === 'inconforme'}
                   onChange={() => setDecision('inconforme')}
                   className="text-brand-600"
@@ -379,11 +409,11 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
               className="w-full h-11 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-colors shadow-xs flex items-center justify-center gap-2"
             >
               <ShieldCheck className="w-4 h-4" />
-              Autorizar con firma electrónica
+              {decision === 'devolver' ? 'Devolver al verificador' : 'Autorizar con firma electrónica'}
             </button>
 
             <p className="text-[11px] text-ink-500 leading-relaxed">
-              Al autorizar: se asigna folio al dictamen, se genera el PDF con la firma del Gerente Técnico, se archiva en SharePoint y el expediente pasa a "Pendiente de carga a CONAGUA".
+              Quien realizó la visita no puede autorizar el dictamen. Al autorizar: se asigna folio al dictamen, se genera el PDF con la firma del Gerente Técnico, se archiva en SharePoint y el expediente pasa a "Pendiente de carga a CONAGUA".
             </p>
           </div>
         </aside>
@@ -408,7 +438,8 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
 
             <div className="space-y-3 text-xs">
               <div className="p-3 bg-canvas rounded-lg space-y-1">
-                <div>Firmante: <strong>Ing. Gerardo Torres (Gerente Técnico UVA)</strong></div>
+                <div>Firmante: <strong>{auth?.autorizador || 'Ing. Gerardo Torres'} (Gerente Técnico UVA)</strong></div>
+                {auth?.verificador && <div>Visita realizada por: <strong>{auth.verificador}</strong></div>}
                 <div>Folio: <strong>DV-0105 / UVA-0001</strong></div>
                 <div>Resultado: <strong className="text-success-700">Conforme</strong></div>
               </div>

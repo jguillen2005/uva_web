@@ -2,15 +2,17 @@ import { createService, h, need, idOrCode, BadRequest } from '../shared/server.j
 import { api } from '../shared/odoo.js';
 
 const DECISIONS = ['autorizar', 'devolver', 'inconforme'];
+// Usuario final (lo inyectará el gateway con SSO; hoy llega vacío y Odoo usa uva.usuario_actual).
+const login = (req) => req.get('x-uva-user') || undefined;
 
 createService('dictaminacion', (r) => {
   r.get('/bandeja', h(() => api('get_bandeja')));
 
-  r.get('/revision/:folio', h((req) => api('get_revision', { folio: req.params.folio })));
+  r.get('/revision/:folio', h((req) => api('get_revision', { folio: req.params.folio, login: login(req) })));
   r.post('/revision/:folio/decision', h((req) => {
     const { decision, comentario = '' } = need(req.body, 'decision');
     if (!DECISIONS.includes(decision)) throw new BadRequest(`Decisión inválida: ${decision}`);
-    return api('registrar_decision', { folio: req.params.folio, decision, comentario });
+    return api('registrar_decision', { folio: req.params.folio, decision, comentario, login: login(req) });
   }));
 
   r.get('/dictamenes', h(() => api('get_dictamenes')));

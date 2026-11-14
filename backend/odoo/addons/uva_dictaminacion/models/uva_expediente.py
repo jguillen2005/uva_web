@@ -177,17 +177,45 @@ class UvaExpediente(models.Model):
             rec._uva_log('Expediente sincronizado desde app y enviado a revisión técnica')
         return True
 
-    def _uva_emitir_dictamen(self, resultado, comentario=None):
+    # ------------------------------------------------------------------
+    # Imparcialidad (NMX-AA-179 / ISO/IEC 17020): quien autoriza el dictamen
+    # no puede ser quien realizó la visita de verificación.
+    # ------------------------------------------------------------------
+    def _uva_verificadores_visita(self):
+        """Verificadores que participaron en la visita (expediente y visita programada)."""
+        self.ensure_one()
+        return (self.verificador_id | self.visita_id.verificador_id).filtered('id')
+
+    def _uva_conflicto_autorizador(self, usuario):
+        """Devuelve el verificador que coincide con ``usuario`` o un recordset vacío."""
+        self.ensure_one()
+        correo = (usuario.email or usuario.login or '').strip().lower()
+        return self._uva_verificadores_visita().filtered(
+            lambda v: (v.user_id and v.user_id == usuario)
+            or (correo and (v.email or '').strip().lower() == correo))[:1]
+
+    def _uva_validar_autorizador(self, usuario):
+        self.ensure_one()
+        verificador = self._uva_conflicto_autorizador(usuario)
+        if verificador:
+            raise UserError(
+                'Regla de imparcialidad: quien autoriza el dictamen no puede ser quien realizó la visita. '
+                '%s fue el verificador del expediente %s; la autorización debe hacerla otra persona '
+                '(Gerente Técnico o su suplente).' % (ut.sin_prefijo(verificador.name or ''), self.name))
+
+    def _uva_emitir_dictamen(self, resultado, comentario=None, autorizador=None):
         self.ensure_one()
         self._uva_validar_revisable()
+        autorizador = autorizador or self.env.user
+        self._uva_validar_autorizador(autorizador)
         hoy = ut.hoy(self.env)
         dictamen = self.env['uva.dictamen'].create({
             'expediente_id': self.id,
             'fecha_emision': hoy,
             'resultado': resultado,
             'nc_count': self.nc_count,
-            'autorizado_id': self.env.user.id,
-            'autorizado_por': ut.sin_prefijo(self.env.user.name or ''),
+            'autorizado_id': autorizador.id,
+            'autorizado_por': ut.sin_prefijo(autorizador.name or ''),
         })
         self.env['uva.conagua.carga'].create({'dictamen_id': dictamen.id, 'fecha_lista': hoy})
         self.write({
@@ -200,7 +228,7 @@ class UvaExpediente(models.Model):
         self._uva_generar_ficha(dictamen)
         texto = ('Dictamen autorizado y firmado electrónicamente' if resultado == 'conforme'
                  else 'Dictamen inconforme emitido y firmado electrónicamente')
-        self._uva_log(texto)
+        self._uva_log(texto, usuario=ut.corchete_al_final(autorizador.name or ''))
         self.message_post(body='%s: %s.' % (texto, dictamen.name))
         if self.pozo_id:
             self.pozo_id.write({

@@ -105,8 +105,10 @@ Para `/formatos/{id}/...` el frontend usa el código y versión vigentes: si `id
 
 ### svc-dictaminacion — `/api/dictaminacion`
 | GET | `/bandeja` | `get_bandeja()` | `{kpis, expedientes}` = `BandejaView.tsx:16-150` |
-| GET | `/revision/{folio}` | `get_revision(folio)` | `{steps, sectionsSummary, pointsList, checks}` = `RevisionView.tsx:20-95` |
-| POST | `/revision/{folio}/decision` | `registrar_decision(folio, decision, comentario)` decision ∈ `autorizar\|devolver\|inconforme` | `{ok, message, dictamen?}` |
+| GET | `/revision/{folio}` | `get_revision(folio, login)` | `{steps, sectionsSummary, pointsList, checks, autorizacion{permitida, autorizador, verificador, motivo}}` |
+| POST | `/revision/{folio}/decision` | `registrar_decision(folio, decision, comentario, login)` decision ∈ `autorizar\|devolver\|inconforme` | `{ok, message, dictamen?}`; 422 si quien autoriza realizó la visita |
+
+> **Regla de imparcialidad:** quien autoriza (o emite inconforme) un dictamen no puede ser el verificador que realizó la visita (`expediente.verificador_id` o `visita_id.verificador_id`, comparando usuario o correo). Odoo la valida en `uva.expediente._uva_validar_autorizador` y con una restricción en `uva.dictamen.autorizado_id` (también aplica en el backoffice). El autorizador es el usuario final (`X-UVA-User` / `uva.usuario_actual`), no el usuario técnico `api_uva`. Devolver sí está permitido.
 | GET | `/dictamenes` | `get_dictamenes()` | arreglo de `DictamenesView.tsx:14-100` |
 | GET | `/conagua` | `get_conagua()` | arreglo `items` de `ConaguaView.tsx:11-60` |
 | POST | `/conagua/{id}/acuse` | `conagua_enviar_acuse(carga_id)` | `{ok, message, item}` |

@@ -64,6 +64,13 @@ class UvaDictamen(models.Model):
             rec.vigencia = (ut.sumar_meses(rec.fecha_emision, VIGENCIA_MESES)
                             if rec.fecha_emision and rec.resultado == 'conforme' else False)
 
+    @api.constrains('autorizado_id', 'expediente_id')
+    def _check_autorizador_imparcial(self):
+        """Quien autoriza el dictamen no puede ser quien realizó la visita (también desde el backoffice)."""
+        for rec in self:
+            if rec.autorizado_id and rec.expediente_id:
+                rec.expediente_id._uva_validar_autorizador(rec.autorizado_id)
+
     @api.depends('carga_ids.state')
     def _compute_estado_conagua(self):
         for rec in self:
