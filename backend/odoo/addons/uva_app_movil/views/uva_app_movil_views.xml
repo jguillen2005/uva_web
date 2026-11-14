@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Verificador: datos que muestra la App Asercontrol -->
+    <record id="view_uva_verificador_form_app" model="ir.ui.view">
+        <field name="name">uva.verificador.form.app</field>
+        <field name="model">uva.verificador</field>
+        <field name="inherit_id" ref="uva_core.view_uva_verificador_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="App de campo" name="app_movil">
+                    <group>
+                        <group string="Acreditación">
+                            <field name="app_puesto"/>
+                            <field name="app_credencial_ema"/>
+                            <field name="app_cedula_profesional"/>
+                            <field name="app_ultimo_acceso"/>
+                        </group>
+                        <group string="Contacto y valores predeterminados">
+                            <field name="app_telefono"/>
+                            <field name="app_celular"/>
+                            <field name="app_atiende_nombre"/>
+                            <field name="app_atiende_id_tipo"/>
+                            <field name="app_atiende_id_numero"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Visita: datos de campo para la tablet -->
+    <record id="view_uva_visita_form_app" model="ir.ui.view">
+        <field name="name">uva.visita.form.app</field>
+        <field name="model">uva.visita</field>
+        <field name="inherit_id" ref="uva_operacion.view_uva_visita_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="App de campo" name="app_movil">
+                    <group>
+                        <group string="Programación">
+                            <field name="app_hora_fin"/>
+                            <field name="app_orden_dia"/>
+                            <field name="app_prioridad"/>
+                        </group>
+                        <group string="Persona que atiende">
+                            <field name="app_contacto_nombre"/>
+                            <field name="app_contacto_cargo"/>
+                            <field name="app_contacto_telefono"/>
+                            <field name="app_contacto_id_tipo"/>
+                            <field name="app_contacto_id_numero"/>
+                        </group>
+                    </group>
+                    <group string="Indicaciones para el verificador">
+                        <field name="app_notas" nolabel="1" colspan="2"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Expediente: acta F-18 recibida desde la app -->
+    <record id="view_uva_expediente_form_app" model="ir.ui.view">
+        <field name="name">uva.expediente.form.app</field>
+        <field name="model">uva.expediente</field>
+        <field name="inherit_id" ref="uva_dictaminacion.view_uva_expediente_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Acta de campo (app)" name="app_movil" invisible="not app_version">
+                    <group>
+                        <group string="Recepción">
+                            <field name="app_version"/>
+                            <field name="app_recibida"/>
+                            <field name="app_hora_inicio"/>
+                            <field name="app_hora_fin"/>
+                        </group>
+                        <group string="Medición y folios">
+                            <field name="app_lectura"/>
+                            <field name="app_numeral10"/>
+                            <field name="app_folios_etiquetas"/>
+                            <field name="app_folios_precintos"/>
+                        </group>
+                    </group>
+                    <group string="Observaciones">
+                        <field name="app_observaciones_preguntas"/>
+                        <field name="app_observaciones"/>
+                    </group>
+                    <group string="Datos técnicos" groups="base.group_system">
+                        <field name="app_datos_json" nolabel="1" colspan="2"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Compañía: encabezado del acta F-18 -->
+    <record id="view_company_form_app" model="ir.ui.view">
+        <field name="name">res.company.form.app</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Acta F-18 (app)" name="app_movil">
+                    <group>
+                        <field name="app_subtitulo"/>
+                        <field name="app_acreditacion_ema"/>
+                        <field name="app_aprobacion_conagua"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

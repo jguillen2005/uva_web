@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_uva_app_acceso_admin,uva.app.acceso administrador,model_uva_app_acceso,base.group_system,1,1,1,1

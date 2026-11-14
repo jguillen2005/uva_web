@@ -55,6 +55,25 @@ rotarla vuelve a correr `./scripts/bootstrap.sh` (no reinstala si la base ya exi
 * Respaldo: `docker compose exec db pg_dump -U odoo uva > uva.sql` (+ volumen `uva-odoo-data` para adjuntos).
 * Producción: `npm run build` en la raíz; el gateway sirve `dist/` en `/` y la API en `/api`.
 
+## App de campo Asercontrol (módulo `uva_app_movil`)
+
+La app de inspección en tablet (PWA offline del repositorio *asercontrol*) usa **esta misma base `uva`**,
+sin base propia ni microservicios: el módulo `uva_app_movil` publica controladores HTTP de Odoo en `/api/app/*`
+y escribe directamente en los modelos UVA (`uva.visita`, `uva.expediente` con sus puntos C/NC/N/A, fotos y el
+PDF en `03_Campo`, `uva.verificador`, `uva.instrumento`). El acta recibida entra a **revisión técnica**
+(`por_revisar`); si el revisor la devuelve, la tablet la reabre y el reenvío llega como versión 2.
+
+* Login con usuario y contraseña de Odoo (el usuario debe tener un `uva.verificador` ligado); token HMAC de
+  24 h firmado con el parámetro `uva_app_movil.secreto` (se crea al instalar). Bloqueo de 5 min tras 5 intentos.
+* El gateway solo expone `/api/app/` hacia Odoo (`client_max_body_size 80m`); el backoffice sigue interno.
+* Instalar: `docker compose run --rm odoo odoo -d uva -i uva_app_movil --stop-after-init && docker compose restart odoo`
+* Datos de prueba de la app (verificador `jhovani.coss@asercontrol.com`, visitas `ORD-2026-CUL-*`):
+  `TZ_OPERACION=America/Mazatlan node scripts/seed-app-movil.mjs`
+* En la app: `VITE_API_URL=http://localhost:8180/api/app` (producción: `https://<gateway>/api/app`) y agregar
+  el origen de la app al mapa CORS de `gateway/nginx.conf`.
+* Recomendado en producción: `workers ≥ 4` en `odoo.conf` (las actas con fotos tardan varios segundos) y un
+  servidor SMTP saliente para el correo de "recuperar contraseña".
+
 ## Seguridad — pendientes antes de producción
 
 * Cambiar `admin_passwd` en `odoo/config/odoo.conf`, `POSTGRES_PASSWORD` y `ODOO_ADMIN_PASSWORD`.
