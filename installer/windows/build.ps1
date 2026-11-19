@@ -8,15 +8,24 @@
 .PARAMETER SinInternet  Incluye las imágenes de Docker (Odoo, PostgreSQL, nginx y microservicios)
                         para instalar sin descargar nada. El .exe pesa ~1 GB.
 .PARAMETER OmitirFrontend  No vuelve a compilar el frontend (usa dist\ existente).
+.PARAMETER App          Carpeta del proyecto de la app de campo (repositorio asercontrol). Por omisión
+                        $env:ASERCONTROL_APP o la carpeta "asercontrol" junto a este repositorio.
+.PARAMETER Salida       Carpeta donde se deja el .exe (por omisión installer\windows\salida).
+.PARAMETER Nombre       Nombre base del .exe.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0
-  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0 -SinInternet
+  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 -App C:\ruta\asercontrol
+  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 -App C:\ruta\asercontrol -SinInternet
 #>
 param(
-    [string]$Version = '1.0.0',
+    [string]$Version = '1.1.0',
     [switch]$SinInternet,
-    [switch]$OmitirFrontend
+    [switch]$OmitirFrontend,
+    [string]$App = '',
+    [string]$Salida = '',
+    [string]$Nombre = 'SistemaUVA-Instalador',
+    # APK de la app de campo para las tablets; se copia a la carpeta instalada como Asercontrol-Campo.apk
+    [string]$Apk = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -25,10 +34,12 @@ $Repo = (Resolve-Path (Join-Path $Aqui '..\..')).Path
 $Trabajo = Join-Path $Aqui '.build'
 $Etapa = Join-Path $Trabajo 'etapa'
 $Payload = Join-Path $Trabajo 'payload'
-$Salida = Join-Path $Aqui 'salida'
+if (-not $Salida) { $Salida = Join-Path $Aqui 'salida' }
+if (-not $App) { $App = if ($env:ASERCONTROL_APP) { $env:ASERCONTROL_APP } else { Join-Path (Split-Path $Repo) 'asercontrol' } }
+if (-not (Test-Path (Join-Path $App 'package.json'))) { throw "No se encontró el proyecto de la app de campo en '$App'. Indícalo con -App." }
 $Utf8Bom = New-Object System.Text.UTF8Encoding $true
 $sufijo = if ($SinInternet) { '-sin-internet' } else { '' }
-$Exe = Join-Path $Salida "SistemaUVA-Instalador-$Version$sufijo.exe"
+$Exe = Join-Path $Salida "$Nombre-$Version$sufijo.exe"
 
 function Write-Paso([string]$t) { Write-Host "`n> $t" -ForegroundColor Cyan }
 function Invoke-Nativo([scriptblock]$b) {
@@ -51,13 +62,30 @@ if (-not $OmitirFrontend) {
 }
 if (-not (Test-Path (Join-Path $Repo 'dist\index.html'))) { throw 'No existe dist\index.html.' }
 
+# 1b. App de campo (PWA de las tablets): misma origen que su API, /api/app en el gateway --------
+Write-Paso "Compilando la app de campo ($App)"
+$appDist = Join-Path $Trabajo 'app'
+Push-Location $App
+try {
+    $env:VITE_API_URL = '/api/app'
+    Invoke-Nativo { npx vite build --outDir $appDist --emptyOutDir }
+    if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de la app de campo.' }
+} finally { Remove-Item env:VITE_API_URL -ErrorAction SilentlyContinue; Pop-Location }
+if (-not (Test-Path (Join-Path $appDist 'index.html'))) { throw 'La app de campo no generó index.html.' }
+
 # 2. Contenido a instalar (sin .env, dependencias ni compilados) ---------------------------
 Write-Paso 'Armando el contenido'
 Invoke-Nativo { robocopy (Join-Path $Repo 'backend') (Join-Path $Payload 'backend') /E /NFL /NDL /NJH /NJS /NP `
-    /XD node_modules __pycache__ .git /XF .env .env.* *.pyc *.log } | Out-Null
+    /XD node_modules __pycache__ .git certs /XF .env .env.* *.pyc *.log } | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy backend falló ($LASTEXITCODE)." }
 Invoke-Nativo { robocopy (Join-Path $Repo 'dist') (Join-Path $Payload 'dist') /E /NFL /NDL /NJH /NJS /NP } | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy dist falló ($LASTEXITCODE)." }
+Invoke-Nativo { robocopy $appDist (Join-Path $Payload 'app') /E /NFL /NDL /NJH /NJS /NP } | Out-Null
+if ($LASTEXITCODE -ge 8) { throw "robocopy app falló ($LASTEXITCODE)." }
+if ($Apk) {
+    if (-not (Test-Path $Apk)) { throw "No existe el APK '$Apk'." }
+    Copy-Item $Apk (Join-Path $Payload 'Asercontrol-Campo.apk')
+}
 Copy-Item (Join-Path $Repo 'backend\.env.example') (Join-Path $Payload 'backend\.env.example')
 Get-ChildItem $Payload -Recurse -Force -Filter '.env' | Remove-Item -Force   # nunca empaquetar secretos
 foreach ($f in 'uva.ps1', 'LEEME.txt') {

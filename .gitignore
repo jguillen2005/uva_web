@@ -14,3 +14,7 @@ __pycache__/
 # Instalador de Windows (generados por installer/windows/build.ps1)
 installer/windows/.build/
 installer/windows/salida/
+
+# App de campo y certificados que genera el instalador
+/app/
+backend/certs/

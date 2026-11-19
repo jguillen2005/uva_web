@@ -1,0 +1,11 @@
+# App de campo Asercontrol: el gateway también sirve la PWA de las tablets por HTTPS en APP_PORT.
+# La activa el instalador con COMPOSE_FILE=docker-compose.yml;docker-compose.app.yml en backend/.env.
+# Requiere ../app (build de la app con VITE_API_URL=/api/app) y backend/certs (generados al instalar).
+services:
+  gateway:
+    ports:
+      - "${APP_PORT:-8443}:8443"
+    volumes:
+      - ./gateway/app.conf:/etc/nginx/conf.d/app.conf:ro
+      - ../app:/usr/share/nginx/app:ro
+      - ./certs:/etc/nginx/certs:ro

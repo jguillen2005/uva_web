@@ -9,6 +9,9 @@
 
 .EXAMPLE
   uva.ps1 instalar -Demo      Crea la base de datos con datos de demostración y levanta todo.
+  uva.ps1 agregar-app         Agrega la app de campo a un sistema ya instalado (no toca la base de datos).
+  uva.ps1 abrir-app           Abre la app de campo (tablets) en el navegador.
+  uva.ps1 regenerar-certificado  Nuevo certificado HTTPS de la app (p. ej. si cambió la IP del equipo).
   uva.ps1 iniciar             Arranca los contenedores (y renueva la clave API si está por vencer).
   uva.ps1 detener             Detiene los contenedores (los datos se conservan).
   uva.ps1 estado              Muestra contenedores y direcciones.
@@ -20,8 +23,8 @@
 #>
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('instalar', 'iniciar', 'detener', 'estado', 'abrir', 'abrir-odoo', 'respaldar',
-                 'actualizar', 'renovar-clave', 'desinstalar')]
+    [ValidateSet('instalar', 'agregar-app', 'iniciar', 'detener', 'estado', 'abrir', 'abrir-odoo', 'abrir-app',
+                 'respaldar', 'actualizar', 'renovar-clave', 'regenerar-certificado', 'desinstalar')]
     [string]$Accion = 'estado',
     [switch]$Demo,
     [switch]$EliminarDatos,
@@ -34,6 +37,8 @@ $Backend = Join-Path $Raiz 'backend'
 $EnvFile = Join-Path $Backend '.env'
 $EnvRespaldo = Join-Path $env:LOCALAPPDATA 'SistemaUVA-configuracion.env'
 $Proyecto = 'sistema-uva'
+$ComposeArchivos = 'docker-compose.yml;docker-compose.app.yml'   # el segundo publica la app de campo
+$CertTablets = 'Certificado-tablets-Asercontrol.crt'
 $Utf8SinBom = New-Object System.Text.UTF8Encoding $false
 $Script:EsquemaClaveDias = 365
 
@@ -106,9 +111,13 @@ function Initialize-Env([bool]$ConDemo) {
     $odoo = Get-PuertoLibre 8069
     $gw = Get-PuertoLibre 8080
     if ($gw -eq $odoo) { $gw = Get-PuertoLibre ($odoo + 1) }
+    $app = Get-PuertoLibre 8443
     $contenido = @(
         '# Sistema UVA - configuración generada por el instalador. NO compartir: contiene contraseñas.',
         "COMPOSE_PROJECT_NAME=$Proyecto",
+        "COMPOSE_FILE=$ComposeArchivos",
+        'COMPOSE_PATH_SEPARATOR=;',
+        "APP_PORT=$app",
         'ODOO_DB=uva',
         "POSTGRES_PASSWORD=$(New-Secreto)",
         "ODOO_PORT=$odoo",
@@ -122,7 +131,89 @@ function Initialize-Env([bool]$ConDemo) {
     )
     [System.IO.File]::WriteAllLines($EnvFile, $contenido, $Utf8SinBom)
     Copy-Item $EnvFile $EnvRespaldo -Force
-    Write-Ok "Puertos asignados: sistema $gw, Odoo $odoo."
+    Write-Ok "Puertos asignados: sistema $gw, Odoo $odoo, app de campo $app."
+}
+
+# App de campo ------------------------------------------------------------------------------
+function Initialize-ConfigApp {
+    # Instalaciones anteriores a la app de campo: se agregan su puerto y el archivo de compose que la publica.
+    $cfg = Read-Env
+    if (-not $cfg['APP_PORT']) {
+        $p = Get-PuertoLibre 8443
+        Set-EnvValor 'APP_PORT' $p
+        Write-Ok "Puerto de la app de campo: $p."
+    }
+    if ($cfg['COMPOSE_FILE'] -ne $ComposeArchivos) { Set-EnvValor 'COMPOSE_FILE' $ComposeArchivos }
+    if (-not $cfg['COMPOSE_PATH_SEPARATOR']) { Set-EnvValor 'COMPOSE_PATH_SEPARATOR' ';' }
+}
+
+function Get-DireccionesEquipo {
+    # Nombres e IP con los que las tablets pueden llegar a este equipo (van en el certificado).
+    $nombres = New-Object System.Collections.Generic.List[string]
+    $nombres.Add('localhost'); $nombres.Add($env:COMPUTERNAME.ToLower())
+    try {
+        $fqdn = [System.Net.Dns]::GetHostEntry($env:COMPUTERNAME).HostName.ToLower()
+        if ($fqdn -and -not $nombres.Contains($fqdn)) { $nombres.Add($fqdn) }
+    } catch { }
+    $ips = New-Object System.Collections.Generic.List[string]
+    $ips.Add('127.0.0.1')
+    try {
+        Get-NetIPAddress -AddressFamily IPv4 -ErrorAction Stop |
+            Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.InterfaceAlias -notmatch 'vEthernet|WSL|Docker|Loopback' } |
+            ForEach-Object { if (-not $ips.Contains($_.IPAddress)) { $ips.Add($_.IPAddress) } }
+    } catch { }
+    [pscustomobject]@{ Nombres = $nombres; Ips = $ips }
+}
+
+function Initialize-Certificados([bool]$Forzar = $false) {
+    # Una autoridad local (CA) firma el certificado HTTPS del equipo. La CA se instala una vez en cada
+    # tablet; si el certificado del equipo se regenera (cambio de IP), la CA sigue siendo la misma.
+    $dir = Join-Path $Backend 'certs'
+    if (-not $Forzar -and (Test-Path (Join-Path $dir 'servidor-cadena.crt'))) { return }
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    $eq = Get-DireccionesEquipo
+    $alt = @($eq.Nombres | ForEach-Object { "DNS:$_" }) + @($eq.Ips | ForEach-Object { "IP:$_" })
+    $ext = "basicConstraints=CA:FALSE`nkeyUsage=digitalSignature,keyEncipherment`nextendedKeyUsage=serverAuth`nsubjectAltName=$($alt -join ',')`n"
+    [System.IO.File]::WriteAllText((Join-Path $dir 'servidor.ext'), $ext, $Utf8SinBom)
+    $sh = @(
+        'set -e', 'cd /c',
+        'if [ ! -f ca.crt ]; then',
+        '  openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/O=Asercontrol/CN=Asercontrol CA local" -keyout ca.key -out ca.crt -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" 2>/dev/null',
+        'fi',
+        "openssl req -newkey rsa:2048 -nodes -subj `"/O=Asercontrol/CN=$($env:COMPUTERNAME.ToLower())`" -keyout servidor.key -out servidor.csr 2>/dev/null",
+        'openssl x509 -req -in servidor.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 825 -sha256 -extfile servidor.ext -out servidor.crt 2>/dev/null',
+        'cat servidor.crt ca.crt > servidor-cadena.crt',
+        'rm -f servidor.csr ca.srl',
+        'chmod 644 servidor.key'
+    ) -join "`n"
+    [System.IO.File]::WriteAllText((Join-Path $dir 'generar.sh'), "$sh`n", $Utf8SinBom)
+    Write-Paso 'Generando el certificado HTTPS de la app de campo'
+    # openssl viene en la imagen de Odoo (ya cargada o descargada para el sistema).
+    $imagen = 'odoo:19.0'
+    Invoke-Nativo { docker run --rm --user root -v "${dir}:/c" --entrypoint sh $imagen /c/generar.sh }
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $dir 'servidor-cadena.crt'))) { Stop-ConError 'No se pudo generar el certificado HTTPS.' }
+    Remove-Item (Join-Path $dir 'generar.sh'), (Join-Path $dir 'servidor.ext') -Force -ErrorAction SilentlyContinue
+    Copy-Item (Join-Path $dir 'ca.crt') (Join-Path $Raiz $CertTablets) -Force
+    Write-Ok "Certificado para: $(($eq.Nombres + $eq.Ips) -join ', ')"
+    # En este equipo, confiar en la CA para abrir la app sin advertencias (Windows pide confirmar).
+    if (-not $Silencioso) {
+        try { Import-Certificate -FilePath (Join-Path $dir 'ca.crt') -CertStoreLocation Cert:\CurrentUser\Root | Out-Null; Write-Ok 'Certificado de confianza instalado en este equipo.' }
+        catch { Write-Aviso 'No se instaló el certificado en este equipo; el navegador mostrará una advertencia.' }
+    }
+}
+
+function Install-ModuloApp {
+    # Instala el módulo de la app en la base existente, o lo actualiza si ya estaba. No toca otros módulos ni datos.
+    $db = (Read-Env)['ODOO_DB']
+    $estado = Invoke-OdooShell "m = env['ir.module.module'].search([('name', '=', 'uva_app_movil')])`nprint('UVA_APP_ESTADO=' + (m.state or 'ninguno'))`n"
+    $instalado = ([regex]::Match($estado, 'UVA_APP_ESTADO=(\w+)')).Groups[1].Value -eq 'installed'
+    if ($instalado) {
+        Write-Paso 'Actualizando el módulo uva_app_movil en Odoo'
+        Invoke-Compose run --rm odoo odoo -d $db -u uva_app_movil --stop-after-init --no-http
+    } else {
+        Write-Paso 'Instalando el módulo uva_app_movil en Odoo'
+        Invoke-Compose run --rm odoo odoo -d $db -i uva_app_movil --stop-after-init --no-http
+    }
 }
 
 function Set-ClaveMaestraOdoo {
@@ -276,9 +367,12 @@ print('UVA_API_KEY_EXPIRA=' + vence.strftime('%Y-%m-%d'))
 
 function Get-Urls {
     $c = Read-Env
+    $red = @((Get-DireccionesEquipo).Ips | Where-Object { $_ -ne '127.0.0.1' })
     [pscustomobject]@{
         Sistema = "http://localhost:$($c['GATEWAY_PORT'])"
         Odoo    = "http://localhost:$($c['ODOO_PORT'])"
+        App     = "https://localhost:$($c['APP_PORT'])"
+        AppRed  = @($red | ForEach-Object { "https://${_}:$($c['APP_PORT'])" }) + @("https://$($env:COMPUTERNAME.ToLower()):$($c['APP_PORT'])")
     }
 }
 
@@ -294,6 +388,16 @@ Administrador de Odoo:         $($u.Odoo)
   Contraseña:                  $($c['ODOO_ADMIN_PASSWORD'])
 Contraseña maestra de Odoo:    $($c['ODOO_MASTER_PASSWORD'])
   (gestión de bases de datos; guárdala en un lugar seguro)
+
+App de campo (tablets de los verificadores):
+  En este equipo:              $($u.App)
+  Desde las tablets (misma red): $($u.AppRed -join '  ó  ')
+  Usuarios: los de Odoo ligados a un verificador (Sistema UVA > Verificadores > Usuario).
+  Certificado para las tablets: $CertTablets (en esta carpeta)
+    Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
+    Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
+    "Agregar a la pantalla de inicio" para usarla como aplicación (también sin internet).
+    O instala Asercontrol-Campo.apk (en esta carpeta) y escribe la dirección de arriba en "Servidor".
 
 Páginas legales (editables en Odoo > Sitio web):
   $($u.Sistema)/terminos-y-condiciones
@@ -316,13 +420,54 @@ function Wait-Sistema {
     return $false
 }
 
+function Wait-App {
+    # API de la app (gateway -> Odoo, módulo uva_app_movil) y archivos de la app en el puerto HTTPS.
+    $u = Get-Urls
+    for ($i = 0; $i -lt 40; $i++) {
+        try {
+            $r = Invoke-WebRequest "$($u.Sistema)/api/app/health" -UseBasicParsing -TimeoutSec 10
+            if ($r.StatusCode -eq 200) { break }
+        } catch { Start-Sleep -Seconds 3 }
+    }
+    if ($i -ge 40) { return $false }
+    # El puerto HTTPS usa un certificado propio: se comprueba que responda sin validar la cadena.
+    try {
+        $tcp = New-Object System.Net.Sockets.TcpClient('127.0.0.1', [int](Read-Env)['APP_PORT'])
+        $tcp.Close(); return $true
+    } catch { return $false }
+}
+
+function Invoke-AgregarApp {
+    # Sistema ya instalado: no se reinstala Odoo ni se tocan la base de datos ni los demás módulos.
+    Assert-Docker
+    if (-not (Test-Path $EnvFile)) { Stop-ConError 'No se encontró una instalación del Sistema UVA en esta carpeta.' }
+    if (-not (Test-Path (Join-Path $Raiz 'app\index.html'))) { Stop-ConError 'Falta la carpeta app\ con la app de campo.' }
+    Write-Paso 'Agregando la app de campo al Sistema UVA existente'
+    Initialize-ConfigApp
+    Invoke-Compose up -d --wait db odoo
+    Install-ModuloApp
+    Initialize-Certificados
+    Write-Paso 'Publicando la app de campo en el gateway'
+    $opc = @(Get-OpcionesArranque)
+    Invoke-Compose up -d @opc --wait
+    Invoke-Compose restart odoo gateway
+    Write-Credenciales
+    if (Wait-App) { Write-Ok 'La app de campo responde.' } else { Write-Aviso 'La app aún no responde; revisa "uva.ps1 estado".' }
+    $u = Get-Urls
+    Write-Host "`n  App de campo lista." -ForegroundColor Green
+    Write-Host "  En este equipo:  $($u.App)"
+    Write-Host "  Desde tablets:   $($u.AppRed -join '  ó  ')"
+}
+
 # ----------------------------------------------------------------------------- acciones
 function Invoke-Instalar {
     Assert-Docker
     Write-Paso 'Preparando configuración'
     Initialize-Env $Demo.IsPresent
+    Initialize-ConfigApp
     Import-Imagenes
     Set-ClaveMaestraOdoo
+    Initialize-Certificados
     $cfg = Read-Env
 
     Write-Paso 'Levantando la base de datos (la primera vez descarga imágenes de Docker; puede tardar)'
@@ -352,10 +497,12 @@ function Invoke-Instalar {
 
     Write-Credenciales
     if (Wait-Sistema) { Write-Ok 'El sistema responde.' } else { Write-Aviso 'El sistema aún no responde; revisa "uva.ps1 estado".' }
+    if (Wait-App) { Write-Ok 'La app de campo responde.' } else { Write-Aviso 'La app de campo aún no responde; revisa "uva.ps1 estado".' }
     $u = Get-Urls
     Write-Host "`n  Sistema UVA instalado." -ForegroundColor Green
-    Write-Host "  Sistema:  $($u.Sistema)"
-    Write-Host "  Odoo:     $($u.Odoo)   (usuario admin; contraseña en CREDENCIALES.txt)"
+    Write-Host "  Sistema:       $($u.Sistema)"
+    Write-Host "  Odoo:          $($u.Odoo)   (usuario admin; contraseña en CREDENCIALES.txt)"
+    Write-Host "  App de campo:  $($u.App)   (tablets: $($u.AppRed -join '  ó  '))"
 }
 
 function Invoke-Iniciar {
@@ -381,11 +528,14 @@ function Invoke-Actualizar {
     Assert-Docker
     Import-Imagenes
     Set-ClaveMaestraOdoo
+    Initialize-ConfigApp
+    Initialize-Certificados
     $db = (Read-Env)['ODOO_DB']
     Write-Paso 'Respaldando antes de actualizar'
     Invoke-Respaldar | Out-Null
     Write-Paso 'Actualizando módulos de Odoo'
     Invoke-Compose run --rm odoo odoo -d $db -u 'uva_core,uva_legal' --stop-after-init --no-http
+    Install-ModuloApp
     Write-Paso 'Reconstruyendo servicios'
     $opc = @(Get-OpcionesArranque)   # @(): un solo elemento no debe volverse texto
     Invoke-Compose up -d @opc --wait
@@ -443,6 +593,7 @@ function Invoke-Desinstalar {
     $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Sistema UVA'
     Remove-Item $menu -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Sistema UVA.lnk') -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path ([Environment]::GetFolderPath('Desktop')) 'App de campo Asercontrol.lnk') -Force -ErrorAction SilentlyContinue
     Remove-Item (Join-Path ([Environment]::GetFolderPath('Startup')) 'Sistema UVA (inicio).lnk') -Force -ErrorAction SilentlyContinue
     Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemaUVA' -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -464,9 +615,15 @@ if ($Accion -notin @('abrir', 'abrir-odoo', 'estado')) {
 try {
     switch ($Accion) {
         'instalar'      { Invoke-Instalar }
+        'agregar-app'   { Invoke-AgregarApp }
+        'abrir-app'     { Start-Process (Get-Urls).App }
+        'regenerar-certificado' {
+            Assert-Docker; Initialize-Certificados $true; Invoke-Compose restart gateway; Write-Credenciales
+            Write-Ok 'Certificado renovado con la misma autoridad: las tablets no necesitan reinstalarla.'
+        }
         'iniciar'       { Invoke-Iniciar }
         'detener'       { Assert-Docker; Write-Paso 'Deteniendo Sistema UVA'; Invoke-Compose stop; Write-Ok 'Detenido (los datos se conservan).' }
-        'estado'        { Assert-Docker; Invoke-Compose ps; $u = Get-Urls; Write-Host "`n  Sistema: $($u.Sistema)`n  Odoo:    $($u.Odoo)" }
+        'estado'        { Assert-Docker; Invoke-Compose ps; $u = Get-Urls; Write-Host "`n  Sistema: $($u.Sistema)`n  Odoo:    $($u.Odoo)`n  App:     $($u.App)  (tablets: $($u.AppRed -join '  ó  '))" }
         'abrir'         { Start-Process (Get-Urls).Sistema }
         'abrir-odoo'    { Start-Process (Get-Urls).Odoo }
         'respaldar'     { Invoke-Respaldar | Out-Null }

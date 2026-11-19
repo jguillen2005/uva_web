@@ -5,17 +5,24 @@ El ejecutable ([windows/stub/Instalador.cs](windows/stub/Instalador.cs)) se comp
 .NET Framework incluido en Windows: no hace falta instalar herramientas. Lleva el contenido en un zip
 pegado al final, sin límite práctico de tamaño, y no pide permisos de administrador.
 
+El instalador lleva juntos la **web del Sistema UVA**, la **app de campo** de las tablets (repositorio
+*asercontrol*, compilada con `VITE_API_URL=/api/app`) y el **backend Odoo 19** con sus microservicios.
+
 ## Generar el instalador
 
 ```powershell
-# Normal (~3 MB): descarga las imágenes de Docker durante la instalación
-powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0
+# Con internet (~7 MB): descarga las imágenes de Docker durante la instalación
+powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 `
+  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk -Nombre ASERCONTROL-Instalador_web
 
 # Sin internet (~1 GB): incluye las imágenes de Odoo, PostgreSQL, nginx y los microservicios
-powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0 -SinInternet
+powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 `
+  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk -Nombre ASERCONTROL-Instalador -SinInternet
 ```
 
-El resultado queda en `installer\windows\salida\`. Para revisar el contenido sin instalar:
+`-App` es la carpeta del proyecto de la app de campo (por omisión `..\asercontrol` o `$env:ASERCONTROL_APP`).
+`-Apk` (opcional) deja el APK en la carpeta instalada para repartirlo a las tablets. `-Salida` cambia la
+carpeta del `.exe`; por omisión queda en `installer\windows\salida\`. Para revisar el contenido sin instalar:
 `SistemaUVA-Instalador-1.0.0.exe /extraer C:\ruta\carpeta`. Instalación desatendida:
 `SistemaUVA-Instalador-1.0.0.exe -Silencioso -Demo no`. Requisitos del equipo que compila: Node/npm y,
 para `-SinInternet`, Docker y ~5 GB libres temporales.
@@ -25,6 +32,9 @@ El paquete **nunca** incluye `backend\.env` ni claves: cada instalación genera 
 ## Qué hace el instalador en el equipo destino
 
 1. Revisa RAM, disco y Docker Desktop. Si Docker falta, ofrece instalarlo (winget o sitio oficial).
+   **Si el Sistema UVA (backend Odoo) ya está instalado**, no lo reinstala ni toca la base de datos: solo
+   agrega o actualiza la app de campo y su módulo `uva_app_movil` (`uva.ps1 agregar-app`). Para actualizar
+   también el backend: `<instalador>.exe -ActualizarSistema`. Si no está instalado, sigue con lo siguiente.
 2. Pregunta si cargar **datos de demostración** (`uva_demo`) o iniciar con base vacía.
 3. Copia todo a `%LOCALAPPDATA%\Programs\SistemaUVA` (no requiere administrador).
 4. Genera `.env` con contraseñas aleatorias, elige **puertos libres** (desde 8080/8069) y una
@@ -32,12 +42,17 @@ El paquete **nunca** incluye `backend\.env` ni claves: cada instalación genera 
 5. Carga las imágenes incluidas (versión sin internet) o las descarga/construye.
 6. Crea la base `uva`, instala `uva_api|uva_demo`, `uva_legal`, `uva_app_movil`, el usuario técnico
    `api_uva` y su clave API (1 año; se renueva sola al iniciar sesión si faltan < 30 días).
-7. Crea accesos en menú Inicio y escritorio, el arranque automático al iniciar sesión y la entrada
-   en «Aplicaciones instaladas» (con desinstalador).
-8. Abre el sistema y `CREDENCIALES.txt` (usuario `admin` y contraseñas generadas).
+7. Genera el certificado HTTPS de la app de campo (una autoridad local firma el certificado del equipo,
+   con su nombre y sus IP) y publica la app en `https://<equipo>:<APP_PORT>` (desde 8443) con `/api/app`
+   hacia Odoo (`backend/docker-compose.app.yml` + `gateway/app.conf`). Deja
+   `Certificado-tablets-Asercontrol.crt` en la carpeta para instalarlo en las tablets.
+8. Crea accesos en menú Inicio y escritorio (Sistema UVA y App de campo), el arranque automático al
+   iniciar sesión y la entrada en «Aplicaciones instaladas» (con desinstalador).
+9. Abre el sistema y `CREDENCIALES.txt` (usuario `admin`, contraseñas y direcciones de la app).
 
-Si se ejecuta sobre una instalación existente, **actualiza**: respalda la base, copia la versión
-nueva, actualiza los módulos (`-u uva_core,uva_legal`) y reinicia los servicios, conservando datos.
+Con `-ActualizarSistema` sobre una instalación existente, **actualiza** todo: respalda la base, copia la
+versión nueva, actualiza los módulos (`-u uva_core,uva_legal,uva_app_movil`) y reinicia los servicios,
+conservando datos.
 
 ## Mantenimiento (`uva.ps1` en la carpeta instalada)
 
@@ -48,6 +63,9 @@ nueva, actualiza los módulos (`-u uva_core,uva_legal`) y reinicia los servicios
 | `respaldar` | `pg_dump` + filestore en `respaldos\<fecha>` |
 | `actualizar` | Aplica la versión copiada (respalda antes) |
 | `renovar-clave` | Nueva clave API para los microservicios |
+| `abrir-app` | Abre la app de campo |
+| `agregar-app` | Agrega la app de campo a un sistema ya instalado (sin tocar la base de datos) |
+| `regenerar-certificado` | Nuevo certificado HTTPS (p. ej. cambió la IP); las tablets conservan la CA |
 | `desinstalar` | Quita contenedores, accesos y carpeta; pregunta si conservar datos y ofrece respaldo |
 
 Bitácoras en `logs\`. Los datos viven en los volúmenes Docker `sistema-uva_uva-db` y

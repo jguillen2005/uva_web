@@ -7,6 +7,8 @@ Requisitos
 Accesos (menú Inicio > Sistema UVA)
   Sistema UVA ............... abre el sistema en el navegador
   Administrador de Odoo ..... backoffice (usuario admin, ver "Datos de acceso")
+  App de campo (tablets) .... app de los verificadores (también en el escritorio)
+  Certificado para tablets .. carpeta con Certificado-tablets-Asercontrol.crt
   Iniciar / Detener ......... arranca o detiene los servicios
   Respaldar base de datos ... copia base de datos y adjuntos a la carpeta respaldos\
   Desinstalar ............... quita el sistema (pregunta si conservar los datos)
@@ -16,6 +18,17 @@ iniciar con Windows). Las contraseñas generadas están en CREDENCIALES.txt.
 
 Línea de comandos (PowerShell, en esta carpeta):
   .\uva.ps1 estado | iniciar | detener | respaldar | actualizar | renovar-clave | desinstalar
+  .\uva.ps1 abrir-app | agregar-app | regenerar-certificado
+
+App de campo en las tablets (misma red que este equipo)
+  1. Copia Certificado-tablets-Asercontrol.crt a la tablet e instálalo:
+     Ajustes > Seguridad > Cifrado y credenciales > Instalar un certificado > Certificado de CA.
+  2. Opción navegador: abre en Chrome la dirección "App de campo" de CREDENCIALES.txt y elige
+     "Agregar a la pantalla de inicio".
+     Opción APK: instala Asercontrol-Campo.apk y escribe esa misma dirección en "Servidor".
+  3. Entra con un usuario de Odoo ligado a un verificador (Sistema UVA > Verificadores).
+  Si cambia la IP de este equipo: .\uva.ps1 regenerar-certificado (las tablets no reinstalan nada).
+  Conviene fijar una IP para este equipo en el router.
 
 Uso desde otros equipos de la red: abre http://<nombre-o-IP-de-este-equipo>:<puerto del sistema>
 y permite el puerto en el Firewall de Windows si se solicita.

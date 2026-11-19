@@ -6,13 +6,22 @@
 .PARAMETER Destino     Carpeta de instalación (por omisión %LOCALAPPDATA%\Programs\SistemaUVA).
 .PARAMETER Demo        'si' o 'no': cargar datos de demostración (si se omite, se pregunta).
 .PARAMETER Silencioso  Sin ventanas de diálogo (para pruebas o instalación desatendida).
+.PARAMETER ActualizarSistema  Si ya hay un Sistema UVA instalado, actualiza también el backend (Odoo,
+                       módulos y microservicios). Sin este parámetro solo se agrega o actualiza la app de campo.
 #>
 param(
-    [string]$Destino = (Join-Path $env:LOCALAPPDATA 'Programs\SistemaUVA'),
+    [string]$Destino = '',
     [ValidateSet('', 'si', 'no')][string]$Demo = '',
     [switch]$Silencioso,
-    [switch]$SinAbrir
+    [switch]$SinAbrir,
+    [switch]$ActualizarSistema
 )
+# Si el sistema ya está instalado, se usa su carpeta (registrada en "Aplicaciones instaladas").
+$RegUva = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemaUVA'
+if (-not $Destino) {
+    $registrada = (Get-ItemProperty $RegUva -Name InstallLocation -ErrorAction SilentlyContinue).InstallLocation
+    $Destino = if ($registrada -and (Test-Path (Join-Path $registrada 'backend\.env'))) { $registrada } else { Join-Path $env:LOCALAPPDATA 'Programs\SistemaUVA' }
+}
 
 $ErrorActionPreference = 'Stop'
 $Origen = $PSScriptRoot
@@ -76,10 +85,19 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 
 # ------------------------------------------------------------------ instalación nueva o actualización
 $uva = Join-Path $Destino 'uva.ps1'
-$actualizacion = Test-Path (Join-Path $Destino 'backend\.env')
-if ($actualizacion) {
+$existente = Test-Path (Join-Path $Destino 'backend\.env')
+$actualizacion = $existente -and $ActualizarSistema
+$soloApp = $existente -and -not $ActualizarSistema
+if ($soloApp) {
+    # El backend ya existe: no se reinstala Odoo ni se tocan la base de datos ni los microservicios.
+    Write-Host "  Se detectó el Sistema UVA (backend Odoo) instalado en $Destino." -ForegroundColor Green
+    if ((Show-Mensaje ("Se detectó el Sistema UVA ya instalado en:`n$Destino`n`n" +
+        "El backend (Odoo, base de datos y servicios) NO se reinstala ni se modifican sus datos.`n" +
+        "Solo se agrega o actualiza la app de campo de las tablets (y su módulo uva_app_movil en Odoo).`n`n¿Continuar?") 'YesNo' 'Question') -eq 'No') { Exit-Instalador 0 }
+} elseif ($actualizacion) {
     if ((Show-Mensaje "El Sistema UVA ya está instalado en:`n$Destino`n`n¿Actualizarlo a la versión $Version? Se respalda la base de datos antes y se conservan los datos." 'YesNo' 'Question') -eq 'No') { Exit-Instalador 0 }
 } else {
+    Write-Host '  No se encontró el Sistema UVA en este equipo: se instalará completo (Odoo, base de datos, web y app de campo).'
     if ($Demo -eq '') {
         $r = Show-Mensaje ("¿Cargar datos de demostración?`n`n" +
             "Sí: clientes, expedientes y usuarios de ejemplo para conocer el sistema.`n" +
@@ -94,18 +112,30 @@ Write-Paso "Copiando archivos a $Destino"
 New-Item -ItemType Directory -Force $Destino | Out-Null
 $tmp = Join-Path $env:TEMP ('uva-payload-' + [guid]::NewGuid().ToString('N'))
 Expand-Archive -Path (Join-Path $Origen 'payload.zip') -DestinationPath $tmp -Force
-# Se reemplazan código, frontend y scripts; se conservan .env, CREDENCIALES, respaldos y bitácoras.
-foreach ($d in @('dist', 'backend\odoo\addons', 'backend\services', 'backend\gateway')) {
-    $p = Join-Path $Destino $d
-    if (Test-Path $p) { Remove-Item $p -Recurse -Force }
+if ($soloApp) {
+    # Solo la app de campo, su módulo de Odoo, la configuración del gateway y los scripts de administración.
+    foreach ($d in @('app', 'backend\odoo\addons\uva_app_movil')) {
+        $p = Join-Path $Destino $d
+        if (Test-Path $p) { Remove-Item $p -Recurse -Force }
+        Copy-Item (Join-Path $tmp $d) $p -Recurse -Force
+    }
+    foreach ($f in @('backend\gateway\app.conf', 'backend\docker-compose.app.yml', 'uva.ps1', 'LEEME.txt', 'Asercontrol-Campo.apk')) {
+        if (Test-Path (Join-Path $tmp $f)) { Copy-Item (Join-Path $tmp $f) (Join-Path $Destino $f) -Force }
+    }
+} else {
+    # Se reemplazan código, frontend y scripts; se conservan .env, certificados, CREDENCIALES, respaldos y bitácoras.
+    foreach ($d in @('dist', 'app', 'backend\odoo\addons', 'backend\services', 'backend\gateway')) {
+        $p = Join-Path $Destino $d
+        if (Test-Path $p) { Remove-Item $p -Recurse -Force }
+    }
+    $confActual = Join-Path $Destino 'backend\odoo\config\odoo.conf'
+    $confGuardada = $null
+    if (Test-Path $confActual) { $confGuardada = [System.IO.File]::ReadAllText($confActual) }
+    Copy-Item (Join-Path $tmp '*') $Destino -Recurse -Force
+    if ($confGuardada) { [System.IO.File]::WriteAllText($confActual, $confGuardada) }
 }
-$confActual = Join-Path $Destino 'backend\odoo\config\odoo.conf'
-$confGuardada = $null
-if (Test-Path $confActual) { $confGuardada = [System.IO.File]::ReadAllText($confActual) }
-Copy-Item (Join-Path $tmp '*') $Destino -Recurse -Force
-if ($confGuardada) { [System.IO.File]::WriteAllText($confActual, $confGuardada) }
 Remove-Item $tmp -Recurse -Force
-if (Test-Path (Join-Path $Origen 'imagenes.tar.gz')) {
+if (-not $soloApp -and (Test-Path (Join-Path $Origen 'imagenes.tar.gz'))) {
     $img = Join-Path $Destino 'imagenes'
     New-Item -ItemType Directory -Force $img | Out-Null
     Move-Item (Join-Path $Origen 'imagenes.tar.gz') $img -Force
@@ -132,6 +162,9 @@ $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Sistema UVA'
 New-Item -ItemType Directory -Force $menu | Out-Null
 New-Acceso (Join-Path $menu 'Sistema UVA.lnk') 'abrir' 'Abrir el Sistema UVA en el navegador'
 New-Acceso (Join-Path $menu 'Administrador de Odoo.lnk') 'abrir-odoo' 'Abrir el administrador de Odoo'
+New-Acceso (Join-Path $menu 'App de campo (tablets).lnk') 'abrir-app' 'Abrir la app de campo de los verificadores'
+$certLnk = $shell.CreateShortcut((Join-Path $menu 'Certificado para tablets.lnk'))
+$certLnk.TargetPath = $Destino; $certLnk.Description = 'Carpeta con Certificado-tablets-Asercontrol.crt'; $certLnk.Save()
 New-Acceso (Join-Path $menu 'Iniciar Sistema UVA.lnk') 'iniciar' 'Arrancar los servicios' 'Normal'
 New-Acceso (Join-Path $menu 'Detener Sistema UVA.lnk') 'detener' 'Detener los servicios' 'Normal'
 New-Acceso (Join-Path $menu 'Estado del Sistema UVA.lnk') 'estado' 'Ver el estado de los servicios' 'Normal'
@@ -140,13 +173,16 @@ New-Acceso (Join-Path $menu 'Desinstalar Sistema UVA.lnk') 'desinstalar' 'Quitar
 $cred = $shell.CreateShortcut((Join-Path $menu 'Datos de acceso.lnk'))
 $cred.TargetPath = Join-Path $Destino 'CREDENCIALES.txt'; $cred.Save()
 New-Acceso (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Sistema UVA.lnk') 'abrir' 'Abrir el Sistema UVA'
+New-Acceso (Join-Path ([Environment]::GetFolderPath('Desktop')) 'App de campo Asercontrol.lnk') 'abrir-app' 'Abrir la app de campo de los verificadores'
 # Al iniciar sesión: arranca los servicios y renueva la clave API si está por vencer.
 New-Acceso (Join-Path ([Environment]::GetFolderPath('Startup')) 'Sistema UVA (inicio).lnk') 'iniciar -Silencioso' 'Arranque automático del Sistema UVA'
 
-$reg = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemaUVA'
+$reg = $RegUva
 New-Item -Path $reg -Force | Out-Null
+$versionRegistrada = (Get-ItemProperty $reg -Name DisplayVersion -ErrorAction SilentlyContinue).DisplayVersion
 $valores = @{
-    DisplayName = 'Sistema UVA'; DisplayVersion = $Version; Publisher = 'APInterfaces'
+    # Con "solo app" el backend conserva su versión instalada.
+    DisplayName = 'Sistema UVA'; DisplayVersion = $(if ($soloApp -and $versionRegistrada) { $versionRegistrada } else { $Version }); Publisher = 'APInterfaces'
     InstallLocation = $Destino; DisplayIcon = $icono; NoModify = 1; NoRepair = 1
     UninstallString = "`"$ps`" -NoProfile -ExecutionPolicy Bypass -File `"$uva`" desinstalar"
     QuietUninstallString = "`"$ps`" -NoProfile -ExecutionPolicy Bypass -File `"$uva`" desinstalar -Silencioso"
@@ -160,7 +196,9 @@ Write-Host '  Menú Inicio, escritorio y "Aplicaciones instaladas" de Windows.'
 
 # ------------------------------------------------------------------ instalar / actualizar
 $argumentos = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $uva)
-if ($actualizacion) { $argumentos += 'actualizar' } else { $argumentos += 'instalar'; if ($Demo -eq 'si') { $argumentos += '-Demo' } }
+if ($soloApp) { $argumentos += 'agregar-app' }
+elseif ($actualizacion) { $argumentos += 'actualizar' }
+else { $argumentos += 'instalar'; if ($Demo -eq 'si') { $argumentos += '-Demo' } }
 if ($Silencioso) { $argumentos += '-Silencioso' }
 & $ps @argumentos
 if ($LASTEXITCODE -ne 0) {
@@ -171,7 +209,10 @@ if ($LASTEXITCODE -ne 0) {
 if (-not $SinAbrir) { & $ps -NoProfile -ExecutionPolicy Bypass -File $uva abrir }
 $credenciales = Join-Path $Destino 'CREDENCIALES.txt'
 if (-not $Silencioso -and (Test-Path $credenciales)) { Start-Process notepad.exe $credenciales }
-Show-Mensaje ("Sistema UVA $Version quedó instalado.`n`n" +
-    "Ábrelo con el acceso «Sistema UVA» del escritorio o del menú Inicio.`n" +
-    "Los datos de acceso (usuario admin y contraseñas) están en CREDENCIALES.txt.") | Out-Null
+$final = if ($soloApp) {
+    "La app de campo quedó agregada al Sistema UVA (el backend y sus datos no se modificaron).`n`n"
+} else { "Sistema UVA $Version quedó instalado (web, app de campo y backend Odoo).`n`n" }
+Show-Mensaje ($final +
+    "Ábrelo con los accesos «Sistema UVA» y «App de campo (tablets)» del menú Inicio.`n" +
+    "Direcciones, datos de acceso y cómo preparar las tablets están en CREDENCIALES.txt.") | Out-Null
 Exit-Instalador 0
