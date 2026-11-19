@@ -32,6 +32,9 @@ ENV_RESPALDO="$CONFIG_DIR/configuracion.env"
 ACCESOS_DIR="$HOME/Applications/Sistema UVA"
 AGENTE="$HOME/Library/LaunchAgents/mx.asercontrol.sistemauva.plist"
 DIAS_CLAVE=365
+# Verificador de campo que se crea al instalar (la app lo trae prellenado); se crea solo si no existe.
+USUARIO_CAMPO='jhovani.coss@asercontrol.com'
+CLAVE_CAMPO='asercontrol123456'
 
 ACCION="${1:-estado}"; shift || true
 DEMO=0; SILENCIOSO=0; ELIMINAR_DATOS=0
@@ -243,6 +246,34 @@ print('UVA_MOD_ESTADO=' + (m.state or 'ninguno'))" | sed -n 's/.*UVA_MOD_ESTADO=
   done
 }
 
+asegurar_usuario_campo() {
+  # Verificador de la app de campo (prellenado en la app): se crea con su usuario de Odoo solo si no existe;
+  # a uno existente nunca le cambia la contraseña.
+  local salida
+  salida="$(odoo_shell "Users = env['res.users'].sudo().with_context(no_reset_password=True)
+jc = Users.with_context(active_test=False).search([('login', '=', '$USUARIO_CAMPO')], limit=1)
+if not jc:
+    grupos = [env.ref('base.group_user').id, env.ref('uva_core.group_uva_inspector').id]
+    jc = Users.create({'name': 'Eduardo Jhovani Jaime Coss', 'login': '$USUARIO_CAMPO',
+                       'email': '$USUARIO_CAMPO', 'password': '$CLAVE_CAMPO',
+                       'lang': 'es_MX', 'tz': 'America/Mexico_City', 'group_ids': [(6, 0, grupos)]})
+Ver = env['uva.verificador'].sudo().with_context(active_test=False)
+if not Ver.search([('user_id', '=', jc.id)], limit=1):
+    ver = Ver.search([('email', '=ilike', '$USUARIO_CAMPO'), ('user_id', '=', False)], limit=1)
+    if ver:
+        ver.user_id = jc.id
+    else:
+        code, n = 'JC', 1
+        while Ver.search_count([('code', '=', code)]):
+            n += 1; code = 'JC%d' % n
+        Ver.create({'name': 'Eduardo Jhovani Jaime Coss', 'code': code, 'user_id': jc.id,
+                    'email': '$USUARIO_CAMPO', 'estado': 'activo'})
+env.cr.commit()
+print('UVA_CAMPO_OK')")"
+  if printf '%s' "$salida" | grep -q UVA_CAMPO_OK; then ok "Usuario de la app de campo listo: $USUARIO_CAMPO"
+  else echo "$salida"; aviso "No se pudo crear el usuario $USUARIO_CAMPO."; fi
+}
+
 actualizar_clave_api() {  # [fijar_admin]
   local admin_pw='' base_url salida clave vence
   [ "${1:-}" = "fijar_admin" ] && admin_pw="$(leer_env ODOO_ADMIN_PASSWORD)"
@@ -310,6 +341,8 @@ App de campo (tablets de los verificadores):
   En este equipo:              $(url_app)
   Desde las tablets (misma red):$(urls_app_red)
   Usuarios: los de Odoo ligados a un verificador (Sistema UVA > Verificadores > Usuario).
+  Verificador predeterminado:  $USUARIO_CAMPO / $CLAVE_CAMPO
+    (también entra a la web; cambia su contraseña desde Odoo cuando quieras)
   Certificado para las tablets: $CERT_TABLETS (en esta carpeta)
     Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
     Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
@@ -408,6 +441,7 @@ accion_instalar() {
   paso 'Configurando usuario administrador y clave API de los microservicios'
   if [ $nueva = 1 ] || [ "$(leer_env UVA_ADMIN_CONFIGURADO)" != 1 ]; then actualizar_clave_api fijar_admin; else actualizar_clave_api; fi
   set_env UVA_ADMIN_CONFIGURADO 1
+  asegurar_usuario_campo
   [ -n "$(cd "$BACKEND" && docker compose ps -q odoo 2>/dev/null)" ] && compose restart odoo
   paso 'Levantando Odoo, microservicios y gateway'
   # shellcheck disable=SC2046
@@ -428,6 +462,7 @@ accion_agregar_app() {
   inicializar_config_app
   compose up -d --wait db odoo
   instalar_modulos_app
+  asegurar_usuario_campo
   inicializar_certificados
   paso 'Publicando la app de campo en el gateway'
   # shellcheck disable=SC2046
@@ -447,6 +482,7 @@ accion_actualizar() {
   instalar_modulos_app
   # La contraseña de admin se fija si una instalación anterior no llegó a hacerlo
   if [ "$(leer_env UVA_ADMIN_CONFIGURADO)" = 1 ]; then actualizar_clave_api; else actualizar_clave_api fijar_admin; set_env UVA_ADMIN_CONFIGURADO 1; fi
+  asegurar_usuario_campo
   paso 'Reconstruyendo servicios'
   # shellcheck disable=SC2046
   compose up -d $(opciones_arranque) --wait

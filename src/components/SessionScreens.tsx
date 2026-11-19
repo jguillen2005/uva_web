@@ -3,6 +3,10 @@ import { ArrowLeft, Eye, EyeOff, Loader2, Lock, LogIn, LogOut, Mail, MailCheck }
 import { LEGAL_LINKS } from './legalLinks';
 import { sesion, type PerfilSesion } from '../api/sesion';
 
+// Usuario prellenado en el inicio de sesión (el mismo que trae la app de campo); el instalador lo crea.
+const USUARIO_PREDETERMINADO = 'jhovani.coss@asercontrol.com';
+const CLAVE_PREDETERMINADA = 'asercontrol123456';
+
 const LegalNota: React.FC = () => (
   <p className="text-[11px] text-ink-500 mt-4 leading-relaxed text-center">
     Al iniciar sesión aceptas los{' '}
@@ -30,8 +34,8 @@ export const LoginScreen: React.FC<{ aviso?: string | null; onLoggedIn: (perfil:
   onLoggedIn,
 }) => {
   const [modo, setModo] = useState<'login' | 'recuperar'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(USUARIO_PREDETERMINADO);
+  const [password, setPassword] = useState(CLAVE_PREDETERMINADA);
   const [verPassword, setVerPassword] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);

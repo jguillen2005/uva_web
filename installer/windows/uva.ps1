@@ -416,6 +416,8 @@ App de campo (tablets de los verificadores):
   En este equipo:              $($u.App)
   Desde las tablets (misma red): $($u.AppRed -join '  ó  ')
   Usuarios: los de Odoo ligados a un verificador (Sistema UVA > Verificadores > Usuario).
+  Verificador predeterminado:  $($Script:UsuarioCampo) / $($Script:ClaveCampo)
+    (también entra a la web; cambia su contraseña desde Odoo cuando quieras)
   Certificado para las tablets: $CertTablets (en esta carpeta)
     Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
     Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
@@ -475,6 +477,7 @@ function Invoke-AgregarApp {
     Initialize-ConfigApp
     Invoke-Compose up -d --wait db odoo
     Install-ModuloApp
+    Confirm-UsuarioCampo
     Initialize-Certificados
     Write-Paso 'Publicando la app de campo en el gateway'
     $opc = @(Get-OpcionesArranque)
@@ -486,6 +489,39 @@ function Invoke-AgregarApp {
     Write-Host "`n  App de campo lista." -ForegroundColor Green
     Write-Host "  En este equipo:  $($u.App)"
     Write-Host "  Desde tablets:   $($u.AppRed -join '  ó  ')"
+}
+
+# Verificador de la app de campo (prellenado en la app y en la web): se crea con su usuario de Odoo solo si
+# no existe; a uno existente nunca le cambia la contraseña.
+$Script:UsuarioCampo = 'jhovani.coss@asercontrol.com'
+$Script:ClaveCampo = 'asercontrol123456'
+function Confirm-UsuarioCampo {
+    $u = $Script:UsuarioCampo
+    $py = @"
+Users = env['res.users'].sudo().with_context(no_reset_password=True)
+jc = Users.with_context(active_test=False).search([('login', '=', '$u')], limit=1)
+if not jc:
+    grupos = [env.ref('base.group_user').id, env.ref('uva_core.group_uva_inspector').id]
+    jc = Users.create({'name': 'Eduardo Jhovani Jaime Coss', 'login': '$u',
+                       'email': '$u', 'password': '$($Script:ClaveCampo)',
+                       'lang': 'es_MX', 'tz': 'America/Mexico_City', 'group_ids': [(6, 0, grupos)]})
+Ver = env['uva.verificador'].sudo().with_context(active_test=False)
+if not Ver.search([('user_id', '=', jc.id)], limit=1):
+    ver = Ver.search([('email', '=ilike', '$u'), ('user_id', '=', False)], limit=1)
+    if ver:
+        ver.user_id = jc.id
+    else:
+        code, n = 'JC', 1
+        while Ver.search_count([('code', '=', code)]):
+            n += 1; code = 'JC%d' % n
+        Ver.create({'name': 'Eduardo Jhovani Jaime Coss', 'code': code, 'user_id': jc.id,
+                    'email': '$u', 'estado': 'activo'})
+env.cr.commit()
+print('UVA_CAMPO_OK')
+"@
+    $out = Invoke-OdooShell $py
+    if ($out -match 'UVA_CAMPO_OK') { Write-Ok "Usuario de la app de campo listo: $u" }
+    else { Write-Host $out; Write-Aviso "No se pudo crear el usuario $u." }
 }
 
 # ----------------------------------------------------------------------------- acciones
@@ -515,6 +551,7 @@ function Invoke-Instalar {
     # La contraseña de admin se fija una sola vez (también si un intento anterior falló a medias).
     Update-ClaveApi ($nueva -or (Read-Env)['UVA_ADMIN_CONFIGURADO'] -ne '1')
     Set-EnvValor 'UVA_ADMIN_CONFIGURADO' '1'
+    Confirm-UsuarioCampo
     # Si Odoo ya estaba corriendo (reinstalación o reintento), reiniciarlo para que lea los parámetros nuevos.
     Push-Location $Backend
     try { $odooActivo = Invoke-Nativo { docker compose ps -q odoo } } finally { Pop-Location }
@@ -569,6 +606,7 @@ function Invoke-Actualizar {
     # la contraseña de admin se fija si una instalación anterior no llegó a hacerlo
     Update-ClaveApi ((Read-Env)['UVA_ADMIN_CONFIGURADO'] -ne '1')
     Set-EnvValor 'UVA_ADMIN_CONFIGURADO' '1'
+    Confirm-UsuarioCampo
     Write-Paso 'Reconstruyendo servicios'
     $opc = @(Get-OpcionesArranque)   # @(): un solo elemento no debe volverse texto
     Invoke-Compose up -d @opc --wait

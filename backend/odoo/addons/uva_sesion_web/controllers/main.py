@@ -74,8 +74,12 @@ def _usuario_de_la_cookie():
 
 
 def _puede_entrar(user):
-    """Usuarios internos y activos; nunca el usuario técnico de los microservicios ni usuarios de portal."""
-    return bool(user.active and not user.share and not user.uva_usuario_tecnico)
+    """Usuarios internos y activos; nunca usuarios de portal ni el usuario técnico de los microservicios.
+    Los datos de demostración marcan también a admin como técnico (para ocultarlo del directorio), así
+    que los técnicos con permisos de administrador de Odoo sí pueden entrar."""
+    if not user.active or user.share:
+        return False
+    return not user.uva_usuario_tecnico or user.has_group('base.group_system')
 
 
 def _ip():
