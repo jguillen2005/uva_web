@@ -99,7 +99,7 @@ const CalibracionContent: React.FC<CalibracionViewProps & { data: CalibracionAct
               <h1 className="text-xl sm:text-2xl font-bold text-ink-900 tracking-tight">
                 {instrument.type} · {instrument.invCode}
               </h1>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-warn-100 text-warn-700">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200">
                 {instrument.statusLabel}
               </span>
             </div>

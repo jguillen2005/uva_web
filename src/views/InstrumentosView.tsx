@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRevealDetail } from '../components/useRevealDetail';
 import { ScreenKey, InstrumentDetail } from '../types';
 import { calidad } from '../api/endpoints';
 import { useApi, errorMessage } from '../api/useApi';
@@ -27,6 +28,7 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
   const [selectedId, setSelectedId] = useState<string>(
     (initialInstruments.find((i) => i.status === 'Por vencer') ?? initialInstruments[0])?.id ?? ''
   ); // INV-[0004] selected by default
+  const detailRef = useRevealDetail<HTMLElement>(selectedId);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('Todos');
   const [showNewModal, setShowNewModal] = useState<boolean>(false);
@@ -74,7 +76,7 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
       {/* Header */}
       <header className="bg-white border-b border-line-200 px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap justify-between items-end gap-4">
         <div>
-          <span className="text-xs font-semibold text-ink-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Catálogos / Instrumentos de medición
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -127,7 +129,7 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
       </div>
 
       {/* Main Content Area: Table + Aside */}
-      <div className="p-4 sm:px-6 lg:px-8 py-5 flex flex-col lg:flex-row gap-6 items-start flex-1">
+      <div className="p-4 sm:px-6 lg:px-8 py-5 flex flex-col xl:flex-row gap-6 items-start flex-1">
         {/* Table Column */}
         <div className="flex-[999] w-full min-w-0 flex flex-col gap-3">
           {/* Filters */}
@@ -168,12 +170,12 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
             className="bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs min-w-[780px]">
+              <table className="w-full text-left border-collapse text-xs min-w-[780px] xl:max-2xl:min-w-0">
                 <thead>
-                  <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                  <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                     <th className="py-3 px-3.5">Tipo</th>
-                    <th className="py-3 px-3.5">Marca / modelo</th>
-                    <th className="py-3 px-3.5">No. serie</th>
+                    <th className="py-3 px-3.5 xl:max-2xl:hidden">Marca / modelo</th>
+                    <th className="py-3 px-3.5 xl:max-2xl:hidden">No. serie</th>
                     <th className="py-3 px-3.5">Inventario</th>
                     <th className="py-3 px-3.5">Asignado a</th>
                     <th className="py-3 px-3.5">Vence calibración</th>
@@ -184,12 +186,12 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
                   {filtered.map((r) => {
                     const isSelected = r.id === selectedId;
                     const statusBadge = {
-                      Vigente: 'bg-success-100 text-success-700',
-                      'Por vencer': 'bg-warn-100 text-warn-700 font-bold',
-                      Vencido: 'bg-danger-100 text-danger-700 font-bold',
+                      Vigente: 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200',
+                      'Por vencer': 'bg-warn-100 text-warn-700 font-bold ring-1 ring-inset ring-warn-200',
+                      Vencido: 'bg-danger-100 text-danger-700 font-bold ring-1 ring-inset ring-danger-200',
                       Disponible: 'bg-line-100 text-ink-700',
                       'Fuera de servicio': 'bg-line-100 text-ink-700',
-                      'En calibración': 'bg-warn-100 text-warn-700'
+                      'En calibración': 'bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200'
                     }[r.status];
 
                     return (
@@ -201,9 +203,9 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
                         }`}
                       >
                         <td className="py-3 px-3.5 font-bold text-ink-900">{r.type}</td>
-                        <td className="py-3 px-3.5 text-ink-700">{r.brandModel}</td>
-                        <td className="py-3 px-3.5 font-mono text-[11px] text-ink-900">{r.serial}</td>
-                        <td className="py-3 px-3.5 font-mono font-bold text-brand-600">{r.invCode}</td>
+                        <td className="py-3 px-3.5 text-ink-700 xl:max-2xl:hidden">{r.brandModel}</td>
+                        <td className="py-3 px-3.5 font-mono text-[11px] text-ink-900 xl:max-2xl:hidden">{r.serial}</td>
+                        <td className="py-3 px-3.5 font-mono font-bold text-brand-600 whitespace-nowrap">{r.invCode}</td>
                         <td className="py-3 px-3.5 text-ink-700">{r.assignedTo}</td>
                         <td className="py-3 px-3.5 text-ink-700 font-medium">{r.calDueDate}</td>
                         <td className="py-3 px-3.5">
@@ -223,8 +225,9 @@ const InstrumentosContent: React.FC<InstrumentosViewProps & { initialInstruments
         {/* Aside: Instrument Details */}
         {selectedInst && (
           <aside
+            ref={detailRef}
             aria-label="Detalle del instrumento"
-            className="w-full lg:w-96 bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4 shrink-0"
+            className="scroll-mt-20 w-full xl:w-96 bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4 shrink-0"
           >
             <div>
               <span className="font-mono text-xs font-bold text-brand-600 uppercase tracking-wider block">

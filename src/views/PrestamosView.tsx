@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRevealDetail } from '../components/useRevealDetail';
 import { PrestamosData, ScreenKey } from '../types';
 import { operacion } from '../api/endpoints';
 import { useApi, errorMessage } from '../api/useApi';
@@ -24,6 +25,7 @@ const PrestamosContent: React.FC<PrestamosViewProps & { data: PrestamosData }> =
   const loans = data.loans;
   const [activeTab, setActiveTab] = useState<'entregar' | 'campo' | 'historial'>('campo');
   const [selectedVisitFolio, setSelectedVisitFolio] = useState(loans[0]?.folio ?? '');
+  const detailRef = useRevealDetail<HTMLElement>(selectedVisitFolio);
 
   const [returnItems, setReturnItems] = useState(data.returnItems);
 
@@ -71,15 +73,15 @@ const PrestamosContent: React.FC<PrestamosViewProps & { data: PrestamosData }> =
 
         {/* Equipment Lifecycle Indicator */}
         <ol className="flex flex-wrap items-center gap-2 pt-2 text-xs font-semibold">
-          <li className="px-3 py-1 rounded-full bg-brand-100 text-brand-800">
+          <li className="px-3 py-1 rounded-full bg-brand-100 text-brand-800 ring-1 ring-inset ring-brand-200">
             1 · Reservado (al programar)
           </li>
           <li className="text-ink-400">→</li>
-          <li className="px-3 py-1 rounded-full bg-warn-100 text-warn-700">
+          <li className="px-3 py-1 rounded-full bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200">
             2 · Entregado al inspector
           </li>
           <li className="text-ink-400">→</li>
-          <li className="px-3 py-1 rounded-full bg-success-100 text-success-700">
+          <li className="px-3 py-1 rounded-full bg-success-100 text-success-700 ring-1 ring-inset ring-success-200">
             3 · Devuelto y revisado → Disponible
           </li>
           <li className="text-xs text-ink-500 font-normal">
@@ -89,7 +91,7 @@ const PrestamosContent: React.FC<PrestamosViewProps & { data: PrestamosData }> =
       </header>
 
       {/* Content */}
-      <div className="p-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6 items-start flex-1">
+      <div className="p-4 sm:px-6 lg:px-8 py-6 flex flex-col xl:flex-row gap-6 items-start flex-1">
         {/* Left: Loans Table */}
         <div className="flex-[999] w-full min-w-0 flex flex-col gap-3">
           {/* Subtabs */}
@@ -137,13 +139,13 @@ const PrestamosContent: React.FC<PrestamosViewProps & { data: PrestamosData }> =
             className="bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs min-w-[720px]">
+              <table className="w-full text-left border-collapse text-xs min-w-[720px] xl:max-2xl:min-w-0">
                 <thead>
-                  <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                  <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                     <th className="py-3 px-3.5">Visita</th>
                     <th className="py-3 px-3.5">Inspector</th>
                     <th className="py-3 px-3.5">Equipos asignados</th>
-                    <th className="py-3 px-3.5">Entregado</th>
+                    <th className="py-3 px-3.5 xl:max-2xl:hidden">Entregado</th>
                     <th className="py-3 px-3.5">Devolver antes de</th>
                   </tr>
                 </thead>
@@ -164,7 +166,7 @@ const PrestamosContent: React.FC<PrestamosViewProps & { data: PrestamosData }> =
                       </td>
                       <td className="py-3 px-3.5 text-ink-700 font-medium">{loan.inspector}</td>
                       <td className="py-3 px-3.5 text-ink-700">{loan.equipment}</td>
-                      <td className="py-3 px-3.5 text-ink-500">{loan.delivered}</td>
+                      <td className="py-3 px-3.5 text-ink-500 xl:max-2xl:hidden">{loan.delivered}</td>
                       <td
                         className={`py-3 px-3.5 ${
                           loan.overdue ? 'text-danger-700 font-bold' : 'text-ink-700 font-semibold'
@@ -186,8 +188,9 @@ const PrestamosContent: React.FC<PrestamosViewProps & { data: PrestamosData }> =
 
         {/* Right Aside: Return Inspection Checklist */}
         <aside
+            ref={detailRef}
           aria-label="Registrar devolución"
-          className="w-full lg:w-96 bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4 shrink-0"
+          className="scroll-mt-20 w-full xl:w-96 bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4 shrink-0"
         >
           <div>
             <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider block">

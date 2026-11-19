@@ -138,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar container */}
       <aside
         id="sidebar-nav"
-        className={`print:hidden fixed lg:sticky top-0 left-0 h-dvh w-72 max-w-[85vw] lg:w-66 bg-side-900 text-side-100 z-50 flex flex-col transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
+        className={`print:hidden fixed lg:sticky top-0 left-0 h-dvh w-72 max-w-[85vw] lg:w-66 bg-side-900 bg-linear-to-b from-side-900 to-side-950 text-side-100 z-50 flex flex-col transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -167,9 +167,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={item.key}
                     type="button"
                     onClick={() => handleSelect(item.key)}
+                    aria-current={isActive ? 'page' : undefined}
                     className={`w-full flex items-center justify-between px-3 py-2.5 lg:py-2 rounded-md text-[13.5px] font-medium transition-colors text-left ${
                       isActive
-                        ? 'bg-side-700 text-white font-semibold shadow-xs'
+                        ? 'relative bg-side-700 text-white font-semibold shadow-xs before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r-full before:bg-accent-300'
                         : 'text-side-100 hover:bg-side-800 hover:text-white'
                     }`}
                   >
@@ -208,9 +209,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={item.key}
                     type="button"
                     onClick={() => handleSelect(item.key)}
+                    aria-current={isActive ? 'page' : undefined}
                     className={`w-full flex items-center justify-between px-3 py-2.5 lg:py-2 rounded-md text-[13.5px] font-medium transition-colors text-left ${
                       isActive
-                        ? 'bg-side-700 text-white font-semibold shadow-xs'
+                        ? 'relative bg-side-700 text-white font-semibold shadow-xs before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r-full before:bg-accent-300'
                         : 'text-side-100 hover:bg-side-800 hover:text-white'
                     }`}
                   >

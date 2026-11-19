@@ -74,7 +74,7 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
               <h1 className="text-xl sm:text-2xl font-bold text-ink-900 tracking-tight">
                 [Cliente A] Minera de la Sierra · Pozo 1 Beneficio
               </h1>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-warn-100 text-warn-700">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200">
                 Por revisar · vence en 2 días hábiles
               </span>
             </div>
@@ -209,9 +209,9 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
                         <span
                           className={`px-3 py-1 rounded-full font-bold text-xs ${
                             p.ans === 'C'
-                              ? 'bg-success-100 text-success-700'
+                              ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200'
                               : p.ans === 'NC'
-                              ? 'bg-danger-100 text-danger-700'
+                              ? 'bg-danger-100 text-danger-700 ring-1 ring-inset ring-danger-200'
                               : 'bg-line-100 text-ink-700'
                           }`}
                         >
@@ -225,7 +225,7 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
                               key={pi}
                               type="button"
                               onClick={() => setPreviewPhoto(ph)}
-                              className="w-12 h-9 rounded bg-surface-300 hover:bg-line-300 text-[9.5px] font-mono text-ink-700 flex items-center justify-center transition-colors"
+                              className="w-14 h-10 rounded bg-surface-300 hover:bg-line-300 text-[11px] font-mono text-ink-700 flex items-center justify-center transition-colors"
                               title="Ver foto con metadatos GPS"
                             >
                               foto {pi + 1}
@@ -266,7 +266,7 @@ const RevisionContent: React.FC<RevisionContentProps> = ({ data, onNavigate, onS
               Resultado normativo calculado
             </span>
             <div className="flex items-center gap-3">
-              <span className="px-3.5 py-1 rounded-full bg-success-100 text-success-700 font-extrabold text-sm">
+              <span className="px-3.5 py-1 rounded-full bg-success-100 text-success-700 font-extrabold text-sm ring-1 ring-inset ring-success-200">
                 Cumple
               </span>
               <span className="text-xs text-ink-700 font-medium">0 NC · 61 C · 5 N/A</span>

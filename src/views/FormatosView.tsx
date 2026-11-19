@@ -43,7 +43,7 @@ const FormatosContent: React.FC<FormatosViewProps & { initialFormatos: FormatoIt
       {/* Header */}
       <div className="flex flex-wrap justify-between items-end gap-4 pb-2 border-b border-line-200">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Catálogos / Formatos
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -146,7 +146,7 @@ const FormatosContent: React.FC<FormatosViewProps & { initialFormatos: FormatoIt
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs min-w-[950px]">
             <thead>
-              <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+              <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                 <th className="py-3 px-4">Código</th>
                 <th className="py-3 px-4">Nombre</th>
                 <th className="py-3 px-4">Etapa</th>
@@ -168,7 +168,7 @@ const FormatosContent: React.FC<FormatosViewProps & { initialFormatos: FormatoIt
                     <div className="text-[11px] text-ink-500">{f.subtitle}</div>
                   </td>
                   <td className="py-3.5 px-4 text-ink-700 font-medium">{f.stage}</td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-ink-900">{f.version}</td>
+                  <td className="py-3.5 px-4 font-mono font-bold text-ink-900 whitespace-nowrap">{f.version}</td>
                   <td className="py-3.5 px-4 text-ink-700">
                     {f.structureType}
                     <div className="text-[10px] text-ink-500">{f.structureDetail}</div>
@@ -177,9 +177,9 @@ const FormatosContent: React.FC<FormatosViewProps & { initialFormatos: FormatoIt
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-full font-bold ${
                         f.status === 'Vigente'
-                          ? 'bg-success-100 text-success-700'
+                          ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200'
                           : f.status === 'En aprobación'
-                          ? 'bg-warn-100 text-warn-700'
+                          ? 'bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200'
                           : 'bg-line-100 text-ink-700'
                       }`}
                     >

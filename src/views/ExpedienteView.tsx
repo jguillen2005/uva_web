@@ -99,10 +99,10 @@ const ExpedienteContent: React.FC<ExpedienteContentProps> = ({ data, onNavigate,
             <h1 className="text-xl sm:text-2xl font-bold text-ink-900 tracking-tight">
               Dictamen oficial DV-0104
             </h1>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 ring-1 ring-inset ring-brand-200">
               {acuseStatus === 'Listo' ? 'Cargado a CONAGUA · Acuse recibido' : 'Autorizado · pendiente de carga a CONAGUA'}
             </span>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-success-100 text-success-700">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-success-100 text-success-700 ring-1 ring-inset ring-success-200">
               Conforme
             </span>
           </div>
@@ -188,8 +188,8 @@ const ExpedienteContent: React.FC<ExpedienteContentProps> = ({ data, onNavigate,
                     <span
                       className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                         d.st === 'Listo'
-                          ? 'bg-success-100 text-success-700'
-                          : 'bg-warn-100 text-warn-700'
+                          ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200'
+                          : 'bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200'
                       }`}
                     >
                       {d.st}

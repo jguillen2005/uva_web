@@ -167,7 +167,7 @@ const EditorContent: React.FC<EditorViewProps & { estructura: FormatoEstructura 
                   onClick={() => setSelectedSec(sec.n)}
                   className={`w-full p-2.5 rounded-lg flex items-center justify-between text-left text-xs transition-colors ${
                     isSelected
-                      ? 'bg-brand-100 text-brand-800 font-bold'
+                      ? 'bg-brand-100 text-brand-800 font-bold ring-1 ring-inset ring-brand-200'
                       : 'hover:bg-surface-50 text-ink-900'
                   }`}
                 >
@@ -229,7 +229,7 @@ const EditorContent: React.FC<EditorViewProps & { estructura: FormatoEstructura 
                       {p.text}
                     </p>
                     <div className="flex flex-wrap gap-1.5 text-[11px]">
-                      <span className="px-2 py-0.2 rounded bg-brand-100 text-brand-800 font-bold">
+                      <span className="px-2 py-0.2 rounded bg-brand-100 text-brand-800 font-bold ring-1 ring-inset ring-brand-200">
                         {p.kind}
                       </span>
                       <span className="px-2 py-0.2 rounded bg-surface-100 text-ink-700 font-mono">
@@ -238,7 +238,7 @@ const EditorContent: React.FC<EditorViewProps & { estructura: FormatoEstructura 
                       <span className="px-2 py-0.2 rounded bg-surface-100 text-ink-700">
                         {p.resp}
                       </span>
-                      <span className="px-2 py-0.2 rounded bg-warn-100 text-warn-700 font-semibold">
+                      <span className="px-2 py-0.2 rounded bg-warn-100 text-warn-700 font-semibold ring-1 ring-inset ring-warn-200">
                         {p.ev}
                       </span>
                     </div>

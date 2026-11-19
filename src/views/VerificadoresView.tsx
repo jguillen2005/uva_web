@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRevealDetail } from '../components/useRevealDetail';
 import { ScreenKey, VerificadorItem } from '../types';
 import { catalogos } from '../api/endpoints';
 import { useApi } from '../api/useApi';
@@ -18,6 +19,7 @@ export const VerificadoresView: React.FC<VerificadoresViewProps> = (props) => {
 const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificadores: VerificadorItem[] }> = ({ onShowToast, initialVerificadores }) => {
   const [verificadores, setVerificadores] = useState<VerificadorItem[]>(initialVerificadores);
   const [selectedId, setSelectedId] = useState<string>('v3'); // Inspector 3 selected by default
+  const detailRef = useRevealDetail<HTMLElement>(selectedId);
 
   const selectedInsp = verificadores.find((v) => v.id === selectedId) || verificadores[0];
 
@@ -26,7 +28,7 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
       {/* Header */}
       <header className="bg-white border-b border-line-200 px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap justify-between items-end gap-4">
         <div>
-          <span className="text-xs font-semibold text-ink-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Catálogos / Verificadores
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -48,21 +50,21 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
       </header>
 
       {/* Content Area */}
-      <div className="p-4 sm:px-6 lg:px-8 py-5 flex flex-col lg:flex-row gap-6 items-start flex-1">
+      <div className="p-4 sm:px-6 lg:px-8 py-5 flex flex-col xl:flex-row gap-6 items-start flex-1">
         {/* Table Column */}
         <section
           aria-label="Lista de verificadores"
           className="flex-[999] w-full min-w-0 bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden"
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs min-w-[780px]">
+            <table className="w-full text-left border-collapse text-xs min-w-[780px] xl:max-2xl:min-w-0">
               <thead>
-                <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                   <th className="py-3 px-3.5">Verificador</th>
-                  <th className="py-3 px-3.5">Zona base</th>
+                  <th className="py-3 px-3.5 xl:max-2xl:hidden">Zona base</th>
                   <th className="py-3 px-3.5">Competencia</th>
                   <th className="py-3 px-3.5">Visitas del mes</th>
-                  <th className="py-3 px-3.5">Equipo en su poder</th>
+                  <th className="py-3 px-3.5 xl:max-2xl:hidden">Equipo en su poder</th>
                   <th className="py-3 px-3.5">Estado</th>
                 </tr>
               </thead>
@@ -72,15 +74,15 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
                   const progressPct = Math.round((r.monthlyVisits / r.monthlyTarget) * 100);
 
                   const compBadge = {
-                    Vigente: 'bg-success-100 text-success-700',
-                    'Por vencer': 'bg-warn-100 text-warn-700 font-bold',
-                    Vencida: 'bg-danger-100 text-danger-700 font-bold'
+                    Vigente: 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200',
+                    'Por vencer': 'bg-warn-100 text-warn-700 font-bold ring-1 ring-inset ring-warn-200',
+                    Vencida: 'bg-danger-100 text-danger-700 font-bold ring-1 ring-inset ring-danger-200'
                   }[r.compStatus];
 
                   const kitBadge =
                     r.assignedKit === 'Completo'
-                      ? 'bg-success-100 text-success-700'
-                      : 'bg-warn-100 text-warn-700 font-semibold';
+                      ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200'
+                      : 'bg-warn-100 text-warn-700 font-semibold ring-1 ring-inset ring-warn-200';
 
                   return (
                     <tr
@@ -101,7 +103,7 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-3.5 text-ink-700 font-medium">{r.zone}</td>
+                      <td className="py-3 px-3.5 text-ink-700 font-medium xl:max-2xl:hidden">{r.zone}</td>
                       <td className="py-3 px-3.5">
                         <span className={`inline-block px-2 py-0.5 rounded-full ${compBadge}`}>
                           {r.compStatus}
@@ -120,7 +122,7 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-3.5">
+                      <td className="py-3 px-3.5 xl:max-2xl:hidden">
                         <span className={`inline-block px-2 py-0.5 rounded-full ${kitBadge}`}>
                           {r.assignedKit}
                         </span>
@@ -137,8 +139,9 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
         {/* Aside: Inspector Profile */}
         {selectedInsp && (
           <aside
+            ref={detailRef}
             aria-label="Detalle del verificador"
-            className="w-full lg:w-96 bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4 shrink-0"
+            className="scroll-mt-20 w-full xl:w-96 bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4 shrink-0"
           >
             <div className="flex items-center gap-3">
               <span className="w-12 h-12 rounded-full bg-brand-150 text-brand-800 font-extrabold flex items-center justify-center text-base shrink-0 shadow-inner">

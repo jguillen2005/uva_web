@@ -78,7 +78,7 @@ const ProgramacionContent: React.FC<ProgramacionViewProps & { data: Programacion
       {/* Header */}
       <header className="bg-white border-b border-line-200 px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap justify-between items-end gap-4">
         <div>
-          <span className="text-xs font-semibold text-ink-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Operación / Programación de visitas
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">

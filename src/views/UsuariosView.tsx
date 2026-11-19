@@ -36,7 +36,7 @@ const UsuariosContent: React.FC<UsuariosViewProps & { data: UsuariosData }> = ({
       {/* Header */}
       <div className="flex flex-wrap justify-between items-end gap-4 pb-2 border-b border-line-200">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Catálogos / Usuarios y roles
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -58,11 +58,11 @@ const UsuariosContent: React.FC<UsuariosViewProps & { data: UsuariosData }> = ({
       </div>
 
       {/* 2 Columns: Users list + Matrix */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="flex flex-col 2xl:flex-row gap-6 items-start">
         {/* Left: User Table */}
         <section
           aria-label="Directorio de usuarios"
-          className="w-full lg:w-[480px] bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden shrink-0"
+          className="w-full 2xl:w-[480px] bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden shrink-0"
         >
           <div className="p-4 border-b border-line-200 bg-surface-50 flex items-center justify-between">
             <h2 className="text-xs font-bold text-ink-900 uppercase tracking-wider">
@@ -74,7 +74,7 @@ const UsuariosContent: React.FC<UsuariosViewProps & { data: UsuariosData }> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs min-w-[420px]">
               <thead>
-                <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                   <th className="py-2.5 px-3.5">Usuario</th>
                   <th className="py-2.5 px-3.5">Roles asignados</th>
                   <th className="py-2.5 px-3.5">Último acceso</th>
@@ -93,7 +93,7 @@ const UsuariosContent: React.FC<UsuariosViewProps & { data: UsuariosData }> = ({
                         {u.roles.map((r, ri) => (
                           <span
                             key={ri}
-                            className="px-2 py-0.5 rounded bg-brand-100 text-brand-800 font-bold text-[10.5px]"
+                            className="px-2 py-0.5 rounded bg-brand-100 text-brand-800 font-bold text-[10.5px] ring-1 ring-inset ring-brand-200"
                           >
                             {r}
                           </span>
@@ -133,7 +133,7 @@ const UsuariosContent: React.FC<UsuariosViewProps & { data: UsuariosData }> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-center border-collapse text-xs min-w-[620px]">
               <thead>
-                <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                <tr className="bg-surface-50 text-ink-500 text-[11px] font-bold border-b border-line-200">
                   <th className="py-2.5 px-3 text-left">Módulo</th>
                   {rolesHeaders.map((rh) => (
                     <th key={rh} className="py-2.5 px-2 text-center text-[11px] font-bold">

@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { ScreenKey } from '../types';
+import { DictamenItem, ScreenKey } from '../types';
 import { dictaminacion } from '../api/endpoints';
 import { useApi } from '../api/useApi';
 import { AsyncState } from '../components/AsyncState';
 import { Search, Award, CheckCircle2, XCircle, Clock, Eye, Download } from 'lucide-react';
+
+const resultadoClass = (r: DictamenItem) =>
+  r.resType === 'ok'
+    ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200'
+    : 'bg-danger-100 text-danger-700 ring-1 ring-inset ring-danger-200';
+
+const conaguaClass = (r: DictamenItem) =>
+  r.cnType === 'done' ? 'bg-side-900 text-white' : 'bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200';
 
 interface DictamenesViewProps {
   onNavigate: (screen: ScreenKey) => void;
@@ -34,7 +42,7 @@ export const DictamenesView: React.FC<DictamenesViewProps> = ({ onNavigate, onSh
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto flex flex-col min-h-full">
       {/* Header */}
       <div className="flex flex-col gap-1 pb-2 border-b border-line-200">
-        <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+        <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
           Operación / Dictámenes y actas
         </span>
         <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -73,12 +81,61 @@ export const DictamenesView: React.FC<DictamenesViewProps> = ({ onNavigate, onSh
         </div>
       </div>
 
+      {/* Celular: tarjetas apiladas (sin desplazamiento horizontal) */}
+      <ul className="md:hidden space-y-3" aria-label="Dictámenes">
+        {filtered.map((r, i) => (
+          <li key={i} className="bg-white border border-line-200 rounded-xl shadow-xs p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="shrink-0">
+                <div className="font-mono font-bold text-sm text-ink-900 whitespace-nowrap">{r.no}</div>
+                <div className="font-mono text-[11px] text-ink-500 break-all">{r.folio}</div>
+              </div>
+              <span className={`min-w-0 px-2.5 py-0.5 rounded-xl text-xs leading-snug text-right font-bold ${resultadoClass(r)}`}>{r.res}</span>
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-ink-900 leading-snug">{r.client}</div>
+              <div className="text-xs text-ink-500">
+                {r.title} · {r.well}
+              </div>
+            </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs border-t border-line-100 pt-3">
+              <div>
+                <dt className="text-ink-500">Emisión</dt>
+                <dd className="font-medium text-ink-900">{r.date}</dd>
+              </div>
+              <div>
+                <dt className="text-ink-500">Vence</dt>
+                <dd className={r.dueWarning ? 'font-bold text-warn-700' : 'font-medium text-ink-900'}>{r.due}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-ink-500">CONAGUA</dt>
+                <dd>
+                  <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full font-semibold ${conaguaClass(r)}`}>{r.cn}</span>
+                </dd>
+              </div>
+            </dl>
+            <button
+              type="button"
+              onClick={() => onNavigate('Expediente')}
+              className="w-full h-11 rounded-lg font-bold text-sm text-brand-700 bg-brand-100 hover:bg-brand-150 ring-1 ring-inset ring-brand-200 transition-colors"
+            >
+              Ver expediente
+            </button>
+          </li>
+        ))}
+        {filtered.length === 0 && (
+          <li className="bg-white border border-line-200 rounded-xl p-6 text-center text-sm text-ink-500">
+            No hay dictámenes con estos filtros.
+          </li>
+        )}
+      </ul>
+
       {/* Table */}
-      <div className="bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden">
+      <div className="hidden md:block bg-white border border-line-200 rounded-xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs min-w-[850px]">
             <thead>
-              <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+              <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                 <th className="py-3 px-4">Dictamen</th>
                 <th className="py-3 px-4">Cliente / aprovechamiento</th>
                 <th className="py-3 px-4">Emisión</th>
@@ -101,13 +158,7 @@ export const DictamenesView: React.FC<DictamenesViewProps> = ({ onNavigate, onSh
                   </td>
                   <td className="py-3.5 px-4 text-ink-700 font-medium">{r.date}</td>
                   <td className="py-3.5 px-4">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full font-bold ${
-                        r.resType === 'ok'
-                          ? 'bg-success-100 text-success-700'
-                          : 'bg-danger-100 text-danger-700'
-                      }`}
-                    >
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold ${resultadoClass(r)}`}>
                       {r.res}
                     </span>
                   </td>
@@ -119,13 +170,7 @@ export const DictamenesView: React.FC<DictamenesViewProps> = ({ onNavigate, onSh
                     {r.due}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full font-semibold ${
-                        r.cnType === 'done'
-                          ? 'bg-side-900 text-white'
-                          : 'bg-warn-100 text-warn-700'
-                      }`}
-                    >
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full font-semibold ${conaguaClass(r)}`}>
                       {r.cn}
                     </span>
                   </td>

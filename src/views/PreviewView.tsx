@@ -82,14 +82,14 @@ const PreviewContent: React.FC<PreviewViewProps & { sesion: CampoSesion }> = ({ 
         {/* Dynamic Island / Speaker notch */}
         <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-4 bg-ink-900 rounded-full z-50 flex items-center justify-center">
           <div className="w-2.5 h-2.5 rounded-full bg-black/60 mr-4" />
-          <div className="w-2 h-2 rounded-full bg-blue-900/40" />
+          <div className="w-2 h-2 rounded-full bg-side-900/40" />
         </div>
 
         {/* Mobile App Header */}
         <header className="bg-side-900 text-white pt-9 pb-3.5 px-4 flex flex-col gap-2 shrink-0">
           <div className="flex justify-between items-center">
             <span className="text-xs text-side-200 font-mono">{sesion.folio} · {sesion.site}</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-warn-100 text-warn-700">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200">
               <WifiOff className="w-3 h-3" /> Sin señal · guardado
             </span>
           </div>
@@ -119,7 +119,7 @@ const PreviewContent: React.FC<PreviewViewProps & { sesion: CampoSesion }> = ({ 
               <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-surface-100 text-ink-900">
                 {sectionN}.{pointIndex}
               </span>
-              <span className="px-2 py-0.5 rounded bg-brand-100 text-brand-800 font-bold text-[11px]">
+              <span className="px-2 py-0.5 rounded bg-brand-100 text-brand-800 font-bold text-[11px] ring-1 ring-inset ring-brand-200">
                 {sesion.point.kind}
               </span>
               <span className="px-2 py-0.5 rounded bg-surface-100 text-ink-700 font-mono text-[11px]">
@@ -193,9 +193,9 @@ const PreviewContent: React.FC<PreviewViewProps & { sesion: CampoSesion }> = ({ 
               {photos.map((item, i) => (
                 <div
                   key={i}
-                  className="aspect-square rounded-lg bg-surface-300 p-1.5 flex flex-col justify-end text-[9.5px] text-ink-700 leading-tight font-mono relative overflow-hidden"
+                  className="aspect-square rounded-lg bg-surface-300 p-1.5 flex flex-col justify-end text-[11px] text-ink-700 leading-tight font-mono relative overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end p-1 text-white text-[8.5px]">
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end p-1.5 text-white text-[11px] font-semibold">
                     foto {i + 1}
                   </div>
                 </div>

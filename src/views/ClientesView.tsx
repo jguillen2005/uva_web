@@ -130,7 +130,7 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
       {/* Header */}
       <header className="bg-white border-b border-line-200 px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap justify-between items-end gap-4">
         <div className="min-w-0">
-          <span className="text-xs font-semibold text-ink-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Operación / Clientes y aprovechamientos
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -231,7 +231,7 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
           <section aria-label="Datos del cliente" className="bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex items-start gap-3">
-                <span className="w-10 h-10 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
+                <span className="w-10 h-10 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 ring-1 ring-inset ring-brand-200">
                   <Building className="w-5 h-5" />
                 </span>
                 <div className="min-w-0">
@@ -357,7 +357,7 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
                   <div className="hidden @2xl:block">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                        <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                           <th scope="col" className="py-2.5 px-3.5">Aprovechamiento</th>
                           <th scope="col" className="py-2.5 px-3.5">Título / anexo</th>
                           <th scope="col" className="py-2.5 px-3.5">Medidor</th>
@@ -546,9 +546,9 @@ const InspectionChip: React.FC<{ well: WellSite }> = ({ well }) => {
   const inconforme = /inconforme|no conforme/i.test(well.lastInspection);
   const label = well.lastInspection.split('·')[0].trim();
   const style = inconforme
-    ? 'bg-danger-100 text-danger-700'
+    ? 'bg-danger-100 text-danger-700 ring-1 ring-inset ring-danger-200'
     : conforme
-    ? 'bg-success-100 text-success-700'
+    ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200'
     : 'bg-surface-100 text-ink-600';
   return <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${style}`}>{label}</span>;
 };

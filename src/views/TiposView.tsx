@@ -102,7 +102,7 @@ const TiposContent: React.FC<TiposViewProps & { data: TiposData }> = ({ onNaviga
                           <span className="font-medium">{f.label}</span>
                           <span className="text-ink-500 font-mono text-[11px]">{f.max} car.</span>
                           {p.perField && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-100 text-brand-800">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-100 text-brand-800 ring-1 ring-inset ring-brand-200">
                               C/NC/NA
                             </span>
                           )}
@@ -142,7 +142,7 @@ const TiposContent: React.FC<TiposViewProps & { data: TiposData }> = ({ onNaviga
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs min-w-[700px]">
             <thead>
-              <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+              <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                 <th className="py-2.5 px-3 w-56">Sección de la norma</th>
                 <th className="py-2.5 px-3">Tipos de respuesta empleados</th>
               </tr>

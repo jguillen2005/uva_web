@@ -49,7 +49,7 @@ const EstadisticasContent: React.FC<EstadisticasContentProps> = ({ data, periodo
       {/* Header */}
       <div className="flex flex-wrap justify-between items-end gap-4 pb-2 border-b border-line-200">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Operación / Estadísticas
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">

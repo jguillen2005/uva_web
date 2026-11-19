@@ -294,7 +294,7 @@ const AltaFormatoContent: React.FC<AltaFormatoViewProps & { defaults: AltaFormat
           <div className="overflow-x-auto border border-line-200 rounded-lg">
             <table className="w-full text-left border-collapse text-xs min-w-[700px]">
               <thead>
-                <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                   <th className="py-2.5 px-3 w-10">#</th>
                   <th className="py-2.5 px-3">Rubro</th>
                   <th className="py-2.5 px-2 text-center">Obligatorio</th>
@@ -407,7 +407,7 @@ const AltaFormatoContent: React.FC<AltaFormatoViewProps & { defaults: AltaFormat
             <div className="overflow-x-auto border border-line-200 rounded-lg">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-surface-100 text-ink-700 font-semibold border-b border-line-200">
+                  <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                     <th className="py-2.5 px-3">Campo en el Word</th>
                     <th className="py-2.5 px-3">Se vincula automáticamente con</th>
                   </tr>
@@ -415,7 +415,7 @@ const AltaFormatoContent: React.FC<AltaFormatoViewProps & { defaults: AltaFormat
                 <tbody className="divide-y divide-line-100">
                   {wordFields.map((f) => (
                     <tr key={f.key}>
-                      <td className="py-2.5 px-3 font-mono font-bold text-ink-900">«{f.key}»</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-ink-900 whitespace-nowrap">«{f.key}»</td>
                       <td className="py-2.5 px-3 text-ink-700 font-medium">{f.mapTo}</td>
                     </tr>
                   ))}

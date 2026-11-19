@@ -49,7 +49,9 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
             key={idx}
             type="button"
             onClick={() => onNavigate(kpi.targetScreen)}
-            className="bg-white border border-line-200 hover:border-brand-600 hover:shadow-xs rounded-xl p-4 flex flex-col gap-1.5 text-left transition-all group"
+            className={`relative overflow-hidden bg-white border border-line-200 shadow-xs hover:border-brand-300 hover:shadow-md hover:-translate-y-px rounded-xl p-4 pt-[18px] flex flex-col gap-1.5 text-left transition-all group before:absolute before:inset-x-0 before:top-0 before:h-[3px] ${
+              kpi.warning ? 'before:bg-warn-500' : 'before:bg-brand-500'
+            }`}
           >
             <span className="text-xs text-ink-600 font-medium group-hover:text-brand-600 transition-colors">
               {kpi.label}
@@ -58,7 +60,7 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
               {kpi.value}
             </span>
             <span
-              className={`text-xs font-medium truncate ${
+              className={`text-xs font-medium line-clamp-2 ${
                 kpi.warning ? 'text-warn-700' : 'text-ink-500'
               }`}
             >
@@ -69,7 +71,7 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
       </div>
 
       {/* Main Grid: Requiere atención (Left) + Right widgets */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="flex flex-col xl:flex-row gap-6 items-start">
         {/* Requiere atención */}
         <section
           aria-label="Requiere atención"
@@ -80,7 +82,7 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
               <AlertTriangle className="w-5 h-5 text-warn-700" />
               Requiere atención prioritaria
             </h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-100 text-warn-700">
+            <span className="shrink-0 whitespace-nowrap text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200">
               {alerts.length} asuntos
             </span>
           </div>
@@ -96,7 +98,7 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={alert.id}
-                  className="py-3.5 flex flex-wrap sm:flex-nowrap items-center gap-3.5 justify-between hover:bg-surface-50 transition-colors -mx-2 px-2 rounded-lg"
+                  className="py-3.5 flex flex-wrap sm:flex-nowrap items-center gap-3.5 justify-between hover:bg-brand-50/60 transition-colors -mx-2 px-2 rounded-lg"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span
@@ -125,7 +127,7 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
         </section>
 
         {/* Right Column */}
-        <div className="w-full lg:w-96 flex flex-col gap-5 shrink-0">
+        <div className="w-full min-w-0 xl:w-96 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-5 shrink-0 items-start">
           {/* Avance del mes */}
           <section
             aria-label="Avance del mes"
@@ -139,9 +141,9 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
               <span className="text-3xl font-extrabold text-ink-900 tabular-nums">18</span>
               <span className="text-sm text-ink-600">de 30 (meta mensual)</span>
             </div>
-            <div className="h-3 rounded-full bg-line-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-brand-50 ring-1 ring-inset ring-brand-100 overflow-hidden">
               <div
-                className="h-full rounded-full bg-brand-600 transition-all duration-500"
+                className="h-full rounded-full bg-linear-to-r from-brand-600 to-accent-400 transition-all duration-500"
                 style={{ width: '60%' }}
                 role="progressbar"
                 aria-valuenow={60}
@@ -169,9 +171,9 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
                 return (
                   <div key={idx} className="grid grid-cols-[minmax(0,140px)_1fr_28px] gap-2 items-center text-xs">
                     <span className="text-ink-700 truncate font-medium">{stage.name}</span>
-                    <div className="h-3.5 bg-surface-100 rounded-r-md overflow-hidden">
+                    <div className="h-3.5 bg-brand-50 rounded-r-md overflow-hidden">
                       <div
-                        className="h-full bg-brand-600 rounded-r-md transition-all duration-500"
+                        className="h-full bg-linear-to-r from-brand-500 to-brand-600 rounded-r-md transition-all duration-500"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRevealDetail } from '../components/useRevealDetail';
 import { ScreenKey, Solicitud } from '../types';
 import { solicitudes as solicitudesApi } from '../api/endpoints';
 import { useApi, errorMessage } from '../api/useApi';
@@ -26,6 +27,7 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
   const [selectedId, setSelectedId] = useState<string>(
     (initialSolicitudes[1] ?? initialSolicitudes[0])?.id ?? ''
   ); // UVA-0015 selected by default
+  const detailRef = useRevealDetail<HTMLElement>(selectedId);
   const [filterStatus, setFilterStatus] = useState<string>('Documentación pendiente');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showNewModal, setShowNewModal] = useState<boolean>(false);
@@ -113,7 +115,7 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
       {/* Header */}
       <header className="bg-white border-b border-line-200 px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap justify-between items-end gap-4">
         <div>
-          <span className="text-xs font-semibold text-ink-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
             Operación / Solicitudes
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">
@@ -159,7 +161,7 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
       </div>
 
       {/* Content Area: Table + Detail Aside */}
-      <div className="p-4 sm:px-6 lg:px-8 py-5 flex flex-col lg:flex-row gap-6 items-start flex-1">
+      <div className="p-4 sm:px-6 lg:px-8 py-5 flex flex-col xl:flex-row gap-6 items-start flex-1">
         {/* Table Column */}
         <section
           aria-label="Lista de solicitudes"
@@ -182,13 +184,13 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm min-w-[760px]">
+            <table className="w-full text-left border-collapse text-sm min-w-[760px] xl:max-2xl:min-w-0">
               <thead>
-                <tr className="bg-surface-100 text-ink-700 font-semibold text-xs border-b border-line-200">
+                <tr className="bg-surface-50 text-ink-500 text-[11px] uppercase tracking-wide font-bold border-b border-line-200">
                   <th className="py-3 px-4">Folio</th>
                   <th className="py-3 px-4">Cliente / aprovechamiento</th>
-                  <th className="py-3 px-4">Tipo</th>
-                  <th className="py-3 px-4">Cotización Aspel</th>
+                  <th className="py-3 px-4 xl:max-2xl:hidden">Tipo</th>
+                  <th className="py-3 px-4 xl:max-2xl:hidden">Cotización Aspel</th>
                   <th className="py-3 px-4">Documentos</th>
                   <th className="py-3 px-4">Estado</th>
                 </tr>
@@ -200,10 +202,10 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
 
                   const statusBadge = {
                     'En cotización': 'bg-line-100 text-ink-700',
-                    'Esperando pago': 'bg-warn-100 text-warn-700',
-                    'Documentación pendiente': 'bg-warn-100 text-warn-700 font-semibold',
-                    'Lista para programar': 'bg-success-100 text-success-700 font-semibold',
-                    Programada: 'bg-brand-100 text-brand-800 font-semibold'
+                    'Esperando pago': 'bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200',
+                    'Documentación pendiente': 'bg-warn-100 text-warn-700 font-semibold ring-1 ring-inset ring-warn-200',
+                    'Lista para programar': 'bg-success-100 text-success-700 font-semibold ring-1 ring-inset ring-success-200',
+                    Programada: 'bg-brand-100 text-brand-800 font-semibold ring-1 ring-inset ring-brand-200'
                   }[row.status];
 
                   return (
@@ -214,7 +216,7 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
                         isSelected ? 'bg-brand-50' : 'hover:bg-surface-50'
                       }`}
                     >
-                      <td className="py-3.5 px-4 font-mono text-xs font-semibold text-ink-900">
+                      <td className="py-3.5 px-4 font-mono text-xs font-semibold text-ink-900 whitespace-nowrap">
                         {row.folio}
                       </td>
                       <td className="py-3.5 px-4">
@@ -223,8 +225,8 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
                           {row.title} · {row.well}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-ink-700">{row.kind}</td>
-                      <td className="py-3.5 px-4 text-xs text-ink-700">{row.quote}</td>
+                      <td className="py-3.5 px-4 text-ink-700 xl:max-2xl:hidden">{row.kind}</td>
+                      <td className="py-3.5 px-4 text-xs text-ink-700 xl:max-2xl:hidden">{row.quote}</td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
                           <div className="w-16 h-1.5 rounded-full bg-line-100 overflow-hidden">
@@ -254,8 +256,9 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
         {/* Aside: Request Details */}
         {selectedItem && (
           <aside
+            ref={detailRef}
             aria-label="Detalle de la solicitud"
-            className="w-full lg:w-[410px] bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-5 shrink-0"
+            className="scroll-mt-20 w-full xl:w-[380px] bg-white border border-line-200 rounded-xl p-5 shadow-xs flex flex-col gap-5 shrink-0"
           >
             <div>
               <span className="font-mono text-xs font-bold text-brand-600 uppercase tracking-wider block">
@@ -324,7 +327,7 @@ const SolicitudesContent: React.FC<SolicitudesViewProps & { initialSolicitudes: 
                     <div className="flex items-center gap-2 min-w-0">
                       <span
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                          doc.complete ? 'bg-success-100 text-success-700' : 'bg-warn-100 text-warn-700'
+                          doc.complete ? 'bg-success-100 text-success-700 ring-1 ring-inset ring-success-200' : 'bg-warn-100 text-warn-700 ring-1 ring-inset ring-warn-200'
                         }`}
                       >
                         {doc.complete ? '✓' : '!'}
