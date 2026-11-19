@@ -118,6 +118,12 @@ class UvaAppMovil(models.AbstractModel):
         if hasta:
             minutos = max(1, int((hasta - fields.Datetime.now()).total_seconds() // 60) + 1)
             raise AppError(429, 'Acceso bloqueado por intentos fallidos. Intente más tarde (%d min).' % minutos)
+        # La app pide el correo: si no es el login de Odoo, se busca al usuario por su correo.
+        Users = self.env['res.users'].sudo()
+        if '@' in (login or '') and not Users.search_count([('login', '=', login)]):
+            por_correo = Users.search([('email', '=ilike', login.strip())], limit=2)
+            if len(por_correo) == 1:
+                login = por_correo.login
         try:
             info = self.env['res.users'].sudo().authenticate(
                 {'type': 'password', 'login': login, 'password': password}, {'interactive': False})
