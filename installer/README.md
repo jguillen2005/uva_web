@@ -81,3 +81,29 @@ Bitácoras en `logs\`. Los datos viven en los volúmenes Docker `sistema-uva_uva
   a clientes, firmarlo con un certificado de firma de código (`signtool sign`).
 - El asistente es sencillo (consola con el avance + cuadros de diálogo). Si se requiere un asistente
   gráfico completo, el mismo contenido puede empaquetarse con Inno Setup.
+
+## Instalador para Mac (Apple o Intel)
+
+`installer/mac/` genera `SistemaUVA-Instalador-Mac-<versión>.zip` con **«Instalar Sistema UVA.command»**
+(doble clic) y la carpeta `contenido/` (web, app de campo, backend Odoo, APK y `uva.sh`). Las imágenes de
+Odoo 19, PostgreSQL 17, nginx y Node existen para arm64 y amd64: funciona nativo en ambos chips.
+
+```powershell
+# Se genera desde Windows (requiere Node/npm y Python)
+powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.1.1 `
+  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk
+```
+
+En el Mac hace lo mismo que el de Windows: revisa Docker Desktop, pregunta por datos de demostración,
+detecta una instalación existente (actualizar todo o solo la app), genera contraseñas, puertos y el
+certificado HTTPS, crea accesos en `~/Applications/Sistema UVA` y el escritorio y un LaunchAgent para el
+arranque al iniciar sesión. Instala en `~/SistemaUVA`; la configuración se respalda en
+`~/Library/Application Support/SistemaUVA/configuracion.env`. Administración: `~/SistemaUVA/uva.sh`
+(mismas acciones que `uva.ps1`; también funciona en Linux).
+
+- El `.command` no está firmado: macOS pide abrirlo con clic derecho > Abrir (o «Abrir de todos modos» en
+  Privacidad y seguridad), o ejecutarlo con `bash` desde Terminal.
+- Aún no hay versión sin internet para Mac (requiere imágenes arm64 y amd64 por separado).
+- Probado en Linux (Docker en Docker): instalar, retomar tras un error, actualizar, inicio de sesión web,
+  app por HTTPS con la CA local y desinstalar. Las partes exclusivas de macOS (diálogos, Llavero,
+  accesos y LaunchAgent) no se pudieron probar en un Mac real.

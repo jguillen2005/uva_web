@@ -565,8 +565,10 @@ function Invoke-Actualizar {
     Write-Paso 'Actualizando módulos de Odoo'
     Invoke-Compose run --rm odoo odoo -d $db -u 'uva_core,uva_legal' --stop-after-init --no-http
     Install-ModuloApp
-    # Clave API nueva y dirección de los enlaces de correo (restablecer contraseña) hacia la web
-    Update-ClaveApi $false
+    # Clave API nueva y dirección de los enlaces de correo (restablecer contraseña) hacia la web;
+    # la contraseña de admin se fija si una instalación anterior no llegó a hacerlo
+    Update-ClaveApi ((Read-Env)['UVA_ADMIN_CONFIGURADO'] -ne '1')
+    Set-EnvValor 'UVA_ADMIN_CONFIGURADO' '1'
     Write-Paso 'Reconstruyendo servicios'
     $opc = @(Get-OpcionesArranque)   # @(): un solo elemento no debe volverse texto
     Invoke-Compose up -d @opc --wait

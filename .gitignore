@@ -18,3 +18,7 @@ installer/windows/salida/
 # App de campo y certificados que genera el instalador
 /app/
 backend/certs/
+
+# Instalador para Mac (generados por installer/mac/build.ps1)
+installer/mac/.build/
+installer/mac/salida/

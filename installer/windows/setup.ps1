@@ -85,7 +85,9 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 
 # ------------------------------------------------------------------ instalación nueva o actualización
 $uva = Join-Path $Destino 'uva.ps1'
-$existente = Test-Path (Join-Path $Destino 'backend\.env')
+# Instalado = configuración completa; una instalación interrumpida se retoma como nueva (conserva lo hecho)
+$envDestino = Join-Path $Destino 'backend\.env'
+$existente = (Test-Path $envDestino) -and ((Get-Content $envDestino -ErrorAction SilentlyContinue) -contains 'UVA_ADMIN_CONFIGURADO=1')
 $actualizacion = $existente -and $ActualizarSistema
 $soloApp = $existente -and -not $ActualizarSistema
 if ($soloApp) {
