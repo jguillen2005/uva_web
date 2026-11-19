@@ -81,9 +81,14 @@ PDF en `03_Campo`, `uva.verificador`, `uva.instrumento`). El acta recibida entra
 ## Seguridad — pendientes antes de producción
 
 * Cambiar `admin_passwd` en `odoo/config/odoo.conf`, `POSTGRES_PASSWORD` y `ODOO_ADMIN_PASSWORD`.
-* El gateway hoy **no autentica al usuario final**: los microservicios actúan con el usuario técnico `api_uva`.
-  Siguiente paso recomendado: SSO con Microsoft 365 (Entra ID) en el gateway y propagar el usuario a Odoo
-  para que apliquen los roles de `uva_core`.
+* **Inicio de sesión de la web** (módulo `uva_sesion_web`): la web pide el usuario y la contraseña de Odoo y
+  Odoo entrega una cookie firmada `HttpOnly` (10 h, `uva_sesion_web.horas`). El gateway valida esa cookie
+  con `auth_request` (`/api/sesion/validar`) en cada llamada a `/api/<dominio>` y reenvía el login real a
+  los microservicios en `X-UVA-User` (la cabecera que mande el navegador se descarta), así aplican los roles
+  y la regla de imparcialidad del usuario que trabaja. Bloqueo de 5 min tras 5 intentos fallidos.
+  «¿Olvidó su contraseña?» usa el correo de restablecimiento de Odoo: requiere un servidor de correo
+  saliente y `web.base.url` apuntando al gateway (el instalador lo fija); el gateway publica
+  `/web/reset_password`. Pendiente opcional: SSO con Microsoft 365 (Entra ID) sobre la misma sesión.
 * Exponer solo el puerto del gateway (8080/443 con TLS); Odoo (8069) solo en la red interna.
 * Integraciones Aspel SAE, SharePoint, Outlook y portal CONAGUA están como stubs (`# TODO integración`).
 * Los datos semilla fijan `uva.fecha_referencia = 2026-10-21` (parámetro del sistema) para que plazos y

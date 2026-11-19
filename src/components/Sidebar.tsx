@@ -27,6 +27,8 @@ interface SidebarProps {
   onToggle: () => void;
   onClose: () => void;
   onLogout: () => void;
+  /** Usuario en sesión para el menú de cuenta (barra móvil). */
+  user?: React.ComponentProps<typeof UserMenu>['user'];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,7 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onToggle,
   onClose,
-  onLogout
+  onLogout,
+  user
 }) => {
   // Map child screen to its parent nav key
   const getActiveKey = (key: ScreenKey): ScreenKey => {
@@ -114,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-        <UserMenu tone="dark" showName={false} onProfile={() => handleSelect('Perfil')} onLogout={onLogout} />
+        <UserMenu tone="dark" showName={false} onProfile={() => handleSelect('Perfil')} onLogout={onLogout} user={user} />
         <button
           onClick={onToggle}
           className="p-2 rounded-lg bg-side-700 text-white hover:bg-side-600 transition-colors"

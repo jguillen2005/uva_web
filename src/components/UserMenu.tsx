@@ -9,12 +9,22 @@ interface UserMenuProps {
   tone?: 'light' | 'dark';
   /** Muestra nombre y puesto junto al avatar. */
   showName?: boolean;
+  /** Usuario en sesión (del servidor). Sin él se muestra el usuario de la maqueta. */
+  user?: { name: string; title?: string; email?: string; initials?: string } | null;
 }
 
-const USER = { name: 'Ing. Gerardo Torres', title: 'Gerente Técnico', email: 'gtorres@sistemauva.mx', initials: 'GT' };
+const USUARIO_MAQUETA = { name: 'Ing. Gerardo Torres', title: 'Gerente Técnico', email: 'gtorres@sistemauva.mx', initials: 'GT' };
+
+const iniciales = (nombre: string) => {
+  const palabras = nombre.replace(/^(Ing|Lic|Dr|Dra|Téc|Mtro|Mtra)\.\s*/, '').split(/\s+/).filter(Boolean);
+  return ((palabras[0]?.[0] ?? '') + (palabras.length > 1 ? palabras[1][0] : '')).toUpperCase() || '?';
+};
 
 /** Menú de cuenta (esquina superior derecha): Ver mi perfil · Cerrar sesión. */
-export const UserMenu: React.FC<UserMenuProps> = ({ onProfile, onLogout, tone = 'light', showName = true }) => {
+export const UserMenu: React.FC<UserMenuProps> = ({ onProfile, onLogout, tone = 'light', showName = true, user }) => {
+  const USER = user
+    ? { name: user.name, title: user.title || '', email: user.email || '', initials: iniciales(user.name) }
+    : USUARIO_MAQUETA;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const firstItemRef = useRef<HTMLButtonElement>(null);

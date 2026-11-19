@@ -55,6 +55,7 @@ async function doFetch(method: string, path: string, body?: unknown, query?: Que
   try {
     res = await fetch(buildUrl(path, query), {
       method,
+      credentials: 'same-origin', // cookie de sesión (HttpOnly) del Sistema UVA
       headers: {
         Accept: 'application/json',
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
@@ -64,7 +65,13 @@ async function doFetch(method: string, path: string, body?: unknown, query?: Que
   } catch {
     throw new ApiError('No se pudo conectar con el servidor. Verifique su conexión.', 0, path);
   }
-  if (!res.ok) throw await errorFromResponse(res, path);
+  if (!res.ok) {
+    // Sesión vencida o inválida en cualquier pantalla: la app vuelve al inicio de sesión
+    if (res.status === 401 && !path.startsWith('/sesion/')) {
+      window.dispatchEvent(new CustomEvent('uva:sesion-vencida'));
+    }
+    throw await errorFromResponse(res, path);
+  }
   return res;
 }
 

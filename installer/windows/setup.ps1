@@ -91,9 +91,12 @@ $soloApp = $existente -and -not $ActualizarSistema
 if ($soloApp) {
     # El backend ya existe: no se reinstala Odoo ni se tocan la base de datos ni los microservicios.
     Write-Host "  Se detectó el Sistema UVA (backend Odoo) instalado en $Destino." -ForegroundColor Green
-    if ((Show-Mensaje ("Se detectó el Sistema UVA ya instalado en:`n$Destino`n`n" +
-        "El backend (Odoo, base de datos y servicios) NO se reinstala ni se modifican sus datos.`n" +
-        "Solo se agrega o actualiza la app de campo de las tablets (y su módulo uva_app_movil en Odoo).`n`n¿Continuar?") 'YesNo' 'Question') -eq 'No') { Exit-Instalador 0 }
+    $r = Show-Mensaje ("Se detectó el Sistema UVA ya instalado en:`n$Destino`n`n" +
+        "Sí: actualizar TODO a la versión $Version (web, backend Odoo y app de campo). Odoo no se " +
+        "reinstala: se respalda la base de datos y se conservan los datos y usuarios.`n`n" +
+        "No: actualizar SOLO la app de campo de las tablets; la web y el backend quedan como están.") 'YesNoCancel' 'Question'
+    if ($r -eq 'Cancel') { Exit-Instalador 0 }
+    if ($r -eq 'Yes') { $soloApp = $false; $actualizacion = $true }
 } elseif ($actualizacion) {
     if ((Show-Mensaje "El Sistema UVA ya está instalado en:`n$Destino`n`n¿Actualizarlo a la versión $Version? Se respalda la base de datos antes y se conservan los datos." 'YesNo' 'Question') -eq 'No') { Exit-Instalador 0 }
 } else {

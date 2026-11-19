@@ -213,16 +213,21 @@ function Initialize-Certificados([bool]$Forzar = $false) {
 }
 
 function Install-ModuloApp {
-    # Instala el módulo de la app en la base existente, o lo actualiza si ya estaba. No toca otros módulos ni datos.
+    # Instala los módulos de la app de campo y del inicio de sesión web en la base existente, o los
+    # actualiza si ya estaban. No toca otros módulos ni datos.
     $db = (Read-Env)['ODOO_DB']
-    $estado = Invoke-OdooShell "m = env['ir.module.module'].search([('name', '=', 'uva_app_movil')])`nprint('UVA_APP_ESTADO=' + (m.state or 'ninguno'))`n"
-    $instalado = ([regex]::Match($estado, 'UVA_APP_ESTADO=(\w+)')).Groups[1].Value -eq 'installed'
-    if ($instalado) {
-        Write-Paso 'Actualizando el módulo uva_app_movil en Odoo'
-        Invoke-Compose run --rm odoo odoo -d $db -u uva_app_movil --stop-after-init --no-http
-    } else {
-        Write-Paso 'Instalando el módulo uva_app_movil en Odoo'
-        Invoke-Compose run --rm odoo odoo -d $db -i uva_app_movil --stop-after-init --no-http
+    foreach ($modulo in @('uva_app_movil', 'uva_sesion_web')) {
+        # En "solo app" no se copia el módulo de sesión web: se instala solo si está presente.
+        if (-not (Test-Path (Join-Path $Backend (Join-Path 'odoo' (Join-Path 'addons' $modulo))))) { continue }
+        $estado = Invoke-OdooShell "m = env['ir.module.module'].search([('name', '=', '$modulo')])`nprint('UVA_MOD_ESTADO=' + (m.state or 'ninguno'))`n"
+        $instalado = ([regex]::Match($estado, 'UVA_MOD_ESTADO=(\w+)')).Groups[1].Value -eq 'installed'
+        if ($instalado) {
+            Write-Paso "Actualizando el módulo $modulo en Odoo"
+            Invoke-Compose run --rm odoo odoo -d $db -u $modulo --stop-after-init --no-http
+        } else {
+            Write-Paso "Instalando el módulo $modulo en Odoo"
+            Invoke-Compose run --rm odoo odoo -d $db -i $modulo --stop-after-init --no-http
+        }
     }
 }
 
@@ -336,6 +341,8 @@ function Get-OpcionesArranque {
 function Update-ClaveApi([bool]$FijarAdmin) {
     $cfg = Read-Env
     $adminPw = if ($FijarAdmin) { $cfg['ODOO_ADMIN_PASSWORD'] } else { '' }
+    # Los enlaces de los correos de Odoo (p. ej. restablecer contraseña) deben abrir la web del sistema.
+    $baseUrl = "http://$($env:COMPUTERNAME.ToLower()):$($cfg['GATEWAY_PORT'])"
     # Solo ASCII: PowerShell 5.1 envía la entrada a programas externos en ASCII.
     $py = @"
 from datetime import timedelta
@@ -345,9 +352,11 @@ vals = {'lang': 'es_MX', 'tz': 'America/Mexico_City'}
 if '$adminPw':
     vals['password'] = '$adminPw'
 admin.write(vals)
-# Sin SSO, el sistema usa el usuario del parametro uva.usuario_actual (por omision gtorres, que
-# solo existe con datos de demostracion). En una base limpia se usa admin.
 ICP = env['ir.config_parameter'].sudo()
+ICP.set_param('web.base.url', '$baseUrl')
+ICP.set_param('web.base.url.freeze', 'True')
+# Respaldo sin sesion (la web ya inicia sesion con usuarios de Odoo): usuario del parametro
+# uva.usuario_actual (por omision gtorres, que solo existe con datos de demostracion).
 actual = ICP.get_param('uva.usuario_actual', 'gtorres')
 if not env['res.users'].sudo().search([('login', '=', actual)], limit=1):
     ICP.set_param('uva.usuario_actual', 'admin')
@@ -393,6 +402,10 @@ SISTEMA UVA - DATOS DE ACCESO
 Generado: $(Get-Date -Format 'yyyy-MM-dd HH:mm')
 
 Sistema (usuarios):            $($u.Sistema)
+  Inicio de sesión con los usuarios de Odoo (correo o usuario y contraseña).
+  Al principio: usuario admin con la contraseña de abajo; después crea un usuario por persona.
+  «¿Olvidó su contraseña?» envía el enlace por correo: requiere configurar el servidor de
+  correo saliente en Odoo (Ajustes > Técnico > Servidores de correo saliente).
 Administrador de Odoo:         $($u.Odoo)
   Usuario:                     admin
   Contraseña:                  $($c['ODOO_ADMIN_PASSWORD'])
@@ -422,9 +435,15 @@ function Wait-Sistema {
     $u = (Get-Urls).Sistema
     for ($i = 0; $i -lt 60; $i++) {
         try {
-            # Recorre gateway -> microservicio -> Odoo con la clave API.
-            $r = Invoke-WebRequest "$u/api/dictaminacion/bandeja" -UseBasicParsing -TimeoutSec 10
-            if ($r.StatusCode -eq 200) { return $true }
+            # Gateway -> microservicio -> Odoo (con la clave API) y el inicio de sesion web en Odoo:
+            # sin sesion ambos deben responder 401 (la API exige iniciar sesion).
+            $ok = 0
+            foreach ($ruta in '/api/sesion/yo', '/api/dictaminacion/bandeja') {
+                try { Invoke-WebRequest "$u$ruta" -UseBasicParsing -TimeoutSec 10 | Out-Null; $ok++ }
+                catch { if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 401) { $ok++ } }
+            }
+            if ($ok -eq 2 -and (Invoke-WebRequest "$u/api/health" -UseBasicParsing -TimeoutSec 10).StatusCode -eq 200) { return $true }
+            Start-Sleep -Seconds 3
         } catch { Start-Sleep -Seconds 3 }
     }
     return $false
@@ -485,7 +504,7 @@ function Invoke-Instalar {
 
     $nueva = -not (Test-BaseExiste)
     if ($nueva) {
-        $modulos = if ($cfg['UVA_DEMO'] -eq '1') { 'uva_demo,uva_legal,uva_app_movil' } else { 'uva_api,uva_legal,uva_app_movil' }
+        $modulos = if ($cfg['UVA_DEMO'] -eq '1') { 'uva_demo,uva_legal,uva_app_movil,uva_sesion_web' } else { 'uva_api,uva_legal,uva_app_movil,uva_sesion_web' }
         Write-Paso "Creando la base '$($cfg['ODOO_DB'])' e instalando módulos ($modulos). Tarda varios minutos..."
         Invoke-Compose run --rm odoo odoo -d $cfg['ODOO_DB'] -i $modulos --load-language=es_MX --stop-after-init --no-http
     } else {
@@ -546,10 +565,15 @@ function Invoke-Actualizar {
     Write-Paso 'Actualizando módulos de Odoo'
     Invoke-Compose run --rm odoo odoo -d $db -u 'uva_core,uva_legal' --stop-after-init --no-http
     Install-ModuloApp
+    # Clave API nueva y dirección de los enlaces de correo (restablecer contraseña) hacia la web
+    Update-ClaveApi $false
     Write-Paso 'Reconstruyendo servicios'
     $opc = @(Get-OpcionesArranque)   # @(): un solo elemento no debe volverse texto
     Invoke-Compose up -d @opc --wait
+    # Odoo carga el código nuevo de los módulos y el gateway su configuración nueva (inicio de sesión)
+    Invoke-Compose restart odoo gateway
     Write-Credenciales
+    if (Wait-Sistema) { Write-Ok 'El sistema responde.' } else { Write-Aviso 'El sistema aún no responde; revisa "uva.ps1 estado".' }
     Write-Ok 'Actualización terminada.'
 }
 

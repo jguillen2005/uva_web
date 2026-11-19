@@ -23,7 +23,8 @@ import { RevisionView } from './views/RevisionView';
 import { ExpedienteView } from './views/ExpedienteView';
 import { ProcesoView } from './views/ProcesoView';
 import { PerfilView } from './views/PerfilView';
-import { LogoutDialog, SignedOutScreen } from './components/SessionScreens';
+import { LoginScreen, LogoutDialog, SessionLoading, SignedOutScreen } from './components/SessionScreens';
+import { EVENTO_SESION_VENCIDA, requiereSesion, sesion, type PerfilSesion } from './api/sesion';
 import { UserMenu } from './components/UserMenu';
 import { CheckCircle2, LogOut, X } from 'lucide-react';
 
@@ -72,6 +73,47 @@ export default function App() {
     }
   });
 
+  // Con servidor: sesión real con los usuarios de Odoo (cookie HttpOnly). En modo mock se entra directo.
+  const [estadoSesion, setEstadoSesion] = useState<'cargando' | 'activa' | 'anonima'>(
+    requiereSesion ? 'cargando' : 'activa',
+  );
+  const [avisoSesion, setAvisoSesion] = useState<string | null>(null);
+  const [usuarioSesion, setUsuarioSesion] = useState<PerfilSesion | null>(null);
+
+  useEffect(() => {
+    if (!requiereSesion) return;
+    let vigente = true;
+    sesion
+      .actual()
+      .then((perfil) => {
+        if (!vigente) return;
+        setUsuarioSesion(perfil);
+        setEstadoSesion(perfil ? 'activa' : 'anonima');
+      })
+      .catch(() => {
+        if (!vigente) return;
+        setAvisoSesion('No se pudo conectar con el servidor. Intente de nuevo en un momento.');
+        setEstadoSesion('anonima');
+      });
+    const alVencer = () => {
+      setAvisoSesion('Su sesión venció. Inicie sesión nuevamente.');
+      setEstadoSesion('anonima');
+    };
+    window.addEventListener(EVENTO_SESION_VENCIDA, alVencer);
+    return () => {
+      vigente = false;
+      window.removeEventListener(EVENTO_SESION_VENCIDA, alVencer);
+    };
+  }, []);
+
+  const alIniciarSesion = (perfil: PerfilSesion) => {
+    setUsuarioSesion(perfil);
+    setAvisoSesion(null);
+    setEstadoSesion('activa');
+    window.location.hash = '#Tablero';
+    setCurrentScreen('Tablero');
+  };
+
   const requestLogout = useCallback(() => {
     setIsSidebarOpen(false);
     setConfirmLogout(true);
@@ -79,7 +121,18 @@ export default function App() {
   const cancelLogout = useCallback(() => setConfirmLogout(false), []);
 
   const doLogout = () => {
-    // Sin SSO todavía: la sesión es local. Con Entra ID aquí se redirigirá al endpoint de logout del gateway.
+    if (requiereSesion) {
+      // Cierra la sesión en el servidor y vuelve al inicio de sesión
+      setConfirmLogout(false);
+      setToastMessage(null);
+      setIsSidebarOpen(false);
+      sesion.cerrar().catch(() => undefined);
+      setAvisoSesion('Cerraste sesión. Gracias por usar el Sistema UVA.');
+      setEstadoSesion('anonima');
+      window.location.hash = '';
+      return;
+    }
+    // Modo demostración (sin servidor): la sesión es local
     try {
       sessionStorage.setItem('uva.signedOut', '1');
     } catch {
@@ -183,7 +236,10 @@ export default function App() {
     }
   };
 
-  if (signedOut) {
+  if (requiereSesion) {
+    if (estadoSesion === 'cargando') return <SessionLoading />;
+    if (estadoSesion === 'anonima') return <LoginScreen aviso={avisoSesion} onLoggedIn={alIniciarSesion} />;
+  } else if (signedOut) {
     return <SignedOutScreen onSignIn={doSignIn} />;
   }
 
@@ -197,13 +253,14 @@ export default function App() {
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onClose={() => setIsSidebarOpen(false)}
         onLogout={requestLogout}
+        user={usuarioSesion}
       />
 
       {/* Main View Area */}
       <main className="flex-1 min-w-0 flex flex-col bg-canvas [&>*]:w-full [&>*]:min-w-0">
         {/* Desktop top bar: account menu at top-right */}
         <header className="hidden lg:flex print:hidden items-center justify-end gap-2 h-14 px-6 lg:px-8 border-b border-line-200 bg-canvas">
-          <UserMenu onProfile={() => navigateTo('Perfil')} onLogout={requestLogout} />
+          <UserMenu onProfile={() => navigateTo('Perfil')} onLogout={requestLogout} user={usuarioSesion} />
           <span className="w-px h-6 bg-line-300" aria-hidden="true" />
           <button
             type="button"
