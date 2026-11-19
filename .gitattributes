@@ -1,0 +1,3 @@
+# Scripts de Mac/Linux: siempre con finales de línea Unix (con CRLF no se ejecutan)
+*.sh text eol=lf
+*.command text eol=lf
