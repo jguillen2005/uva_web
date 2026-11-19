@@ -66,8 +66,18 @@ function New-Secreto([int]$Largo = 24) {
 }
 
 function Test-PuertoLibre([int]$Puerto) {
+    # 1. Puertos en escucha en Windows (incluye los que publica Docker Desktop: com.docker.backend, wslrelay),
+    #    que un TcpListener de prueba no siempre detecta.
+    try { if (Get-NetTCPConnection -LocalPort $Puerto -State Listen -ErrorAction Stop) { return $false } } catch { }
+    # 2. Puertos publicados por contenedores de Docker (también los de otros proyectos).
+    if (Get-Command docker -ErrorAction SilentlyContinue) {
+        $publicados = Invoke-Nativo { docker ps --format '{{.Ports}}' 2>$null }
+        if (($publicados -join ' ') -match "[:\]]$Puerto->") { return $false }
+    }
+    # 3. Prueba directa, en uso exclusivo.
     try {
         $l = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Any, $Puerto)
+        $l.ExclusiveAddressUse = $true
         $l.Start(); $l.Stop(); return $true
     } catch { return $false }
 }
