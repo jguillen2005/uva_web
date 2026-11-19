@@ -2,6 +2,9 @@
 # Uso:  cp .env.example .env   &&   ./scripts/bootstrap.sh   (o scripts\bootstrap.ps1 en Windows)
 
 x-service: &service
+  # Una sola imagen para los 6 microservicios (SERVICE elige cuál arranca). El instalador sin internet
+  # la incluye ya construida; UVA_SVC_IMAGE permite fijar la versión.
+  image: ${UVA_SVC_IMAGE:-sistema-uva-servicios:latest}
   build: ./services
   restart: unless-stopped
   depends_on:

@@ -1,0 +1,21 @@
+SISTEMA UVA - INSTALACIÓN LOCAL
+
+Requisitos
+  - Windows 10/11 de 64 bits, 8 GB de RAM (16 recomendados), 8 GB libres en disco (15 recomendados).
+  - Docker Desktop instalado y abierto al menos una vez (el instalador ofrece instalarlo).
+
+Accesos (menú Inicio > Sistema UVA)
+  Sistema UVA ............... abre el sistema en el navegador
+  Administrador de Odoo ..... backoffice (usuario admin, ver "Datos de acceso")
+  Iniciar / Detener ......... arranca o detiene los servicios
+  Respaldar base de datos ... copia base de datos y adjuntos a la carpeta respaldos\
+  Desinstalar ............... quita el sistema (pregunta si conservar los datos)
+
+El sistema arranca solo al iniciar sesión en Windows (si Docker Desktop está configurado para
+iniciar con Windows). Las contraseñas generadas están en CREDENCIALES.txt.
+
+Línea de comandos (PowerShell, en esta carpeta):
+  .\uva.ps1 estado | iniciar | detener | respaldar | actualizar | renovar-clave | desinstalar
+
+Uso desde otros equipos de la red: abre http://<nombre-o-IP-de-este-equipo>:<puerto del sistema>
+y permite el puerto en el Firewall de Windows si se solicita.

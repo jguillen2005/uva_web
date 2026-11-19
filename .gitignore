@@ -10,3 +10,7 @@ coverage/
 # Python compilado (Odoo lo regenera)
 __pycache__/
 *.pyc
+
+# Instalador de Windows (generados por installer/windows/build.ps1)
+installer/windows/.build/
+installer/windows/salida/

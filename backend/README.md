@@ -20,6 +20,10 @@ backend/
 
 ## Puesta en marcha
 
+> **Instalar en otro equipo Windows:** usa el instalador `SistemaUVA-Instalador-<versión>.exe`
+> (genera contraseñas, elige puertos libres, crea accesos directos y desinstalador). Cómo generarlo
+> y qué hace: [installer/README.md](../installer/README.md).
+
 Requisitos: Docker Desktop (o Docker Engine + Compose v2). En Windows usa Git Bash.
 
 ```bash
