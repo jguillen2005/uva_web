@@ -1,5 +1,5 @@
 SISTEMA UVA PARA MAC - INSTALACIÓN LOCAL
-Web del Sistema UVA + app de campo de las tablets + backend Odoo 19
+Web del Sistema UVA + app de campo para teléfonos y tablets + backend Odoo 19
 
 Requisitos
   - macOS 12 o superior, chip Apple (M1, M2, M3...) o Intel.
@@ -13,8 +13,7 @@ Instalar
   2. Doble clic en «Instalar Sistema UVA.command».
      Si macOS dice que no puede abrirlo porque es de un desarrollador no identificado:
        - clic derecho > Abrir > Abrir, o
-       - Ajustes del Sistema > Privacidad y seguridad > «Abrir de todos modos», o
-       - en Terminal:  bash "<carpeta>/Instalar Sistema UVA.command"
+       - Ajustes del Sistema > Privacidad y seguridad > «Abrir de todos modos».
   3. Responda si desea datos de demostración y espere (la primera vez tarda varios minutos).
   4. macOS puede pedir su contraseña para confiar en el certificado «Asercontrol CA local»
      (sirve para abrir la app de campo en este Mac sin advertencias).
@@ -22,23 +21,41 @@ Instalar
 
   Si el sistema ya estaba instalado, el instalador pregunta:
     Actualizar todo  - web, backend Odoo y app (respalda y conserva datos y usuarios).
-    Solo la app      - solo la app de campo de las tablets.
+    Solo la app      - solo la app de campo.
+
+Si el doble clic no hace nada, o la Terminal dice «zsh: killed»
+  macOS bloquea el instalador porque viene de internet y aún no está firmado por Apple.
+  Abra la app Terminal (Aplicaciones > Utilidades > Terminal), pegue estas dos líneas y
+  presione Enter (si descomprimió el .zip en otra carpeta que no sea Descargas, cambie la ruta):
+
+    xattr -cr ~/Downloads/"Instalador Sistema UVA"
+    bash ~/Downloads/"Instalador Sistema UVA/Instalar Sistema UVA.command"
+
+  La primera línea quita la marca de «descargado de internet»; la segunda abre el instalador.
+  Otra forma de escribir la ruta: escriba  bash  y un espacio, arrastre el archivo
+  «Instalar Sistema UVA.command» a la ventana de Terminal y presione Enter.
+
+  Si aun así no instala, envíe a soporte lo que muestren estos comandos:
+    sw_vers -productVersion
+    xattr -l ~/Downloads/"Instalador Sistema UVA/Instalar Sistema UVA.command"
+    log show --last 15m --style compact --predicate 'eventMessage CONTAINS[c] "Instalar Sistema UVA" OR process == "XProtect" OR sender == "AppleSystemPolicy"' | tail -20
 
 Qué queda instalado
-  Carpeta:   ~/SistemaUVA  (configuración, certificado para tablets y respaldos)
+  Carpeta:   ~/SistemaUVA  (configuración, certificados y respaldos)
   Accesos:   ~/Applications/Sistema UVA  y en el escritorio (Sistema UVA, App de campo Asercontrol)
   Arranque:  automático al iniciar sesión (configure Docker Desktop para abrir al iniciar sesión).
 
 Teléfonos y tablets (misma red Wi-Fi que este Mac)
-  La forma más sencilla: en la web del Sistema UVA, menú «App de campo (móvil)». Ahí están los
-  códigos QR y los pasos para Android (teléfono y tablet), iPhone y iPad: certificado o perfil,
-  instalar la app y al iniciar sesión se descargan los datos para trabajar sin conexión.
-  1. Instale en la tablet Certificado-tablets-Asercontrol.crt (de ~/SistemaUVA):
-     Ajustes > Seguridad > Cifrado y credenciales > Instalar un certificado > Certificado de CA.
-  2. Abra en Chrome la dirección «App de campo» de CREDENCIALES.txt y elija
-     «Agregar a la pantalla de inicio».
-  3. Si el firewall del Mac está activado: Ajustes del Sistema > Red > Firewall > Opciones,
-     y permita las conexiones entrantes de Docker.
+  Se instala desde el propio teléfono o tablet (Android, iPhone o iPad), sin cables ni códigos QR:
+  1. En Chrome (Android) o Safari (iPhone/iPad) escriba la dirección de la web CON http://,
+     por ejemplo  http://192.168.1.50:8080  (la exacta está en CREDENCIALES.txt y en la web,
+     menú «App de campo (móvil)»).
+  2. Inicie sesión y abra el menú > «App de campo (móvil)». Aparece «Instalar la app en este
+     teléfono» con 3 botones: permiso de seguridad, abrir la app y entrar.
+  3. La app se conecta sola al servidor, guarda todo en el teléfono y envía lo capturado sola
+     al recuperar la conexión.
+  Si el firewall del Mac está activado: Ajustes del Sistema > Red > Firewall > Opciones, y permita
+  las conexiones entrantes de Docker. Evite que el Mac entre en reposo mientras se usa la app.
   Conviene fijar la IP de este Mac en el router. Si cambia: ~/SistemaUVA/uva.sh regenerar-certificado
 
 Administración (Terminal, en ~/SistemaUVA)

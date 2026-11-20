@@ -33,13 +33,15 @@ Qué queda instalado
   Arranque:  automático. Docker inicia con el equipo y el sistema se levanta solo.
 
 Teléfonos y tablets (misma red Wi-Fi que este equipo)
-  La forma más sencilla: en la web del Sistema UVA, menú «App de campo (móvil)». Ahí están los
-  códigos QR y los pasos para Android (teléfono y tablet), iPhone y iPad: certificado o perfil,
-  instalar la app y al iniciar sesión se descargan los datos para trabajar sin conexión.
-  1. Instale en la tablet Certificado-tablets-Asercontrol.crt (de ~/SistemaUVA):
-     Ajustes > Seguridad > Cifrado y credenciales > Instalar un certificado > Certificado de CA.
-  2. Abra en Chrome la dirección «App de campo» de CREDENCIALES.txt y elija
-     «Agregar a la pantalla de inicio».
+  Se instala desde el propio teléfono o tablet (Android, iPhone o iPad), sin cables ni códigos QR:
+  1. En Chrome (Android) o Safari (iPhone/iPad) escriba la dirección de la web CON http://,
+     por ejemplo  http://192.168.1.50:8080  (la exacta está en CREDENCIALES.txt y en la web,
+     menú «App de campo (móvil)»).
+  2. Inicie sesión y abra el menú > «App de campo (móvil)». Aparece «Instalar la app en este
+     teléfono» con 3 botones: permiso de seguridad, abrir la app y entrar.
+  3. La app se conecta sola al servidor, guarda todo en el teléfono y envía lo capturado sola
+     al recuperar la conexión.
+  Si el firewall está activo (ufw), permita los puertos:  sudo ufw allow 8080,8443/tcp
   Conviene fijar la IP de este equipo en el router. Si cambia: ~/SistemaUVA/uva.sh regenerar-certificado
 
 Administración (terminal, en ~/SistemaUVA)
