@@ -9,3 +9,5 @@ services:
       - ./gateway/app.conf:/etc/nginx/conf.d/app.conf:ro
       - ../app:/usr/share/nginx/app:ro
       - ./certs:/etc/nginx/certs:ro
+      # Certificado (Android e iPhone/iPad), APK y direcciones para instalar la app desde la web
+      - ../descargas:/usr/share/nginx/descargas:ro

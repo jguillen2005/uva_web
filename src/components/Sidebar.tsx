@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Smartphone
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -88,7 +89,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { key: 'Bandeja', label: 'Revisión técnica', icon: <ClipboardCheck className="w-4 h-4" />, badge: '3' },
     { key: 'Dictamenes', label: 'Dictámenes y actas', icon: <Award className="w-4 h-4" /> },
     { key: 'Conagua', label: 'Carga a CONAGUA', icon: <UploadCloud className="w-4 h-4" />, badge: '2' },
-    { key: 'Estadisticas', label: 'Estadísticas', icon: <BarChart3 className="w-4 h-4" /> }
+    { key: 'Estadisticas', label: 'Estadísticas', icon: <BarChart3 className="w-4 h-4" /> },
+    { key: 'AppMovil', label: 'App de campo (móvil)', icon: <Smartphone className="w-4 h-4" /> }
   ];
 
   const catalogosItems: { key: ScreenKey; label: string; icon: React.ReactNode }[] = [

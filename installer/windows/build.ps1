@@ -23,9 +23,7 @@ param(
     [switch]$OmitirFrontend,
     [string]$App = '',
     [string]$Salida = '',
-    [string]$Nombre = 'SistemaUVA-Instalador',
-    # APK de la app de campo para las tablets; se copia a la carpeta instalada como Asercontrol-Campo.apk
-    [string]$Apk = ''
+    [string]$Nombre = 'SistemaUVA-Instalador'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -82,10 +80,6 @@ Invoke-Nativo { robocopy (Join-Path $Repo 'dist') (Join-Path $Payload 'dist') /E
 if ($LASTEXITCODE -ge 8) { throw "robocopy dist falló ($LASTEXITCODE)." }
 Invoke-Nativo { robocopy $appDist (Join-Path $Payload 'app') /E /NFL /NDL /NJH /NJS /NP } | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy app falló ($LASTEXITCODE)." }
-if ($Apk) {
-    if (-not (Test-Path $Apk)) { throw "No existe el APK '$Apk'." }
-    Copy-Item $Apk (Join-Path $Payload 'Asercontrol-Campo.apk')
-}
 Copy-Item (Join-Path $Repo 'backend\.env.example') (Join-Path $Payload 'backend\.env.example')
 Get-ChildItem $Payload -Recurse -Force -Filter '.env' | Remove-Item -Force   # nunca empaquetar secretos
 foreach ($f in 'uva.ps1', 'LEEME.txt') {

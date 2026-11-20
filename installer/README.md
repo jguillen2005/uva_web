@@ -13,15 +13,15 @@ El instalador lleva juntos la **web del Sistema UVA**, la **app de campo** de la
 ```powershell
 # Con internet (~7 MB): descarga las imágenes de Docker durante la instalación
 powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 `
-  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk -Nombre ASERCONTROL-Instalador_web
+  -App C:\ruta\asercontrol -Nombre ASERCONTROL-Instalador_web
 
 # Sin internet (~1 GB): incluye las imágenes de Odoo, PostgreSQL, nginx y los microservicios
 powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 `
-  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk -Nombre ASERCONTROL-Instalador -SinInternet
+  -App C:\ruta\asercontrol -Nombre ASERCONTROL-Instalador -SinInternet
 ```
 
 `-App` es la carpeta del proyecto de la app de campo (por omisión `..\asercontrol` o `$env:ASERCONTROL_APP`).
-`-Apk` (opcional) deja el APK en la carpeta instalada para repartirlo a las tablets. `-Salida` cambia la
+`-Salida` cambia la
 carpeta del `.exe`; por omisión queda en `installer\windows\salida\`. Para revisar el contenido sin instalar:
 `SistemaUVA-Instalador-1.0.0.exe /extraer C:\ruta\carpeta`. Instalación desatendida:
 `SistemaUVA-Instalador-1.0.0.exe -Silencioso -Demo no`. Requisitos del equipo que compila: Node/npm y,
@@ -85,13 +85,13 @@ Bitácoras en `logs\`. Los datos viven en los volúmenes Docker `sistema-uva_uva
 ## Instalador para Mac (Apple o Intel)
 
 `installer/mac/` genera `SistemaUVA-Instalador-Mac-<versión>.zip` con **«Instalar Sistema UVA.command»**
-(doble clic) y la carpeta `contenido/` (web, app de campo, backend Odoo, APK y `uva.sh`). Las imágenes de
+(doble clic) y la carpeta `contenido/` (web, app de campo, backend Odoo y `uva.sh`). Las imágenes de
 Odoo 19, PostgreSQL 17, nginx y Node existen para arm64 y amd64: funciona nativo en ambos chips.
 
 ```powershell
 # Se genera desde Windows (requiere Node/npm y Python)
 powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.1.1 `
-  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk
+  -App C:\ruta\asercontrol
 ```
 
 En el Mac hace lo mismo que el de Windows: revisa Docker Desktop, pregunta por datos de demostración,
@@ -117,7 +117,7 @@ arranque al iniciar sesión. Instala en `~/SistemaUVA`; la configuración se res
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File installer\linux\build.ps1 -Version 1.1.1 `
-  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk
+  -App C:\ruta\asercontrol
 ```
 
 Igual que en Mac, más lo propio de Linux: si falta Docker ofrece instalarlo (`docker.io` y

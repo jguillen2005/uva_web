@@ -20,7 +20,8 @@ export type ScreenKey =
   | 'Revision'
   | 'Expediente'
   | 'Proceso'
-  | 'Perfil';
+  | 'Perfil'
+  | 'AppMovil';
 
 export interface AlertItem {
   id: string;
@@ -211,6 +212,33 @@ export interface EstadisticasData {
 
 /** Campos editables de un cliente (POST/PUT /clientes). */
 export type ClienteInput = Partial<Omit<ClientItem, 'id' | 'wells'>>;
+
+/** Renglón del archivo de Aspel en la vista previa de la importación. */
+export interface FilaAspel {
+  fila: number;
+  rfc?: string;
+  nombre?: string;
+  clave?: string;
+  motivo?: string;
+  campos?: string[];
+}
+
+/** Respuesta de POST /catalogos/clientes/importar-aspel (vista previa o importación). */
+export interface ImportacionAspel {
+  ok: boolean;
+  message: string;
+  columnas?: { campo: string; encabezado: string }[];
+  filaEncabezados?: number;
+  nuevos?: FilaAspel[] | number;
+  totalNuevos?: number;
+  actualizar?: FilaAspel[];
+  totalActualizar?: number;
+  actualizados?: number;
+  sinCambios: number;
+  errores: FilaAspel[] | number;
+  totalErrores?: number;
+  clientes?: ClientItem[];
+}
 
 /** Campos de un aprovechamiento nuevo (POST /clientes/{id}/pozos). */
 export type PozoInput = Partial<WellSite>;

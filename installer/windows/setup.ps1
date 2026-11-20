@@ -124,7 +124,7 @@ if ($soloApp) {
         if (Test-Path $p) { Remove-Item $p -Recurse -Force }
         Copy-Item (Join-Path $tmp $d) $p -Recurse -Force
     }
-    foreach ($f in @('backend\gateway\app.conf', 'backend\docker-compose.app.yml', 'uva.ps1', 'LEEME.txt', 'Asercontrol-Campo.apk')) {
+    foreach ($f in @('backend\gateway\app.conf', 'backend\docker-compose.app.yml', 'uva.ps1', 'LEEME.txt')) {
         if (Test-Path (Join-Path $tmp $f)) { Copy-Item (Join-Path $tmp $f) (Join-Path $Destino $f) -Force }
     }
 } else {

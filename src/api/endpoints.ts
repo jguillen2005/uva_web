@@ -4,7 +4,7 @@
  */
 import { client, saveBlob, seg } from './client';
 import { mockAction, mockResolve, pick, type ActionResult } from './source';
-import type { AltaFormatoDefaults, BandejaData, CalibracionActual, CalibracionStep, CampoSesion, CargaConaguaModo, ClientItem, ClienteInput, CompletarCalibracionInput, ConaguaItem, ConfirmarVisitaInput, CreateInstrumentoInput, CreateSolicitudInput, DictamenItem, EstadisticasData, ExpedienteData, FormatoCreateInput, FormatoEstructura, FormatoItem, InstrumentDetail, PerfilData, PerfilInput, PozoInput, PrestamosData, ProgramacionData, RegistrarDevolucionInput, RespuestaCampoInput, RevisionData, RevisionDecision, Solicitud, SolicitudStatus, TableroData, TiposData, UsuariosData, VerificadorItem, WellSite } from '../types';
+import type { AltaFormatoDefaults, BandejaData, CalibracionActual, CalibracionStep, CampoSesion, CargaConaguaModo, ClientItem, ClienteInput, CompletarCalibracionInput, ConaguaItem, ConfirmarVisitaInput, CreateInstrumentoInput, CreateSolicitudInput, DictamenItem, EstadisticasData, ExpedienteData, FormatoCreateInput, FormatoEstructura, FormatoItem, ImportacionAspel, InstrumentDetail, PerfilData, PerfilInput, PozoInput, PrestamosData, ProgramacionData, RegistrarDevolucionInput, RespuestaCampoInput, RevisionData, RevisionDecision, Solicitud, SolicitudStatus, TableroData, TiposData, UsuariosData, VerificadorItem, WellSite } from '../types';
 import { mockEstadisticas, mockTablero } from '../data/reportes';
 import { mockClients, mockFormatos, mockSolicitudes, mockVerificadores } from '../data/mockData';
 import { mockAltaFormatoDefaults, mockFormatoEstructura, mockPerfil, mockTipos, mockUsuarios } from '../data/catalogos';
@@ -177,11 +177,20 @@ export const catalogos = {
       },
     ),
 
-  /** POST /catalogos/clientes/sync-aspel */
-  syncAspel: (): Promise<ActionResult> =>
+  /** POST /catalogos/clientes/importar-aspel: vista previa (confirmar=false) o importación del archivo de Aspel */
+  importarAspel: (nombre: string, contenido: string, confirmar: boolean): Promise<ImportacionAspel> =>
     pick(
-      () => client.post<ActionResult>('/catalogos/clientes/sync-aspel'),
-      () => mockAction('Sincronizando 142 clientes y catálogos de cuentas desde Aspel SAE'),
+      () => client.post<ImportacionAspel>('/catalogos/clientes/importar-aspel', { nombre, contenido, confirmar }),
+      () =>
+        mockResolve({
+          ok: true,
+          message: confirmar ? 'Importación desde Aspel (demostración): 1 cliente nuevo.' : 'Vista previa (demostración)',
+          columnas: [{ campo: 'clave', encabezado: 'Clave' }, { campo: 'nombre', encabezado: 'Nombre' }, { campo: 'rfc', encabezado: 'RFC' }],
+          filaEncabezados: 1,
+          nuevos: [{ fila: 2, rfc: 'DEM010101AB1', nombre: 'Cliente de demostración, S.A. de C.V.', clave: '1' }],
+          totalNuevos: 1, actualizar: [], totalActualizar: 0, sinCambios: 0, errores: [], totalErrores: 0,
+          clientes: confirmar ? mockState.clients : undefined,
+        } as ImportacionAspel),
     ),
 
   /* ---------- Verificadores / usuarios ---------- */

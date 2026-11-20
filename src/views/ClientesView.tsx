@@ -3,6 +3,7 @@ import { ScreenKey, ClientItem, ClienteInput, WellSite } from '../types';
 import { catalogos } from '../api/endpoints';
 import { useApi, errorMessage } from '../api/useApi';
 import { AsyncState } from '../components/AsyncState';
+import { ImportarAspelModal } from '../components/ImportarAspelModal';
 import {
   Search,
   Plus,
@@ -21,8 +22,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-// Importación de clientes desde Aspel: desactivada hasta tener la integración lista
-const ASPEL_HABILITADO = false;
+// Importación de clientes desde el archivo exportado de Aspel SAE (Excel o CSV)
+const ASPEL_HABILITADO = true;
 
 interface ClientesViewProps {
   onNavigate: (screen: ScreenKey) => void;
@@ -46,11 +47,13 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
   const selectedClient = clients.find((c) => c.id === selectedClientId) || clients[0];
   const selectedWell = selectedClient?.wells.find((w) => w.id === selectedWellId) || selectedClient?.wells[0];
 
-  const handleSyncAspel = async () => {
+  const [importandoAspel, setImportandoAspel] = useState(false);
+  const handleSyncAspel = () => setImportandoAspel(true);
+  const alImportarAspel = async (mensaje: string, lista?: ClientItem[]) => {
+    setImportandoAspel(false);
+    onShowToast(mensaje);
     try {
-      const res = await catalogos.syncAspel();
-      onShowToast(res.message);
-      setClients(await catalogos.getClientes());
+      setClients(lista && lista.length ? lista : await catalogos.getClientes());
     } catch (e) {
       onShowToast(errorMessage(e));
     }
@@ -149,7 +152,7 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
             type="button"
             disabled={!ASPEL_HABILITADO}
             onClick={ASPEL_HABILITADO ? handleSyncAspel : undefined}
-            title={ASPEL_HABILITADO ? undefined : 'La importación desde Aspel no está disponible por ahora.'}
+            title={ASPEL_HABILITADO ? 'Importar clientes desde el archivo exportado de Aspel SAE' : 'La importación desde Aspel no está disponible por ahora.'}
             className="h-10 px-4 rounded-lg border border-line-300 bg-white hover:bg-surface-50 text-ink-900 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -513,6 +516,8 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
           </div>
         </div>
       </div>
+
+      {importandoAspel && <ImportarAspelModal onCerrar={() => setImportandoAspel(false)} onImportado={(m, l) => void alImportarAspel(m, l)} />}
 
       {formulario && (
         <ClienteFormModal

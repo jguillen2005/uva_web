@@ -23,6 +23,7 @@ import { RevisionView } from './views/RevisionView';
 import { ExpedienteView } from './views/ExpedienteView';
 import { ProcesoView } from './views/ProcesoView';
 import { PerfilView } from './views/PerfilView';
+import { AppMovilView } from './views/AppMovilView';
 import { LoginScreen, LogoutDialog, SessionLoading, SignedOutScreen } from './components/SessionScreens';
 import { EVENTO_SESION_VENCIDA, requiereSesion, sesion, type PerfilSesion } from './api/sesion';
 import { UserMenu } from './components/UserMenu';
@@ -53,7 +54,8 @@ export default function App() {
       'Revision',
       'Expediente',
       'Proceso',
-      'Perfil'
+      'Perfil',
+      'AppMovil'
     ];
     if (validScreens.includes(hash as ScreenKey)) {
       return hash as ScreenKey;
@@ -229,6 +231,8 @@ export default function App() {
         return <ExpedienteView onNavigate={navigateTo} onShowToast={showToast} />;
       case 'Proceso':
         return <ProcesoView onNavigate={navigateTo} />;
+      case 'AppMovil':
+        return <AppMovilView />;
       case 'Perfil':
         return <PerfilView onNavigate={navigateTo} onShowToast={showToast} onLogout={requestLogout} />;
       default:

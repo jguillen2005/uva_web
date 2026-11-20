@@ -4,7 +4,15 @@ import { api } from '../shared/odoo.js';
 createService('catalogos', (r) => {
   // Clientes y aprovechamientos
   r.get('/clientes', h(() => api('get_clientes')));
-  r.post('/clientes/sync-aspel', h(() => api('sync_aspel')));
+  // Importación de clientes desde el archivo exportado de Aspel SAE (vista previa o confirmar)
+  r.post('/clientes/importar-aspel', h((req) => {
+    const b = need(req.body, 'contenido');
+    return api('importar_clientes_aspel', {
+      nombre_archivo: b.nombre || null,
+      contenido_base64: b.contenido,
+      confirmar: b.confirmar === true,
+    });
+  }));
   r.post('/clientes', h((req) => api('create_cliente', { vals: need(req.body, 'name', 'rfc') })));
   r.put('/clientes/:id', h((req) =>
     api('update_cliente', { cliente_id: idOrCode(req.params.id), vals: req.body || {} })));

@@ -2,21 +2,19 @@
 <#
 .SYNOPSIS
   Genera el instalador para Mac (Apple o Intel): un .zip con «Instalar Sistema UVA.command» y la carpeta
-  contenido/ (web, app de campo, backend Odoo, APK y uva.sh). Se ejecuta en Windows (o en cualquier equipo
+  contenido/ (web, app de campo, backend Odoo y uva.sh). Se ejecuta en Windows (o en cualquier equipo
   con PowerShell, Node/npm y Python).
 
 .PARAMETER Version  Versión que muestra el instalador.
 .PARAMETER App      Carpeta del proyecto de la app de campo (repositorio asercontrol).
-.PARAMETER Apk      APK de la app de campo (opcional) para dejarlo en la carpeta instalada.
 .PARAMETER Salida   Carpeta donde se deja el .zip.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk
+  powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol
 #>
 param(
     [string]$Version = '1.1.1',
     [string]$App = '',
-    [string]$Apk = '',
     [string]$Salida = '',
     [string]$Nombre = 'SistemaUVA-Instalador-Mac'
 )
@@ -58,7 +56,6 @@ Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Contenido 'LEEME.txt')
 Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Raiz 'LEEME.txt')
 Copy-Item (Join-Path $Aqui 'instalar.command') (Join-Path $Raiz 'Instalar Sistema UVA.command')
 [System.IO.File]::WriteAllText((Join-Path $Contenido 'version.txt'), $Version)
-if ($Apk) { Copy-Item $Apk (Join-Path $Contenido 'Asercontrol-Campo.apk') }
 
 Write-Paso 'Comprimiendo (con permisos de ejecución para Mac)'
 # Python escribe los permisos Unix en el zip: sin ellos el .command no se puede ejecutar en macOS.

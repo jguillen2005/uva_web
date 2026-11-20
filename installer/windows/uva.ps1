@@ -149,6 +149,8 @@ function Initialize-Env([bool]$ConDemo) {
 
 # App de campo ------------------------------------------------------------------------------
 function Initialize-ConfigApp {
+    # La carpeta de descargas se crea antes de levantar el gateway (que la publica en /descargas/)
+    New-Item -ItemType Directory -Force (Join-Path $Raiz 'descargas') | Out-Null
     # Instalaciones anteriores a la app de campo: se agregan su puerto y el archivo de compose que la publica.
     $cfg = Read-Env
     if (-not $cfg['APP_PORT']) {
@@ -409,6 +411,64 @@ function Get-Urls {
     }
 }
 
+# Descargas para instalar la app de campo en teléfonos y tablets (las publica la web en /descargas/):
+# certificado de la CA para Android, perfil de configuración para iPhone/iPad y las direcciones.
+function Publish-Descargas {
+    $c = Read-Env
+    $dir = Join-Path $Raiz 'descargas'
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    $ca = Join-Path $Backend 'certs\ca.crt'
+    if (Test-Path $ca) {
+        Copy-Item $ca (Join-Path $dir 'Certificado-Android-Asercontrol.crt') -Force
+        $pem = [System.IO.File]::ReadAllText($ca)
+        $b64 = (($pem -split "`n") | Where-Object { $_ -notmatch '-----' } | ForEach-Object { $_.Trim() }) -join ''
+        $sha = [System.Security.Cryptography.SHA256]::Create().ComputeHash([Convert]::FromBase64String($b64))
+        $hex = -join ($sha | ForEach-Object { $_.ToString('X2') })
+        $uuid = { param($i) $h = $hex.Substring($i, 32); '{0}-{1}-{2}-{3}-{4}' -f $h.Substring(0, 8), $h.Substring(8, 4), $h.Substring(12, 4), $h.Substring(16, 4), $h.Substring(20, 12) }
+        $perfil = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>PayloadCertificateFileName</key><string>Asercontrol-CA-local.cer</string>
+      <key>PayloadContent</key><data>$b64</data>
+      <key>PayloadDescription</key><string>Autoridad certificadora local del Sistema UVA</string>
+      <key>PayloadDisplayName</key><string>Asercontrol CA local</string>
+      <key>PayloadIdentifier</key><string>mx.asercontrol.sistemauva.ca.certificado</string>
+      <key>PayloadType</key><string>com.apple.security.root</string>
+      <key>PayloadUUID</key><string>$(& $uuid 0)</string>
+      <key>PayloadVersion</key><integer>1</integer>
+    </dict>
+  </array>
+  <key>PayloadDescription</key><string>Permite abrir e instalar la app de campo Asercontrol desde el servidor de la oficina.</string>
+  <key>PayloadDisplayName</key><string>Asercontrol - App de campo</string>
+  <key>PayloadIdentifier</key><string>mx.asercontrol.sistemauva.ca</string>
+  <key>PayloadOrganization</key><string>Asercontrol</string>
+  <key>PayloadRemovalDisallowed</key><false/>
+  <key>PayloadType</key><string>Configuration</string>
+  <key>PayloadUUID</key><string>$(& $uuid 32)</string>
+  <key>PayloadVersion</key><integer>1</integer>
+</dict>
+</plist>
+"@
+        [System.IO.File]::WriteAllText((Join-Path $dir 'Certificado-iPhone-iPad-Asercontrol.mobileconfig'), $perfil.Replace("`r`n", "`n"), $Utf8SinBom)
+    }
+    # La app se instala desde el navegador (PWA); el APK ya no se distribuye (se quita el de versiones anteriores)
+    Remove-Item (Join-Path $dir 'Asercontrol-Campo.apk'), (Join-Path $Raiz 'Asercontrol-Campo.apk') -Force -ErrorAction SilentlyContinue
+    $eq = Get-DireccionesEquipo
+    $ips = @($eq.Ips | Where-Object { $_ -ne '127.0.0.1' })
+    $nombre = $env:COMPUTERNAME.ToLower()
+    $info = [ordered]@{
+        app     = @($ips | ForEach-Object { "https://${_}:$($c['APP_PORT'])" }) + @("https://${nombre}:$($c['APP_PORT'])")
+        web     = @($ips | ForEach-Object { "http://${_}:$($c['GATEWAY_PORT'])" }) + @("http://${nombre}:$($c['GATEWAY_PORT'])")
+        generado = (Get-Date).ToString('s')
+    }
+    [System.IO.File]::WriteAllText((Join-Path $dir 'app-movil.json'), ($info | ConvertTo-Json -Depth 3), $Utf8SinBom)
+}
+
 function Write-Credenciales {
     $c = Read-Env; $u = Get-Urls
     $txt = @"
@@ -436,7 +496,7 @@ App de campo (tablets de los verificadores):
     Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
     Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
     "Agregar a la pantalla de inicio" para usarla como aplicación (también sin internet).
-    O instala Asercontrol-Campo.apk (en esta carpeta) y escribe la dirección de arriba en "Servidor".
+    Más fácil: web del Sistema UVA > «App de campo (móvil)» (códigos QR para Android, iPhone y iPad).
 
 Páginas legales (editables en Odoo > Sitio web):
   $($u.Sistema)/terminos-y-condiciones
@@ -445,6 +505,7 @@ Páginas legales (editables en Odoo > Sitio web):
 Cambia la contraseña de admin al primer ingreso. Este archivo contiene contraseñas: no lo compartas.
 "@
     [System.IO.File]::WriteAllText((Join-Path $Raiz 'CREDENCIALES.txt'), $txt, (New-Object System.Text.UTF8Encoding $true))
+    try { Publish-Descargas } catch { Write-Aviso "No se pudieron preparar las descargas de la app: $($_.Exception.Message)" }
 }
 
 function Wait-Sistema {

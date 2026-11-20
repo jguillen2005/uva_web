@@ -20,12 +20,14 @@ Línea de comandos (PowerShell, en esta carpeta):
   .\uva.ps1 estado | iniciar | detener | respaldar | actualizar | renovar-clave | desinstalar
   .\uva.ps1 abrir-app | agregar-app | regenerar-certificado
 
-App de campo en las tablets (misma red que este equipo)
+App de campo en teléfonos y tablets (misma red que este equipo)
+  La forma más sencilla: en la web del Sistema UVA, menú «App de campo (móvil)». Ahí están los
+  códigos QR y los pasos para Android (teléfono y tablet), iPhone y iPad: certificado o perfil,
+  instalar la app y al iniciar sesión se descargan los datos para trabajar sin conexión.
   1. Copia Certificado-tablets-Asercontrol.crt a la tablet e instálalo:
      Ajustes > Seguridad > Cifrado y credenciales > Instalar un certificado > Certificado de CA.
   2. Opción navegador: abre en Chrome la dirección "App de campo" de CREDENCIALES.txt y elige
      "Agregar a la pantalla de inicio".
-     Opción APK: instala Asercontrol-Campo.apk y escribe esa misma dirección en "Servidor".
   3. Entra con un usuario de Odoo ligado a un verificador (Sistema UVA > Verificadores).
   Si cambia la IP de este equipo: .\uva.ps1 regenerar-certificado (las tablets no reinstalan nada).
   Conviene fijar una IP para este equipo en el router.

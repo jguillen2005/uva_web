@@ -26,17 +26,20 @@ Instalar
     Solo la app      - solo la app de campo de las tablets.
 
 Qué queda instalado
-  Carpeta:   ~/SistemaUVA  (configuración, certificado para tablets, APK y respaldos)
+  Carpeta:   ~/SistemaUVA  (configuración, certificado para tablets y respaldos)
   Accesos:   menú de aplicaciones (busque «Sistema UVA») y en el escritorio
              (Sistema UVA, App de campo Asercontrol). Si el escritorio muestra el acceso
              como archivo: clic derecho > «Permitir ejecutar».
   Arranque:  automático. Docker inicia con el equipo y el sistema se levanta solo.
 
-Tablets (misma red Wi-Fi que este equipo)
+Teléfonos y tablets (misma red Wi-Fi que este equipo)
+  La forma más sencilla: en la web del Sistema UVA, menú «App de campo (móvil)». Ahí están los
+  códigos QR y los pasos para Android (teléfono y tablet), iPhone y iPad: certificado o perfil,
+  instalar la app y al iniciar sesión se descargan los datos para trabajar sin conexión.
   1. Instale en la tablet Certificado-tablets-Asercontrol.crt (de ~/SistemaUVA):
      Ajustes > Seguridad > Cifrado y credenciales > Instalar un certificado > Certificado de CA.
   2. Abra en Chrome la dirección «App de campo» de CREDENCIALES.txt y elija
-     «Agregar a la pantalla de inicio», o instale Asercontrol-Campo.apk y escriba esa dirección en «Servidor».
+     «Agregar a la pantalla de inicio».
   Conviene fijar la IP de este equipo en el router. Si cambia: ~/SistemaUVA/uva.sh regenerar-certificado
 
 Administración (terminal, en ~/SistemaUVA)

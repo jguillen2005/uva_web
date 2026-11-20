@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+import base64
+import csv
+import io
 import re
+import unicodedata
 from datetime import timedelta
 
 from odoo import api, models
@@ -9,6 +13,41 @@ from odoo.addons.uva_core.models import uva_tools as ut
 from .api_base import GRUPOS_ROL
 
 RE_RFC = re.compile(r'^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$')
+# RFC genéricos del SAT (público en general y extranjeros): no identifican a un cliente
+RFC_GENERICOS = {'XAXX010101000', 'XEXX010101000'}
+
+# Importación de clientes exportados de Aspel SAE (Excel o CSV). Los encabezados cambian según la versión
+# y la configuración de la exportación: se reconocen por sinónimos, sin acentos, espacios ni signos.
+COLUMNAS_ASPEL = {
+    'clave': ('CLAVE', 'CVE', 'CLAVECLIENTE', 'CVECLIENTE', 'NOCLIENTE', 'NUMCLIENTE', 'CODIGOCLIENTE', 'CLIENTE'),
+    'nombre': ('NOMBRE', 'RAZONSOCIAL', 'NOMBRECLIENTE', 'NOMBREORAZONSOCIAL', 'NOMBRERAZONSOCIAL', 'CLIENTENOMBRE'),
+    'rfc': ('RFC', 'RFCCLIENTE'),
+    'calle': ('CALLE', 'DOMICILIO', 'DIRECCION', 'CALLEYNUMERO'),
+    'numext': ('NUMEXT', 'NUMEROEXTERIOR', 'NOEXT', 'NUMEXTERIOR', 'NOEXTERIOR', 'EXTERIOR'),
+    'numint': ('NUMINT', 'NUMEROINTERIOR', 'NOINT', 'NUMINTERIOR', 'NOINTERIOR', 'INTERIOR'),
+    'colonia': ('COLONIA',),
+    'municipio': ('MUNICIPIO', 'DELEGACION', 'MUNICIPIODELEGACION', 'DELEGACIONMUNICIPIO'),
+    'ciudad': ('CIUDAD', 'LOCALIDAD', 'POBLACION'),
+    'estado': ('ESTADO', 'ENTIDAD', 'ENTIDADFEDERATIVA'),
+    'cp': ('CP', 'CODIGO', 'CODIGOPOSTAL', 'CODPOSTAL', 'CPOSTAL'),
+    'telefono': ('TELEFONO', 'TELEFONOS', 'TEL', 'TELEFONO1'),
+    'email': ('EMAIL', 'CORREO', 'CORREOELECTRONICO', 'MAIL', 'EMAILPRED', 'EMAILPREDETERMINADO', 'EMAILCLIENTE'),
+    'contacto': ('CONTACTO', 'ATENCION', 'ATENCIONA', 'NOMBRECONTACTO'),
+}
+MAX_FILAS_ASPEL = 20000
+
+
+def _normalizar_encabezado(texto):
+    texto = unicodedata.normalize('NFKD', str(texto or '')).encode('ascii', 'ignore').decode()
+    return re.sub(r'[^A-Z0-9]', '', texto.upper())
+
+
+def _texto_celda(valor):
+    if valor is None:
+        return ''
+    if isinstance(valor, float) and valor.is_integer():
+        valor = int(valor)
+    return re.sub(r'\s+', ' ', str(valor)).strip()
 
 CAMPOS_CLIENTE = {
     'name': 'name',
@@ -139,11 +178,155 @@ class UvaApiCatalogos(models.AbstractModel):
 
     @api.model
     def sync_aspel(self, **kwargs):
-        clientes = self.env['res.partner'].search([('uva_es_cliente', '=', True)])
-        # TODO integración: Aspel SAE (sincronizar clientes y catálogo de cuentas)
-        self.env.company.partner_id.sudo().message_post(
-            body='Sincronización con Aspel SAE solicitada para %d clientes (integración simulada).' % len(clientes))
-        return self._ok('Sincronizando %d clientes y catálogos de cuentas desde Aspel SAE' % len(clientes))
+        raise UserError('Use «Importar de Aspel» con el archivo de clientes exportado de Aspel SAE.')
+
+    # ------------------------------------------------------------------ importación desde Aspel SAE
+    def _filas_archivo_aspel(self, nombre, contenido):
+        """Filas (listas de textos) del archivo exportado: Excel .xlsx, Excel .xls o CSV/texto."""
+        nombre = (nombre or '').lower()
+        if contenido[:2] == b'PK' or nombre.endswith('.xlsx'):
+            try:
+                import openpyxl
+                libro = openpyxl.load_workbook(io.BytesIO(contenido), read_only=True, data_only=True)
+            except Exception:
+                raise UserError('No se pudo leer el archivo de Excel. Vuelva a exportarlo de Aspel o guárdelo como .xlsx o .csv.')
+            hoja = libro.worksheets[0]
+            return [[_texto_celda(c) for c in fila] for _i, fila in zip(range(MAX_FILAS_ASPEL + 50), hoja.iter_rows(values_only=True))]
+        if contenido[:4] == b'\xd0\xcf\x11\xe0' or nombre.endswith('.xls'):
+            try:
+                import xlrd
+                hoja = xlrd.open_workbook(file_contents=contenido).sheet_by_index(0)
+            except Exception:
+                raise UserError('No se pudo leer el archivo de Excel (.xls). Guárdelo como .xlsx o .csv e intente de nuevo.')
+            return [[_texto_celda(c) for c in hoja.row_values(i)] for i in range(min(hoja.nrows, MAX_FILAS_ASPEL + 50))]
+        # CSV o texto: UTF-8 (con o sin BOM) o Windows-1252, que es como exporta Aspel en español
+        for codificacion in ('utf-8-sig', 'cp1252', 'latin-1'):
+            try:
+                texto = contenido.decode(codificacion)
+                break
+            except UnicodeDecodeError:
+                continue
+        muestra = texto[:5000]
+        try:
+            dialecto = csv.Sniffer().sniff(muestra, delimiters=',;\t|')
+            separador = dialecto.delimiter
+        except csv.Error:
+            separador = max(',;\t|', key=muestra.count)
+        lector = csv.reader(io.StringIO(texto), delimiter=separador)
+        return [[_texto_celda(c) for c in fila] for _i, fila in zip(range(MAX_FILAS_ASPEL + 50), lector)]
+
+    def _columnas_aspel(self, filas):
+        """Fila de encabezados (Aspel puede poner títulos antes) y columna de cada dato."""
+        for indice, fila in enumerate(filas[:20]):
+            normalizados = [_normalizar_encabezado(c) for c in fila]
+            columnas = {}
+            for campo, sinonimos in COLUMNAS_ASPEL.items():
+                for pos, enc in enumerate(normalizados):
+                    if enc in sinonimos and pos not in columnas.values():
+                        columnas[campo] = pos
+                        break
+            if 'rfc' in columnas and 'nombre' in columnas:
+                return indice, columnas
+        raise UserError('No se encontraron las columnas de RFC y nombre del cliente. Exporte de Aspel el catálogo de '
+                        'clientes incluyendo al menos la clave, el nombre y el RFC.')
+
+    @api.model
+    def importar_clientes_aspel(self, nombre_archivo=None, contenido_base64=None, confirmar=False, **kwargs):
+        """Clientes exportados de Aspel SAE. Sin ``confirmar`` solo devuelve la vista previa (no guarda nada).
+        Se empata por RFC: los existentes se actualizan y los nuevos se dan de alta."""
+        if not contenido_base64:
+            raise UserError('Seleccione el archivo de clientes exportado de Aspel.')
+        try:
+            contenido = base64.b64decode(contenido_base64)
+        except Exception:
+            raise UserError('El archivo no se recibió correctamente; intente de nuevo.')
+        filas = self._filas_archivo_aspel(nombre_archivo, contenido)
+        if not filas:
+            raise UserError('El archivo está vacío.')
+        inicio, columnas = self._columnas_aspel(filas)
+        datos = filas[inicio + 1:]
+        if len(datos) > MAX_FILAS_ASPEL:
+            raise UserError('El archivo tiene más de %d renglones; divídalo en partes.' % MAX_FILAS_ASPEL)
+
+        Partner = self.env['res.partner']
+        existentes = {p.vat: p for p in Partner.with_context(active_test=False).search(
+            [('uva_es_cliente', '=', True), ('vat', '!=', False)])}
+        valor = lambda fila, campo: fila[columnas[campo]] if campo in columnas and columnas[campo] < len(fila) else ''
+        nuevos, actualizar, errores, vistos = [], [], [], {}
+        sin_cambios = 0
+        for numero, fila in enumerate(datos, start=inicio + 2):
+            if not any(fila):
+                continue
+            nombre = valor(fila, 'nombre')
+            rfc = re.sub(r'[\s\-_.]', '', valor(fila, 'rfc')).upper()
+            if not nombre and not rfc:
+                continue
+            if not rfc:
+                errores.append({'fila': numero, 'nombre': nombre, 'motivo': 'Sin RFC'})
+                continue
+            if rfc in RFC_GENERICOS:
+                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC genérico (público en general o extranjero)'})
+                continue
+            if not RE_RFC.match(rfc):
+                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC con formato no válido'})
+                continue
+            if not nombre:
+                errores.append({'fila': numero, 'rfc': rfc, 'motivo': 'Sin nombre o razón social'})
+                continue
+            if rfc in vistos:
+                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC repetido en el archivo (fila %d)' % vistos[rfc]})
+                continue
+            vistos[rfc] = numero
+            calle = ' '.join(x for x in (valor(fila, 'calle'), valor(fila, 'numext')) if x)
+            if valor(fila, 'numint'):
+                calle += ' Int. %s' % valor(fila, 'numint')
+            partes = [calle,
+                      'Col. %s' % valor(fila, 'colonia') if valor(fila, 'colonia') else '',
+                      valor(fila, 'municipio') or valor(fila, 'ciudad'),
+                      valor(fila, 'estado'),
+                      'C.P. %s' % valor(fila, 'cp') if valor(fila, 'cp') else '']
+            vals = {
+                'name': nombre,
+                'vat': rfc,
+                'uva_tipo_fiscal': 'moral' if len(rfc) == 12 else 'fisica',
+                'uva_codigo_aspel': valor(fila, 'clave') or False,
+                'uva_domicilio_fiscal': ', '.join(x for x in partes if x) or False,
+                'phone': valor(fila, 'telefono') or False,
+                'email': valor(fila, 'email') or False,
+                'uva_contacto_avisos': valor(fila, 'contacto') or valor(fila, 'email') or False,
+                'zip': valor(fila, 'cp') or False,
+            }
+            resumen = {'fila': numero, 'rfc': rfc, 'nombre': nombre, 'clave': vals['uva_codigo_aspel'] or ''}
+            cliente = existentes.get(rfc)
+            if cliente:
+                # Solo se escriben los datos que Aspel trae (no se borra lo capturado en el Sistema UVA)
+                cambios = {k: v for k, v in vals.items() if v and (cliente[k] or False) != v}
+                if cambios:
+                    actualizar.append((cliente, cambios, dict(resumen, campos=sorted(cambios))))
+                else:
+                    sin_cambios += 1
+            else:
+                nuevos.append((vals, resumen))
+
+        if confirmar:
+            for vals, _r in nuevos:
+                vals.update({'uva_es_cliente': True, 'is_company': vals['uva_tipo_fiscal'] == 'moral'})
+                Partner.create(vals)
+            for cliente, cambios, _r in actualizar:
+                cliente.write(dict(cambios, uva_es_cliente=True))
+            mensaje = 'Importación desde Aspel: %d cliente(s) nuevo(s), %d actualizado(s), %d sin cambios, %d con error.' % (
+                len(nuevos), len(actualizar), sin_cambios, len(errores))
+            self.env.company.partner_id.sudo().message_post(body='%s Archivo: %s' % (mensaje, nombre_archivo or ''))
+            return self._ok(mensaje, nuevos=len(nuevos), actualizados=len(actualizar), sinCambios=sin_cambios,
+                            errores=len(errores), clientes=self.get_clientes())
+        etiquetas = {v: k for k, v in columnas.items()}
+        return self._ok(
+            'Vista previa: %d nuevo(s), %d por actualizar, %d sin cambios, %d con error.' % (len(nuevos), len(actualizar), sin_cambios, len(errores)),
+            columnas=[{'campo': etiquetas[pos], 'encabezado': filas[inicio][pos]} for pos in sorted(etiquetas)],
+            filaEncabezados=inicio + 1,
+            nuevos=[r for _v, r in nuevos[:200]], totalNuevos=len(nuevos),
+            actualizar=[r for _c, _v, r in actualizar[:200]], totalActualizar=len(actualizar),
+            sinCambios=sin_cambios, errores=errores[:200], totalErrores=len(errores))
 
     # ==================================================================
     # Verificadores y usuarios

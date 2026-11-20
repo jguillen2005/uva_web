@@ -127,7 +127,7 @@ if [ $SOLO_APP = 1 ]; then
   for m in uva_app_movil uva_sesion_web; do
     [ -d "$CONTENIDO/backend/odoo/addons/$m" ] && { copiar_dir "$CONTENIDO/backend/odoo/addons/$m" "$DESTINO/backend/odoo/addons/$m" || error_copia=1; }
   done
-  for f in backend/gateway/app.conf backend/docker-compose.app.yml uva.sh LEEME.txt Asercontrol-Campo.apk; do
+  for f in backend/gateway/app.conf backend/docker-compose.app.yml uva.sh LEEME.txt; do
     copiar_archivo "$CONTENIDO/$f" "$DESTINO/$f" || error_copia=1
   done
 else

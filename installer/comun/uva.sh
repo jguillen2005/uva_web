@@ -185,6 +185,9 @@ EOF
 }
 
 inicializar_config_app() {
+  # La carpeta de descargas se crea antes de levantar el gateway: si Docker la creara al montarla,
+  # en Linux quedaría a nombre de root y el instalador ya no podría escribir en ella.
+  mkdir -p "$RAIZ/descargas"
   # Instalaciones anteriores a la app de campo: puerto y archivo de compose que la publica.
   if [ -z "$(leer_env APP_PORT)" ]; then set_env APP_PORT "$(puerto_desde 8443)"; fi
   [ "$(leer_env COMPOSE_FILE)" = "$COMPOSE_ARCHIVOS" ] || set_env COMPOSE_FILE "$COMPOSE_ARCHIVOS"
@@ -461,6 +464,64 @@ texto_firewall() {
   fi
 }
 
+# Descargas para instalar la app de campo en teléfonos y tablets (las publica la web en /descargas/):
+# certificado de la CA para Android, perfil de configuración para iPhone/iPad y las direcciones.
+sha256_hex() { if command -v sha256sum >/dev/null 2>&1; then sha256sum | cut -d' ' -f1; else shasum -a 256 | cut -d' ' -f1; fi; }
+publicar_descargas() {
+  local dir="$RAIZ/descargas" ca="$BACKEND/certs/ca.crt" b64 hex u1 u2 ip app='' web=''
+  mkdir -p "$dir"
+  if [ ! -w "$dir" ]; then
+    # Instalaciones donde Docker creó la carpeta como root (Linux): se recupera con sudo
+    sudo -n chown -R "$(id -u):$(id -g)" "$dir" 2>/dev/null || sudo chown -R "$(id -u):$(id -g)" "$dir" || return 1
+  fi
+  if [ -f "$ca" ]; then
+    cp "$ca" "$dir/Certificado-Android-Asercontrol.crt"
+    b64="$(sed '/-----/d' "$ca" | tr -d '\r\n')"
+    hex="$(printf '%s' "$b64" | base64 -d 2>/dev/null | sha256_hex)"
+    [ -n "$hex" ] || hex="$(printf '%s' "$b64" | sha256_hex)"
+    hex="$(printf '%s' "$hex" | tr '[:lower:]' '[:upper:]')"
+    u1="$(printf '%s' "$hex" | sed -E 's/^(.{8})(.{4})(.{4})(.{4})(.{12}).*/\1-\2-\3-\4-\5/')"
+    u2="$(printf '%s' "$hex" | cut -c33-64 | sed -E 's/^(.{8})(.{4})(.{4})(.{4})(.{12}).*/\1-\2-\3-\4-\5/')"
+    cat > "$dir/Certificado-iPhone-iPad-Asercontrol.mobileconfig" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>PayloadCertificateFileName</key><string>Asercontrol-CA-local.cer</string>
+      <key>PayloadContent</key><data>$b64</data>
+      <key>PayloadDescription</key><string>Autoridad certificadora local del Sistema UVA</string>
+      <key>PayloadDisplayName</key><string>Asercontrol CA local</string>
+      <key>PayloadIdentifier</key><string>mx.asercontrol.sistemauva.ca.certificado</string>
+      <key>PayloadType</key><string>com.apple.security.root</string>
+      <key>PayloadUUID</key><string>$u1</string>
+      <key>PayloadVersion</key><integer>1</integer>
+    </dict>
+  </array>
+  <key>PayloadDescription</key><string>Permite abrir e instalar la app de campo Asercontrol desde el servidor de la oficina.</string>
+  <key>PayloadDisplayName</key><string>Asercontrol - App de campo</string>
+  <key>PayloadIdentifier</key><string>mx.asercontrol.sistemauva.ca</string>
+  <key>PayloadOrganization</key><string>Asercontrol</string>
+  <key>PayloadRemovalDisallowed</key><false/>
+  <key>PayloadType</key><string>Configuration</string>
+  <key>PayloadUUID</key><string>$u2</string>
+  <key>PayloadVersion</key><integer>1</integer>
+</dict>
+</plist>
+EOF
+  fi
+  # La app se instala desde el navegador (PWA); el APK ya no se distribuye (se quita el de versiones anteriores)
+  rm -f "$dir/Asercontrol-Campo.apk" "$RAIZ/Asercontrol-Campo.apk"
+  for ip in $(ips_equipo); do
+    app="$app\"https://$ip:$(leer_env APP_PORT)\", "; web="$web\"http://$ip:$(leer_env GATEWAY_PORT)\", "
+  done
+  app="$app\"https://$(nombre_equipo):$(leer_env APP_PORT)\""; web="$web\"http://$(nombre_equipo):$(leer_env GATEWAY_PORT)\""
+  printf '{\n  "app": [%s],\n  "web": [%s],\n  "generado": "%s"\n}\n' "$app" "$web" "$(date '+%Y-%m-%dT%H:%M:%S')" > "$dir/app-movil.json"
+  chmod -R a+rX "$dir"
+}
+
 escribir_credenciales() {
   cat > "$RAIZ/CREDENCIALES.txt" <<EOF
 SISTEMA UVA - DATOS DE ACCESO
@@ -486,12 +547,13 @@ App de campo (tablets de los verificadores):
   Certificado para las tablets: $CERT_TABLETS (en esta carpeta)
     Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
     Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
-    "Agregar a la pantalla de inicio", o instala Asercontrol-Campo.apk y escribe la dirección en "Servidor".
+    "Agregar a la pantalla de inicio". Más fácil: web del Sistema UVA > «App de campo (móvil)».
 $(texto_firewall)
 
 Cambia la contraseña de admin al primer ingreso. Este archivo contiene contraseñas: no lo compartas.
 EOF
   chmod 600 "$RAIZ/CREDENCIALES.txt"
+  publicar_descargas || aviso 'No se pudieron preparar las descargas de la app.'
 }
 
 http_codigo() { curl -sk -o /dev/null -m 10 -w '%{http_code}' "$1" 2>/dev/null; }
@@ -532,7 +594,7 @@ Respaldar base de datos|respaldar
 Desinstalar Sistema UVA|desinstalar
 EOF
   ln -sf "$RAIZ/CREDENCIALES.txt" "$ACCESOS_DIR/Datos de acceso.txt"
-  ln -sf "$RAIZ" "$ACCESOS_DIR/Carpeta del sistema (certificado y APK)"
+  ln -sf "$RAIZ" "$ACCESOS_DIR/Carpeta del sistema (certificado)"
   cp "$ACCESOS_DIR/Sistema UVA.command" "$HOME/Desktop/Sistema UVA.command" 2>/dev/null || true
   cp "$ACCESOS_DIR/App de campo (tablets).command" "$HOME/Desktop/App de campo Asercontrol.command" 2>/dev/null || true
   # Arranque automático al iniciar sesión (Docker Desktop debe estar configurado para abrir al iniciar).
@@ -580,7 +642,7 @@ detener|Detener Sistema UVA|"$RAIZ/uva.sh" detener --pausa|true
 estado|Estado del Sistema UVA|"$RAIZ/uva.sh" estado --pausa|true
 respaldar|Respaldar base de datos (Sistema UVA)|"$RAIZ/uva.sh" respaldar --pausa|true
 credenciales|Datos de acceso (Sistema UVA)|xdg-open "$RAIZ/CREDENCIALES.txt"|false
-carpeta|Carpeta del Sistema UVA (certificado y APK)|xdg-open "$RAIZ"|false
+carpeta|Carpeta del Sistema UVA (certificado)|xdg-open "$RAIZ"|false
 desinstalar|Desinstalar Sistema UVA|"$RAIZ/uva.sh" desinstalar --pausa|true
 EOF
   command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$ACCESOS_DIR" >/dev/null 2>&1
