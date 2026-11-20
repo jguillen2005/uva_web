@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { Apple, Download, ExternalLink, Info, ShieldCheck, Smartphone, TabletSmartphone, Wifi } from 'lucide-react';
+import { Apple, Download, ExternalLink, Info, MonitorSmartphone, ShieldCheck, Smartphone, TabletSmartphone, Wifi } from 'lucide-react';
 
 /**
  * Instalar la app de campo (PWA) en teléfonos y tablets Android, iPhone y iPad.
@@ -16,6 +16,36 @@ interface InfoAppMovil {
 
 const CERT_ANDROID = 'Certificado-Android-Asercontrol.crt';
 const PERFIL_IOS = 'Certificado-iPhone-iPad-Asercontrol.mobileconfig';
+
+// ¿La página se abrió en un teléfono o tablet? (el iPad con iPadOS se presenta como Mac con pantalla táctil)
+const dispositivoMovil = (): 'android' | 'ios' | null => {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPod|iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return null;
+};
+
+const BotonGrande: React.FC<{ href: string; descargar?: boolean; icono: React.ReactNode; children: React.ReactNode }> = ({ href, descargar, icono, children }) => (
+  <a
+    href={href}
+    {...(descargar ? { download: '' } : {})}
+    className="w-full min-h-14 px-4 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white text-base font-bold inline-flex items-center justify-center gap-2.5 shadow-sm transition"
+  >
+    {icono}
+    {children}
+  </a>
+);
+
+const PasoMovil: React.FC<{ n: number; titulo: string; nota?: string; children: React.ReactNode }> = ({ n, titulo, nota, children }) => (
+  <div className="bg-white rounded-xl border border-brand-100 p-4 flex flex-col gap-3">
+    <h3 className="flex items-center gap-2.5 text-base font-bold text-ink-900">
+      <span className="w-8 h-8 rounded-full bg-brand-600 text-white text-sm font-extrabold flex items-center justify-center shrink-0" aria-hidden="true">{n}</span>
+      <span><span className="sr-only">Paso {n}: </span>{titulo}</span>
+      {nota && <span className="text-xs font-semibold text-ink-500">({nota})</span>}
+    </h3>
+    {children}
+  </div>
+);
 
 const Qr: React.FC<{ texto: string; etiqueta: string }> = ({ texto, etiqueta }) => {
   const [src, setSrc] = useState('');
@@ -67,7 +97,8 @@ export const AppMovilView: React.FC = () => {
   const [info, setInfo] = useState<InfoAppMovil | null>(null);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'sin-descargas'>('cargando');
   const [indice, setIndice] = useState(0);
-  const [plataforma, setPlataforma] = useState<'android' | 'ios'>('android');
+  const movil = dispositivoMovil();
+  const [plataforma, setPlataforma] = useState<'android' | 'ios'>(movil || 'android');
 
   useEffect(() => {
     fetch('/descargas/app-movil.json', { cache: 'no-store' })
@@ -83,6 +114,9 @@ export const AppMovilView: React.FC = () => {
   // Las descargas se piden por la web (HTTP): el teléfono aún no confía en el certificado de la app (HTTPS)
   const web = info?.web[indice] || window.location.origin;
   const descarga = (archivo: string) => `${web}/descargas/${archivo}`;
+  // En el propio teléfono: la app en la misma dirección (IP o nombre) con la que se abrió esta página
+  const puertoApp = (() => { try { return new URL(info?.app[0] || '').port || '443'; } catch { return '8443'; } })();
+  const appAqui = `https://${window.location.hostname}:${puertoApp}`;
 
   return (
     <div className="min-h-full flex flex-col">
@@ -106,6 +140,69 @@ export const AppMovilView: React.FC = () => {
               (o <code className="font-mono text-xs">uva.ps1 actualizar</code>) y vuelva a abrir esta página.
             </p>
           </div>
+        )}
+
+        {estado === 'listo' && info && movil && (
+          <section aria-labelledby="instalar-aqui" className="bg-brand-50 border border-brand-200 rounded-2xl p-4 sm:p-5 flex flex-col gap-5">
+            <div className="flex items-start gap-2.5">
+              <MonitorSmartphone className="w-6 h-6 text-brand-700 shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <h2 id="instalar-aqui" className="text-lg font-extrabold text-ink-900">Instalar la app en este {movil === 'ios' ? 'iPhone o iPad' : 'teléfono'}</h2>
+                <p className="text-sm text-ink-700 mt-0.5">Son 3 pasos y toman unos 3 minutos. Hágalo con el {movil === 'ios' ? 'iPhone o iPad' : 'teléfono'} conectado al <strong>mismo Wi-Fi</strong> que la computadora de la oficina.</p>
+              </div>
+            </div>
+
+            <PasoMovil n={1} titulo="Dar el permiso de seguridad" nota="Solo la primera vez.">
+              <BotonGrande href={`/descargas/${movil === 'ios' ? PERFIL_IOS : CERT_ANDROID}`} descargar={movil === 'android'} icono={<Download className="w-5 h-5" aria-hidden="true" />}>
+                Descargar permiso de seguridad
+              </BotonGrande>
+              {movil === 'ios' ? (
+                <ol className="list-decimal pl-5 space-y-1.5 text-sm text-ink-800">
+                  <li>Toque el botón de arriba y luego <strong>Permitir</strong>.</li>
+                  <li>Abra la app <strong>Ajustes</strong>. Arriba aparece <strong>Perfil descargado</strong>: tóquelo y después <strong>Instalar</strong>. Le pedirá el código de su {movil === 'ios' ? 'iPhone' : 'teléfono'}.</li>
+                  <li>En <strong>Ajustes</strong> entre a <strong>General</strong> &gt; <strong>Información</strong>. Hasta abajo toque <strong>Ajustes de confianza de certificados</strong> y encienda <strong>Asercontrol CA local</strong>.</li>
+                </ol>
+              ) : (
+                <ol className="list-decimal pl-5 space-y-1.5 text-sm text-ink-800">
+                  <li>Toque el botón de arriba. El teléfono descarga un archivo.</li>
+                  <li>Abra la app <strong>Ajustes</strong> del teléfono y, en la lupa de búsqueda, escriba <strong>certificado</strong>.</li>
+                  <li>Toque <strong>Certificado de CA</strong> (o <strong>Instalar un certificado</strong> &gt; <strong>Certificado de CA</strong>). Si aparece un aviso, toque <strong>Instalar de todos modos</strong>.</li>
+                  <li>Elija el archivo <strong>Certificado-Android-Asercontrol</strong> (está en Descargas).</li>
+                </ol>
+              )}
+            </PasoMovil>
+
+            <PasoMovil n={2} titulo="Instalar la app">
+              <BotonGrande href={appAqui} icono={<Smartphone className="w-5 h-5" aria-hidden="true" />}>
+                Abrir la app
+              </BotonGrande>
+              {movil === 'ios' ? (
+                <ol className="list-decimal pl-5 space-y-1.5 text-sm text-ink-800">
+                  <li>Toque el botón de arriba. La app se abre en <strong>Safari</strong> (debe ser Safari).</li>
+                  <li>Toque el botón <strong>Compartir</strong>: el cuadro con una flecha hacia arriba (en iPhone está abajo; en iPad, arriba a la derecha).</li>
+                  <li>Deslice hacia abajo, toque <strong>Agregar a pantalla de inicio</strong> y luego <strong>Agregar</strong>.</li>
+                </ol>
+              ) : (
+                <ol className="list-decimal pl-5 space-y-1.5 text-sm text-ink-800">
+                  <li>Toque el botón de arriba. La app se abre en el navegador.</li>
+                  <li>Toque el botón azul <strong>Instalar app</strong>. Si no aparece, toque los tres puntos <strong>⋮</strong> de arriba a la derecha y elija <strong>Instalar aplicación</strong>.</li>
+                  <li>Confirme con <strong>Instalar</strong>. En su pantalla aparece el ícono <strong>Asercontrol</strong>.</li>
+                </ol>
+              )}
+            </PasoMovil>
+
+            <PasoMovil n={3} titulo="Entrar">
+              <ol className="list-decimal pl-5 space-y-1.5 text-sm text-ink-800">
+                <li>Abra la app desde el ícono <strong>Asercontrol</strong> de su pantalla{movil === 'ios' ? ' (no desde Safari)' : ''}.</li>
+                <li>Escriba su correo y su contraseña y toque <strong>Iniciar sesión</strong>.</li>
+                <li>Espere el mensaje <strong>Listo para trabajar sin conexión</strong>. ¡Ya puede usarla en campo, aunque no haya señal!</li>
+              </ol>
+            </PasoMovil>
+          </section>
+        )}
+
+        {estado === 'listo' && info && movil && (
+          <h2 className="text-sm font-bold text-ink-700 -mb-2">Instalar en otro dispositivo</h2>
         )}
 
         {estado === 'listo' && info && (
