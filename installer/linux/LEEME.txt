@@ -21,9 +21,13 @@ Instalar
   5. Al terminar se abren el sistema y CREDENCIALES.txt (usuario admin, contraseñas y el
      verificador predeterminado jhovani.coss@asercontrol.com / asercontrol123456).
 
-  Si el sistema ya estaba instalado, el instalador pregunta:
-    Actualizar todo  - web, backend Odoo y app (respalda y conserva datos y usuarios).
-    Solo la app      - solo la app de campo de las tablets.
+  Si el sistema ya estaba instalado, el instalador pregunta qué hacer:
+    Actualizar todo        - instala la versión nueva en la web, Odoo y la app. Respalda la base y
+                             conserva clientes, visitas y usuarios.
+    Reinstalar desde cero  - guarda un respaldo en Documentos, borra la instalación anterior con
+                             todos sus datos e instala la versión nueva limpia (pide confirmación).
+    Solo la app            - actualiza solo la app de campo; la web, Odoo y los datos no cambian.
+    Cancelar               - salir sin hacer cambios.
 
 Qué queda instalado
   Carpeta:   ~/SistemaUVA  (configuración, certificado para tablets y respaldos)

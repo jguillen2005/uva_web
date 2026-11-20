@@ -2,7 +2,7 @@
 # Sistema UVA en Mac y Linux (Ubuntu): administra la instalación local
 # (Docker + Odoo 19 + microservicios + gateway + app de campo).
 #
-# Uso:  ./uva.sh <acción> [--demo] [--silencioso] [--eliminar-datos]
+# Uso:  ./uva.sh <acción> [--demo] [--silencioso] [--eliminar-datos] [--conservar-certificado]
 #   instalar             Crea la base de datos (con --demo: datos de demostración) y levanta todo.
 #   agregar-app          Agrega o actualiza la app de campo en un sistema ya instalado (no toca los datos).
 #   actualizar           Aplica la versión copiada: respalda, actualiza módulos y reinicia servicios.
@@ -47,13 +47,14 @@ USUARIO_CAMPO='jhovani.coss@asercontrol.com'
 CLAVE_CAMPO='asercontrol123456'
 
 ACCION="${1:-estado}"; shift || true
-DEMO=0; SILENCIOSO=0; ELIMINAR_DATOS=0; PAUSA=0
+DEMO=0; SILENCIOSO=0; ELIMINAR_DATOS=0; PAUSA=0; CONSERVAR_CA=0
 for a in "$@"; do
   case "$a" in
     --demo) DEMO=1 ;;
     --pausa) PAUSA=1 ;;
     --silencioso) SILENCIOSO=1 ;;
     --eliminar-datos) ELIMINAR_DATOS=1 ;;
+    --conservar-certificado) CONSERVAR_CA=1 ;;
   esac
 done
 
@@ -876,11 +877,17 @@ Conservar: los datos quedan para una reinstalación futura." "Cancelar,Conservar
   else
     aviso "$DOCKER_NOMBRE no está activo: los contenedores no se quitaron (proyecto \"sistema-uva\")."
   fi
-  [ "$borrar" = 1 ] && rm -rf "$ENV_RESPALDO" "$CA_RESPALDO"
-  if [ "$ES_MAC" = 1 ] && [ "$borrar" = 1 ]; then
-    security delete-certificate -c 'Asercontrol CA local' "$HOME/Library/Keychains/login.keychain-db" >/dev/null 2>&1 || true
+  [ "$borrar" = 1 ] && rm -rf "$ENV_RESPALDO"
+  # --conservar-certificado (reinstalar desde cero): la autoridad local se conserva para que los teléfonos y
+  # tablets sigan confiando en el servidor sin instalar otro permiso de seguridad.
+  if [ "$borrar" = 1 ] && [ "$CONSERVAR_CA" != 1 ]; then
+    rm -rf "$CA_RESPALDO"
+    if [ "$ES_MAC" = 1 ]; then
+      security delete-certificate -c 'Asercontrol CA local' "$HOME/Library/Keychains/login.keychain-db" >/dev/null 2>&1 || true
+    else
+      quitar_ca_linux
+    fi
   fi
-  if [ "$ES_MAC" != 1 ] && [ "$borrar" = 1 ]; then quitar_ca_linux; fi
   paso 'Quitando accesos directos'
   quitar_accesos
   cd / && rm -rf "$RAIZ"

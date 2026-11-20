@@ -14,7 +14,9 @@ param(
     [ValidateSet('', 'si', 'no')][string]$Demo = '',
     [switch]$Silencioso,
     [switch]$SinAbrir,
-    [switch]$ActualizarSistema
+    [switch]$ActualizarSistema,
+    # Si ya hay un Sistema UVA: respaldo en Documentos, desinstalar con sus datos e instalar desde cero.
+    [switch]$Reinstalar
 )
 # Si el sistema ya está instalado, se usa su carpeta (registrada en "Aplicaciones instaladas").
 $RegUva = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemaUVA'
@@ -36,6 +38,38 @@ function Show-Mensaje([string]$Texto, [string]$Botones = 'OK', [string]$Icono = 
     if ($Silencioso) { return 'None' }
     Add-Type -AssemblyName System.Windows.Forms
     return [string][System.Windows.Forms.MessageBox]::Show($Texto, "Instalador Sistema UVA $Version", $Botones, $Icono)
+}
+function Show-Opciones([string]$Texto, [array]$Opciones) {
+    # Ventana con un botón por opción y su descripción al lado. $Opciones: @(@('Botón', 'Descripción'), ...)
+    # Devuelve el texto del botón elegido ('' si se cierra la ventana).
+    Write-Host ''; Write-Host "  $Texto" -ForegroundColor Gray
+    foreach ($o in $Opciones) { Write-Host "    $($o[0]): $($o[1])" -ForegroundColor Gray }
+    if ($Silencioso) { return '' }
+    Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing
+    $f = New-Object System.Windows.Forms.Form
+    $f.Text = "Instalador Sistema UVA $Version"; $f.StartPosition = 'CenterScreen'; $f.TopMost = $true
+    $f.FormBorderStyle = 'FixedDialog'; $f.MaximizeBox = $false; $f.MinimizeBox = $false
+    $f.Font = New-Object System.Drawing.Font('Segoe UI', 9.75)
+    $ancho = 620
+    $l = New-Object System.Windows.Forms.Label
+    $l.Text = $Texto; $l.Location = New-Object System.Drawing.Point(20, 18); $l.Font = $f.Font
+    $l.Size = $l.GetPreferredSize((New-Object System.Drawing.Size(($ancho - 40), 0)))
+    $f.Controls.Add($l)
+    $y = 18 + $l.Height + 16
+    foreach ($o in $Opciones) {
+        $b = New-Object System.Windows.Forms.Button
+        $b.Text = $o[0]; $b.Tag = $o[0]; $b.Size = New-Object System.Drawing.Size(180, 34); $b.Location = New-Object System.Drawing.Point(20, $y)
+        $b.Add_Click({ $f.Tag = $this.Tag; $f.Close() })
+        $d = New-Object System.Windows.Forms.Label
+        $d.Text = $o[1]; $d.Location = New-Object System.Drawing.Point(212, ($y + 1)); $d.ForeColor = [System.Drawing.Color]::FromArgb(70, 70, 70); $d.Font = $f.Font
+        $d.Size = $d.GetPreferredSize((New-Object System.Drawing.Size(($ancho - 232), 0)))
+        $f.Controls.Add($b); $f.Controls.Add($d)
+        $y += [Math]::Max(34, $d.Height) + 12
+        if ($o[0] -eq $Opciones[0][0]) { $f.AcceptButton = $b }
+    }
+    $f.ClientSize = New-Object System.Drawing.Size($ancho, ($y + 8))
+    [void]$f.ShowDialog()
+    return [string]$f.Tag
 }
 function Exit-Instalador([int]$Codigo) {
     if (-not $Silencioso) { Write-Host "`nPresiona Enter para cerrar..."; [void](Read-Host) }
@@ -89,20 +123,34 @@ $uva = Join-Path $Destino 'uva.ps1'
 $envDestino = Join-Path $Destino 'backend\.env'
 $existente = (Test-Path $envDestino) -and ((Get-Content $envDestino -ErrorAction SilentlyContinue) -contains 'UVA_ADMIN_CONFIGURADO=1')
 $actualizacion = $existente -and $ActualizarSistema
-$soloApp = $existente -and -not $ActualizarSistema
-if ($soloApp) {
-    # El backend ya existe: no se reinstala Odoo ni se tocan la base de datos ni los microservicios.
+$reinstalar = $existente -and $Reinstalar -and -not $ActualizarSistema
+$soloApp = $existente -and -not $ActualizarSistema -and -not $Reinstalar
+if ($soloApp -and -not $Silencioso) {
     Write-Host "  Se detectó el Sistema UVA (backend Odoo) instalado en $Destino." -ForegroundColor Green
-    $r = Show-Mensaje ("Se detectó el Sistema UVA ya instalado en:`n$Destino`n`n" +
-        "Sí: actualizar TODO a la versión $Version (web, backend Odoo y app de campo). Odoo no se " +
-        "reinstala: se respalda la base de datos y se conservan los datos y usuarios.`n`n" +
-        "No: actualizar SOLO la app de campo de las tablets; la web y el backend quedan como están.") 'YesNoCancel' 'Question'
-    if ($r -eq 'Cancel') { Exit-Instalador 0 }
-    if ($r -eq 'Yes') { $soloApp = $false; $actualizacion = $true }
+    $r = Show-Opciones "Se detectó el Sistema UVA ya instalado en $Destino. ¿Qué desea hacer?" @(
+        @('Actualizar todo', "Instala la versión $Version en la web, Odoo y la app. Respalda la base y conserva clientes, visitas y usuarios."),
+        @('Reinstalar desde cero', 'Guarda un respaldo en Documentos, borra la instalación anterior con todos sus datos e instala la versión nueva limpia.'),
+        @('Solo la app', 'Actualiza solo la app de campo; la web, Odoo y los datos no cambian.'),
+        @('Cancelar', 'Salir sin hacer cambios.'))
+    switch ($r) {
+        'Actualizar todo' { $soloApp = $false; $actualizacion = $true }
+        'Reinstalar desde cero' {
+            $c = Show-Mensaje ("Reinstalar desde cero borra la instalación anterior y TODOS sus datos (clientes, visitas, actas y usuarios).`n`n" +
+                "Antes se guarda un respaldo de la base de datos en su carpeta Documentos.`n`n¿Continuar?") 'YesNo' 'Warning'
+            if ($c -ne 'Yes') { Exit-Instalador 0 }
+            $soloApp = $false; $reinstalar = $true
+        }
+        'Solo la app' { }
+        default { Exit-Instalador 0 }
+    }
+} elseif ($soloApp) {
+    # Modo silencioso sin -ActualizarSistema ni -Reinstalar: solo la app (no toca el backend ni los datos).
+    Write-Host "  Se detectó el Sistema UVA (backend Odoo) instalado en ${Destino}: se actualiza solo la app de campo." -ForegroundColor Green
 } elseif ($actualizacion) {
     if ((Show-Mensaje "El Sistema UVA ya está instalado en:`n$Destino`n`n¿Actualizarlo a la versión $Version? Se respalda la base de datos antes y se conservan los datos." 'YesNo' 'Question') -eq 'No') { Exit-Instalador 0 }
-} else {
-    Write-Host '  No se encontró el Sistema UVA en este equipo: se instalará completo (Odoo, base de datos, web y app de campo).'
+}
+if (-not $existente -or $reinstalar) {
+    if (-not $reinstalar) { Write-Host '  No se encontró el Sistema UVA en este equipo: se instalará completo (Odoo, base de datos, web y app de campo).' }
     if ($Demo -eq '') {
         $r = Show-Mensaje ("¿Cargar datos de demostración?`n`n" +
             "Sí: clientes, expedientes y usuarios de ejemplo para conocer el sistema.`n" +
@@ -117,6 +165,37 @@ Write-Paso "Copiando archivos a $Destino"
 New-Item -ItemType Directory -Force $Destino | Out-Null
 $tmp = Join-Path $env:TEMP ('uva-payload-' + [guid]::NewGuid().ToString('N'))
 Expand-Archive -Path (Join-Path $Origen 'payload.zip') -DestinationPath $tmp -Force
+if ($reinstalar) {
+    # Reinstalar desde cero: respaldo en Documentos, desinstalar la versión anterior con sus datos (conservando la
+    # autoridad de certificados: los teléfonos siguen confiando en el servidor) y seguir como instalación nueva.
+    # Se usa el uva.ps1 de esta versión (el anterior no conoce -ConservarCertificado).
+    $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    Copy-Item (Join-Path $tmp 'uva.ps1') $uva -Force
+    Write-Paso 'Reinstalar desde cero: respaldo de la versión anterior'
+    $copia = $null
+    & $psExe -NoProfile -ExecutionPolicy Bypass -File $uva respaldar -Silencioso
+    $ultimo = Get-ChildItem (Join-Path $Destino 'respaldos') -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
+    if ($LASTEXITCODE -eq 0 -and $ultimo) {
+        $copia = Join-Path ([Environment]::GetFolderPath('MyDocuments')) ('Respaldo Sistema UVA ' + $ultimo.Name)
+        Copy-Item $ultimo.FullName $copia -Recurse -Force
+        Write-Host "  OK  Respaldo guardado en $copia" -ForegroundColor Green
+    } else {
+        $c = Show-Mensaje ("No se pudo respaldar la base de datos (¿Docker Desktop está abierto?).`n`n" +
+            "Si continúa, los datos actuales se borran SIN respaldo. ¿Continuar?") 'YesNo' 'Warning'
+        if ($c -ne 'Yes') { Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue; Exit-Instalador 1 }
+    }
+    Write-Paso 'Desinstalando la versión anterior'
+    & $psExe -NoProfile -ExecutionPolicy Bypass -File $uva desinstalar -Silencioso -EliminarDatos -ConservarCertificado
+    # uva.ps1 borra su carpeta unos segundos después de terminar (no puede borrarse mientras corre)
+    for ($i = 0; $i -lt 30 -and (Test-Path $Destino); $i++) { Start-Sleep -Seconds 1 }
+    if (Test-Path $Destino) { Remove-Item $Destino -Recurse -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $envDestino) {
+        Show-Mensaje "No se pudo desinstalar la versión anterior. Revise la bitácora en:`n$(Join-Path $Destino 'logs')" 'OK' 'Error' | Out-Null
+        Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue; Exit-Instalador 1
+    }
+    Write-Host "  OK  Versión anterior desinstalada. Se instala la versión $Version desde cero." -ForegroundColor Green
+    New-Item -ItemType Directory -Force $Destino | Out-Null
+}
 if ($soloApp) {
     # Solo la app de campo, su módulo de Odoo, la configuración del gateway y los scripts de administración.
     foreach ($d in @('app', 'backend\odoo\addons\uva_app_movil')) {

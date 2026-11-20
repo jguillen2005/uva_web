@@ -9,13 +9,14 @@ ORIGEN="$(cd "$(dirname "$0")" && pwd)"
 CONTENIDO="$ORIGEN/contenido"
 VERSION="$(cat "$CONTENIDO/version.txt" 2>/dev/null || echo 1.1)"
 DESTINO="$HOME/SistemaUVA"
-DEMO=''; SILENCIOSO=0; ACTUALIZAR_SISTEMA=0; SIN_ABRIR=0
+DEMO=''; SILENCIOSO=0; ACTUALIZAR_SISTEMA=0; SIN_ABRIR=0; REINSTALAR=0
 ARGS_ORIGINALES=("$@")
 while [ $# -gt 0 ]; do
   case "$1" in
     --silencioso) SILENCIOSO=1 ;;
     --demo) DEMO="${2:-}"; shift ;;
     --actualizar-sistema) ACTUALIZAR_SISTEMA=1 ;;
+    --reinstalar) REINSTALAR=1 ;;
     --sin-abrir) SIN_ABRIR=1 ;;
     --destino) DESTINO="${2:-$DESTINO}"; shift ;;
   esac
@@ -109,23 +110,58 @@ UVA="$DESTINO/uva.sh"
 # Instalado = configuración completa; una instalación interrumpida se retoma como nueva (conserva lo hecho)
 EXISTENTE=0; grep -q '^UVA_ADMIN_CONFIGURADO=1' "$DESTINO/backend/.env" 2>/dev/null && EXISTENTE=1
 SOLO_APP=0; ACTUALIZACION=0
+# Reinstalar desde cero: respaldo en Documentos, desinstala la versión anterior con sus datos (conserva la
+# autoridad de certificados: los teléfonos siguen confiando en el servidor) y sigue como instalación nueva.
+reinstalar_desde_cero() {
+  local r respaldo='' docs copia
+  if [ "$SILENCIOSO" != 1 ]; then
+    r="$(dialogo "Reinstalar desde cero borra la instalación anterior y TODOS sus datos (clientes, visitas, actas y usuarios).
+Antes se guarda un respaldo de la base de datos en su carpeta Documentos. ¿Continuar?" 'Cancelar,Reinstalar' 'Cancelar')"
+    [ "$r" = 'Reinstalar' ] || salir 0
+  fi
+  paso 'Reinstalar desde cero: respaldo de la versión anterior'
+  # Se usa el uva.sh de esta versión (el anterior no conoce --conservar-certificado)
+  rm -f "$UVA"; cp "$CONTENIDO/uva.sh" "$UVA" && chmod +x "$UVA"
+  if bash "$UVA" respaldar --silencioso; then
+    respaldo="$(ls -1d "$DESTINO"/respaldos/*/ 2>/dev/null | sort | tail -1)"; respaldo="${respaldo%/}"
+  fi
+  if [ -n "$respaldo" ]; then
+    docs="$(xdg-user-dir DOCUMENTS 2>/dev/null)"; [ -n "$docs" ] && [ "$docs" != "$HOME" ] || docs="$HOME/Documentos"
+    copia="$docs/Respaldo Sistema UVA $(basename "$respaldo")"
+    mkdir -p "$docs"; cp -R "$respaldo" "$copia" && ok "Respaldo guardado en $copia"
+  else
+    r="$(dialogo 'No se pudo respaldar la base de datos (¿Docker está activo?). Si continúa, los datos actuales se borran SIN respaldo.' 'Cancelar,Continuar sin respaldo' 'Cancelar')"
+    [ "$r" = 'Continuar sin respaldo' ] || salir 1
+  fi
+  paso 'Desinstalando la versión anterior'
+  bash "$UVA" desinstalar --silencioso --eliminar-datos --conservar-certificado || { aviso "La desinstalación anterior no terminó: revise $DESTINO/logs."; salir 1; }
+  rm -rf "$DESTINO" 2>/dev/null
+  ok "Versión anterior desinstalada. Se instala la versión $VERSION desde cero."
+  EXISTENTE=0; REINSTALADO=1
+}
 if [ $EXISTENTE = 1 ] && [ $ACTUALIZAR_SISTEMA = 1 ]; then
   ACTUALIZACION=1
+elif [ $EXISTENTE = 1 ] && [ $REINSTALAR = 1 ]; then
+  reinstalar_desde_cero
 elif [ $EXISTENTE = 1 ]; then
   echo "  Se detectó el Sistema UVA (backend Odoo) instalado en $DESTINO."
-  r="$(dialogo "Se detectó el Sistema UVA ya instalado en:
-$DESTINO
+  r="$(dialogo "Se detectó el Sistema UVA ya instalado en $DESTINO. ¿Qué desea hacer?
 
-Actualizar todo: web, backend Odoo y app de campo a la versión $VERSION. Odoo no se reinstala: se respalda la base de datos y se conservan los datos y usuarios.
-
-Solo la app: actualiza solo la app de campo de las tablets; la web y el backend quedan como están." 'Cancelar,Solo la app,Actualizar todo' 'Actualizar todo')"
+  Actualizar todo:       instala la versión $VERSION en la web, Odoo y la app. Respalda la base
+                         y conserva clientes, visitas y usuarios.
+  Reinstalar desde cero: guarda un respaldo en Documentos, borra la instalación anterior con
+                         todos sus datos e instala la versión nueva limpia.
+  Solo la app:           actualiza solo la app de campo; la web, Odoo y los datos no cambian.
+  Cancelar:              salir sin hacer cambios." 'Actualizar todo,Reinstalar desde cero,Solo la app,Cancelar' 'Actualizar todo')"
   case "$r" in
     'Actualizar todo') ACTUALIZACION=1 ;;
+    'Reinstalar desde cero') reinstalar_desde_cero ;;
     'Solo la app') SOLO_APP=1 ;;
     *) salir 0 ;;
   esac
-else
-  echo '  No se encontró el Sistema UVA en este equipo: se instalará completo (Odoo, base de datos, web y app de campo).'
+fi
+if [ $EXISTENTE = 0 ]; then
+  [ "${REINSTALADO:-0}" = 1 ] || echo '  No se encontró el Sistema UVA en este equipo: se instalará completo (Odoo, base de datos, web y app de campo).'
   if [ -z "$DEMO" ]; then
     r="$(dialogo '¿Cargar datos de demostración?
 

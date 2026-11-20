@@ -13,6 +13,14 @@ Accesos (menú Inicio > Sistema UVA)
   Respaldar base de datos ... copia base de datos y adjuntos a la carpeta respaldos\
   Desinstalar ............... quita el sistema (pregunta si conservar los datos)
 
+Si el sistema ya estaba instalado, el instalador pregunta qué hacer:
+  Actualizar todo        - instala la versión nueva en la web, Odoo y la app. Respalda la base y
+                           conserva clientes, visitas y usuarios.
+  Reinstalar desde cero  - guarda un respaldo en Documentos, borra la instalación anterior con
+                           todos sus datos e instala la versión nueva limpia (pide confirmación).
+  Solo la app            - actualiza solo la app de campo; la web, Odoo y los datos no cambian.
+  Cancelar               - salir sin hacer cambios.
+
 El sistema arranca solo al iniciar sesión en Windows (si Docker Desktop está configurado para
 iniciar con Windows). Las contraseñas generadas están en CREDENCIALES.txt.
 

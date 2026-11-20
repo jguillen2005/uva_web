@@ -22,9 +22,13 @@ Instalar
      (sirve para abrir la app de campo en este Mac sin advertencias).
   5. Al terminar se abren el sistema y CREDENCIALES.txt (usuario admin y contraseñas).
 
-  Si el sistema ya estaba instalado, el instalador pregunta:
-    Actualizar todo  - web, backend Odoo y app (respalda y conserva datos y usuarios).
-    Solo la app      - solo la app de campo.
+  Si el sistema ya estaba instalado, el instalador pregunta qué hacer:
+    Actualizar todo        - instala la versión nueva en la web, Odoo y la app. Respalda la base y
+                             conserva clientes, visitas y usuarios.
+    Reinstalar desde cero  - guarda un respaldo en Documentos, borra la instalación anterior con
+                             todos sus datos e instala la versión nueva limpia (pide confirmación).
+    Solo la app            - actualiza solo la app de campo; la web, Odoo y los datos no cambian.
+    Cancelar               - salir sin hacer cambios.
 
 Si la app no abre, o la Terminal dice «zsh: killed»
   macOS bloquea el instalador porque viene de internet y aún no está firmado por Apple.
@@ -32,15 +36,14 @@ Si la app no abre, o la Terminal dice «zsh: killed»
   presione Enter (si descomprimió el .zip en otra carpeta que no sea Descargas, cambie la ruta):
 
     xattr -cr ~/Downloads/"Instalador Sistema UVA"
-    bash ~/Downloads/"Instalador Sistema UVA/Instalar Sistema UVA.command"
+    bash ~/Downloads/"Instalador Sistema UVA/Instalar Sistema UVA.app/Contents/Resources/instalar.command"
 
-  La primera línea quita la marca de «descargado de internet»; la segunda abre el instalador.
-  Otra forma de escribir la ruta: escriba  bash  y un espacio, arrastre el archivo
-  «Instalar Sistema UVA.command» a la ventana de Terminal y presione Enter.
+  La primera línea quita la marca de «descargado de internet»; la segunda abre el instalador
+  (que va dentro de la app: Contents/Resources/instalar.command).
 
   Si aun así no instala, envíe a soporte lo que muestren estos comandos:
     sw_vers -productVersion
-    xattr -l ~/Downloads/"Instalador Sistema UVA/Instalar Sistema UVA.command"
+    xattr -l ~/Downloads/"Instalador Sistema UVA/Instalar Sistema UVA.app/Contents/MacOS/instalar"
     log show --last 15m --style compact --predicate 'eventMessage CONTAINS[c] "Instalar Sistema UVA" OR process == "XProtect" OR sender == "AppleSystemPolicy"' | tail -20
 
 Qué queda instalado

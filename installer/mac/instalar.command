@@ -1,8 +1,8 @@
 #!/bin/bash
 # Asistente de instalación del Sistema UVA para Mac (Apple o Intel).
 # Normalmente lo abre «Instalar Sistema UVA.app» (doble clic): la app lo ejecuta con bash en Terminal.
-# Este archivo también va junto a la app como alternativa (doble clic o: bash "Instalar Sistema UVA.command").
-# Opciones (Terminal): --silencioso  --demo si|no  --actualizar-sistema  --sin-abrir  --destino <carpeta>
+# Va dentro de la app (Contents/Resources/instalar.command). A mano: bash ".../Instalar Sistema UVA.app/Contents/Resources/instalar.command"
+# Opciones (Terminal): --silencioso  --demo si|no  --actualizar-sistema  --reinstalar  --sin-abrir  --destino <carpeta>
 
 set -u
 ORIGEN="$(cd "$(dirname "$0")" && pwd)"
@@ -11,12 +11,13 @@ CONTENIDO="$ORIGEN/contenido"
 [ -d "$CONTENIDO" ] || CONTENIDO="$ORIGEN/Instalar Sistema UVA.app/Contents/Resources/contenido"
 VERSION="$(cat "$CONTENIDO/version.txt" 2>/dev/null || echo 1.1)"
 DESTINO="$HOME/SistemaUVA"
-DEMO=''; SILENCIOSO=0; ACTUALIZAR_SISTEMA=0; SIN_ABRIR=0
+DEMO=''; SILENCIOSO=0; ACTUALIZAR_SISTEMA=0; SIN_ABRIR=0; REINSTALAR=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --silencioso) SILENCIOSO=1 ;;
     --demo) DEMO="${2:-}"; shift ;;
     --actualizar-sistema) ACTUALIZAR_SISTEMA=1 ;;
+    --reinstalar) REINSTALAR=1 ;;
     --sin-abrir) SIN_ABRIR=1 ;;
     --destino) DESTINO="${2:-$DESTINO}"; shift ;;
   esac
@@ -28,6 +29,12 @@ dialogo() {  # dialogo "texto" "B1,B2,B3" "Predeterminado"
   if [ "$SILENCIOSO" = 1 ]; then printf '%s' "$3"; return; fi
   local lista; lista="$(printf '%s' "$2" | sed 's/[^,][^,]*/"&"/g; s/,/, /g')"
   osascript -e "button returned of (display dialog \"$(printf '%s' "$1" | sed 's/"/\\"/g')\" with title \"Instalador Sistema UVA $VERSION\" buttons {$lista} default button \"$3\")" 2>/dev/null || printf 'Cancelar'
+}
+elegir() {  # elegir "texto" "Opción 1|Opción 2|..." "Predeterminada": lista (macOS admite solo 3 botones)
+  if [ "$SILENCIOSO" = 1 ]; then printf '%s' "$3"; return; fi
+  local lista; lista="$(printf '%s' "$2" | sed 's/"/\\"/g; s/[^|][^|]*/"&"/g; s/|/, /g')"
+  osascript -e "set r to choose from list {$lista} with title \"Instalador Sistema UVA $VERSION\" with prompt \"$(printf '%s' "$1" | sed 's/"/\\"/g')\" default items {\"$3\"} OK button name \"Continuar\" cancel button name \"Cancelar\"" \
+    -e 'if r is false then return "Cancelar"' -e 'return item 1 of r' 2>/dev/null || printf 'Cancelar'
 }
 salir() {
   if [ "$SILENCIOSO" != 1 ]; then printf '\nPresione Enter para cerrar...'; read -r _; fi
@@ -71,23 +78,61 @@ UVA="$DESTINO/uva.sh"
 # Instalado = configuración completa; una instalación interrumpida se retoma como nueva (conserva lo hecho)
 EXISTENTE=0; grep -q '^UVA_ADMIN_CONFIGURADO=1' "$DESTINO/backend/.env" 2>/dev/null && EXISTENTE=1
 SOLO_APP=0; ACTUALIZACION=0
+# Reinstalar desde cero: respaldo en Documentos, desinstala la versión anterior con sus datos (conserva la
+# autoridad de certificados: los teléfonos siguen confiando en el servidor) y sigue como instalación nueva.
+reinstalar_desde_cero() {
+  local r respaldo='' copia
+  if [ "$SILENCIOSO" != 1 ]; then
+    r="$(dialogo "Reinstalar desde cero borra la instalación anterior y TODOS sus datos (clientes, visitas, actas y usuarios).
+
+Antes se guarda un respaldo de la base de datos en su carpeta Documentos.
+
+¿Continuar?" 'Cancelar,Reinstalar' 'Cancelar')"
+    [ "$r" = 'Reinstalar' ] || salir 0
+  fi
+  paso 'Reinstalar desde cero: respaldo de la versión anterior'
+  # Se usa el uva.sh de esta versión (el anterior no conoce --conservar-certificado)
+  chflags nouchg "$UVA" 2>/dev/null; chmod u+w "$UVA" 2>/dev/null
+  cat "$CONTENIDO/uva.sh" > "$UVA.nuevo" && chmod 755 "$UVA.nuevo" && { mv -f "$UVA.nuevo" "$UVA" 2>/dev/null || { rm -f "$UVA"; mv -f "$UVA.nuevo" "$UVA"; }; }
+  if bash "$UVA" respaldar --silencioso; then
+    respaldo="$(ls -1d "$DESTINO"/respaldos/*/ 2>/dev/null | sort | tail -1)"; respaldo="${respaldo%/}"
+  fi
+  if [ -n "$respaldo" ]; then
+    copia="$HOME/Documents/Respaldo Sistema UVA $(basename "$respaldo")"
+    mkdir -p "$HOME/Documents"; cp -R "$respaldo" "$copia" && printf '  \033[32mOK\033[0m  Respaldo guardado en %s\n' "$copia"
+  else
+    r="$(dialogo 'No se pudo respaldar la base de datos (¿Docker Desktop está abierto?).
+
+Si continúa, los datos actuales se borran SIN respaldo.' 'Cancelar,Continuar sin respaldo' 'Cancelar')"
+    [ "$r" = 'Continuar sin respaldo' ] || salir 1
+  fi
+  paso 'Desinstalando la versión anterior'
+  bash "$UVA" desinstalar --silencioso --eliminar-datos --conservar-certificado || { printf '  La desinstalación anterior no terminó: revise ~/SistemaUVA/logs.\n'; salir 1; }
+  rm -rf "$DESTINO" 2>/dev/null
+  printf '  \033[32mOK\033[0m  Versión anterior desinstalada. Se instala la versión %s desde cero.\n' "$VERSION"
+  EXISTENTE=0; REINSTALADO=1
+}
 if [ $EXISTENTE = 1 ] && [ $ACTUALIZAR_SISTEMA = 1 ]; then
   ACTUALIZACION=1
+elif [ $EXISTENTE = 1 ] && [ $REINSTALAR = 1 ]; then
+  reinstalar_desde_cero
 elif [ $EXISTENTE = 1 ]; then
   echo "  Se detectó el Sistema UVA (backend Odoo) instalado en $DESTINO."
-  r="$(dialogo "Se detectó el Sistema UVA ya instalado en:
-$DESTINO
-
-Actualizar todo: web, backend Odoo y app de campo a la versión $VERSION. Odoo no se reinstala: se respalda la base de datos y se conservan los datos y usuarios.
-
-Solo la app: actualiza solo la app de campo de las tablets; la web y el backend quedan como están." 'Cancelar,Solo la app,Actualizar todo' 'Actualizar todo')"
+  OP_ACTUALIZAR="Actualizar todo: instala la versión $VERSION en la web, Odoo y la app. Respalda la base y conserva clientes, visitas y usuarios."
+  OP_REINSTALAR='Reinstalar desde cero: guarda un respaldo en Documentos, borra la instalación anterior con todos sus datos e instala la versión nueva limpia.'
+  OP_SOLO_APP='Solo la app: actualiza solo la app de campo; la web, Odoo y los datos no cambian.'
+  OP_CANCELAR='Cancelar: salir sin hacer cambios.'
+  r="$(elegir "Se detectó el Sistema UVA ya instalado en $DESTINO. ¿Qué desea hacer?" \
+    "$OP_ACTUALIZAR|$OP_REINSTALAR|$OP_SOLO_APP|$OP_CANCELAR" "$OP_ACTUALIZAR")"
   case "$r" in
-    'Actualizar todo') ACTUALIZACION=1 ;;
-    'Solo la app') SOLO_APP=1 ;;
+    'Actualizar todo'*) ACTUALIZACION=1 ;;
+    'Reinstalar desde cero'*) reinstalar_desde_cero ;;
+    'Solo la app'*) SOLO_APP=1 ;;
     *) salir 0 ;;
   esac
-else
-  echo '  No se encontró el Sistema UVA en este Mac: se instalará completo (Odoo, base de datos, web y app de campo).'
+fi
+if [ $EXISTENTE = 0 ]; then
+  [ "${REINSTALADO:-0}" = 1 ] || echo '  No se encontró el Sistema UVA en este Mac: se instalará completo (Odoo, base de datos, web y app de campo).'
   if [ -z "$DEMO" ]; then
     r="$(dialogo '¿Cargar datos de demostración?
 
@@ -103,14 +148,39 @@ mkdir -p "$DESTINO"
 # Las marcas de cuarentena del .zip descargado pueden impedir leer o reemplazar archivos (sobre todo los
 # ejecutables como uva.sh): se quitan antes de copiar.
 xattr -cr "$CONTENIDO" 2>/dev/null || xattr -dr com.apple.quarantine "$CONTENIDO" 2>/dev/null || true
+# Se copia solo el CONTENIDO de los archivos, sin atributos extendidos: macOS no permite pasar a la copia
+# las marcas de procedencia/cuarentena del paquete descargado («Operation not permitted»), y no hacen falta.
+# No se necesita ningún permiso especial (ni «Acceso total al disco»): todo va a la carpeta del usuario.
+copiar_archivo() {  # copiar_archivo <origen> <destino>: reemplaza el archivo con el contenido del origen
+  [ -e "$1" ] || return 0
+  local nuevo="$2.nuevo.$$"
+  mkdir -p "$(dirname "$2")"
+  cat "$1" > "$nuevo" || { rm -f "$nuevo"; return 1; }
+  [ -x "$1" ] && chmod 755 "$nuevo"
+  if [ -e "$2" ]; then chflags nouchg "$2" 2>/dev/null; chmod u+w "$2" 2>/dev/null; fi
+  mv -f "$nuevo" "$2" 2>/dev/null || { rm -f "$2" 2>/dev/null; mv -f "$nuevo" "$2"; } || { rm -f "$nuevo"; return 1; }
+}
+copiar_por_archivo() {  # copia carpeta por carpeta y archivo por archivo (solo contenido)
+  local rel err=0
+  while IFS= read -r rel; do mkdir -p "$2/$rel"; done <<EOF
+$(cd "$1" && find . -type d)
+EOF
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    copiar_archivo "$1/$rel" "$2/$rel" || { echo "  No se pudo copiar: ${rel#./}"; err=1; }
+  done <<EOF
+$(cd "$1" && find . -type f)
+EOF
+  return $err
+}
 copiar_dir() {  # copiar_dir <origen> <destino>: copia el contenido (fusiona y reemplaza)
   mkdir -p "$2"
-  if command -v ditto >/dev/null 2>&1; then ditto --noqtn "$1" "$2"; else cp -R "$1/." "$2/"; fi
-}
-copiar_archivo() {  # reemplaza el archivo: lo borra antes (también si quedó bloqueado)
-  [ -e "$1" ] || return 0
-  if [ -e "$2" ]; then chflags nouchg "$2" 2>/dev/null; chmod u+w "$2" 2>/dev/null; rm -f "$2"; fi
-  cp "$1" "$2"
+  if command -v ditto >/dev/null 2>&1; then
+    ditto --noqtn --noextattr --noacl "$1" "$2" 2>/dev/null && return 0
+  else
+    cp -R "$1/." "$2/" 2>/dev/null && return 0
+  fi
+  copiar_por_archivo "$1" "$2"
 }
 error_copia=0
 if [ $SOLO_APP = 1 ]; then
@@ -166,7 +236,7 @@ if [ $error_copia = 1 ] || [ -n "$faltan" ]; then
   dialogo "No se pudieron copiar los archivos a:
 $DESTINO
 
-Suele deberse a permisos de macOS. Abra Ajustes del Sistema > Privacidad y seguridad > Acceso total al disco, active Terminal y vuelva a ejecutar este instalador. La base de datos y los usuarios no se modificaron." 'OK' 'OK' >/dev/null
+La base de datos y los usuarios no se modificaron. Cierre esta ventana y vuelva a abrir «Instalar Sistema UVA». Si se repite, envíe a soporte una captura de la ventana de Terminal." 'OK' 'OK' >/dev/null
   salir 1
 fi
 echo '  Archivos copiados.'

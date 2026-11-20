@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  Genera el instalador para Mac (Apple o Intel): un .zip con «Instalar Sistema UVA.command» y la carpeta
+  Genera el instalador para Mac (Apple o Intel): un .zip con la app «Instalar Sistema UVA» (el instalador va dentro) y la carpeta
   contenido/ (web, app de campo, backend Odoo y uva.sh). Se ejecuta en Windows (o en cualquier equipo
   con PowerShell, Node/npm y Python).
 
@@ -58,7 +58,6 @@ Get-ChildItem $Contenido -Recurse -Force -Filter '.env' | Remove-Item -Force   #
 Copy-Item (Join-Path $Aqui '..\comun\uva.sh') (Join-Path $Contenido 'uva.sh')
 Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Contenido 'LEEME.txt')
 Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Raiz 'LEEME.txt')
-Copy-Item (Join-Path $Aqui 'instalar.command') (Join-Path $Raiz 'Instalar Sistema UVA.command')
 Copy-Item (Join-Path $Aqui 'instalar.command') (Join-Path $Recursos 'instalar.command')
 [System.IO.File]::WriteAllText((Join-Path $Contenido 'version.txt'), $Version)
 

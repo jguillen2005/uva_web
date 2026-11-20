@@ -28,6 +28,8 @@ param(
     [string]$Accion = 'estado',
     [switch]$Demo,
     [switch]$EliminarDatos,
+    # Con -EliminarDatos: conserva la autoridad de certificados (reinstalar desde cero; los teléfonos siguen confiando)
+    [switch]$ConservarCertificado,
     [switch]$Silencioso
 )
 
@@ -807,7 +809,10 @@ function Invoke-Desinstalar {
     } else {
         Write-Aviso 'Docker Desktop no está activo: los contenedores no se quitaron (puedes hacerlo desde Docker Desktop, proyecto "sistema-uva").'
     }
-    if ($borrar) { Remove-Item $EnvRespaldo -Force -ErrorAction SilentlyContinue; Remove-Item $CaRespaldo -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($borrar) {
+        Remove-Item $EnvRespaldo -Force -ErrorAction SilentlyContinue
+        if (-not $ConservarCertificado) { Remove-Item $CaRespaldo -Recurse -Force -ErrorAction SilentlyContinue }
+    }
 
     Write-Paso 'Quitando accesos directos y registro'
     $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Sistema UVA'
