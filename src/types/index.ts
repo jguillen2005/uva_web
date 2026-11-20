@@ -77,6 +77,8 @@ export interface ClientItem {
   phone: string;
   sharePointFolder: string;
   wells: WellSite[];
+  /** Datos de Aspel SAE (etiqueta, valor), solo si el cliente se importó de Aspel. */
+  aspel?: [string, string][];
 }
 
 export interface WellSite {
@@ -211,7 +213,7 @@ export interface EstadisticasData {
 /* ---------- Clientes / pozos ---------- */
 
 /** Campos editables de un cliente (POST/PUT /clientes). */
-export type ClienteInput = Partial<Omit<ClientItem, 'id' | 'wells'>>;
+export type ClienteInput = Partial<Omit<ClientItem, 'id' | 'wells' | 'aspel'>>;
 
 /** Renglón del archivo de Aspel en la vista previa de la importación. */
 export interface FilaAspel {
@@ -221,6 +223,8 @@ export interface FilaAspel {
   clave?: string;
   motivo?: string;
   campos?: string[];
+  /** RFC genérico de Aspel: el cliente se identifica por su clave de Aspel. */
+  generico?: boolean;
 }
 
 /** Respuesta de POST /catalogos/clientes/importar-aspel (vista previa o importación). */
@@ -237,6 +241,8 @@ export interface ImportacionAspel {
   sinCambios: number;
   errores: FilaAspel[] | number;
   totalErrores?: number;
+  /** Clientes con RFC genérico (se identifican por su clave de Aspel). */
+  totalGenericos?: number;
   clientes?: ClientItem[];
 }
 

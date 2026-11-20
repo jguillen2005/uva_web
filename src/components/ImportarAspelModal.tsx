@@ -12,7 +12,7 @@ import type { ClientItem, FilaAspel, ImportacionAspel } from '../types';
 const TAMANO_MAXIMO_MB = 7;
 const ETIQUETAS: Record<string, string> = {
   clave: 'Clave', nombre: 'Nombre', rfc: 'RFC', calle: 'Calle', numext: 'Núm. ext.', numint: 'Núm. int.', colonia: 'Colonia',
-  municipio: 'Municipio', ciudad: 'Ciudad', estado: 'Estado', cp: 'C.P.', telefono: 'Teléfono', email: 'Correo', contacto: 'Contacto',
+  municipio: 'Municipio', ciudad: 'Ciudad', estado: 'Estado', cp: 'C.P.', telefono: 'Teléfono', email: 'Correo', contacto: 'Contacto', estatus: 'Estatus',
 };
 const CAMPOS_PARTNER: Record<string, string> = {
   name: 'nombre', uva_tipo_fiscal: 'tipo fiscal', uva_codigo_aspel: 'clave Aspel', uva_domicilio_fiscal: 'domicilio', phone: 'teléfono',
@@ -186,7 +186,10 @@ export const ImportarAspelModal: React.FC<{
                     {lista.map((f) => (
                       <tr key={`${f.fila}-${f.rfc}`} className="border-t border-line-100">
                         <td className="px-3 py-1.5 tabular-nums text-ink-500">{f.fila}</td>
-                        <td className="px-3 py-1.5 font-mono">{f.rfc || '—'}</td>
+                        <td className="px-3 py-1.5 font-mono">
+                          {f.rfc || '—'}
+                          {f.generico && <span className="ml-1 font-sans text-[10px] font-semibold text-amber-700">genérico → RFC pendiente</span>}
+                        </td>
                         <td className="px-3 py-1.5">{f.nombre || '—'}</td>
                         <td className="px-3 py-1.5 text-ink-600">
                           {pestana === 'errores' ? f.motivo : pestana === 'actualizar' ? (f.campos || []).map((c) => CAMPOS_PARTNER[c] || c).join(', ') : f.clave || '—'}
@@ -198,6 +201,14 @@ export const ImportarAspelModal: React.FC<{
               )}
             </div>
             {lista.length < total && <p className="text-[11px] text-ink-500">Se muestran los primeros {lista.length} de {total}.</p>}
+
+            {(vista.totalGenericos ?? 0) > 0 && (
+              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex gap-1.5 items-start">
+                <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
+                {vista.totalGenericos} cliente(s) con el RFC genérico del SAT (público en general): se importan sin RFC y se identifican por
+                su clave de Aspel. El RFC es único por cliente: capture el del titular en su ficha antes de emitir el dictamen.
+              </p>
+            )}
 
             {totalErrores > 0 && (
               <p className="text-xs text-amber-800 flex gap-1.5 items-start">

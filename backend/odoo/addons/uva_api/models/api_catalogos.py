@@ -6,7 +6,7 @@ import re
 import unicodedata
 from datetime import timedelta
 
-from odoo import api, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.uva_core.models import uva_tools as ut
@@ -15,24 +15,72 @@ from .api_base import GRUPOS_ROL
 RE_RFC = re.compile(r'^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$')
 # RFC genéricos del SAT (público en general y extranjeros): no identifican a un cliente
 RFC_GENERICOS = {'XAXX010101000', 'XEXX010101000'}
+# Con RFC genérico el tipo fiscal no se puede deducir del RFC: se toma de la razón social
+RE_SOCIEDAD = re.compile(r'\b(S\.?\s?A\.?|S\.?\s?DE\s?R\.?\s?L\.?|S\.?\s?P\.?\s?R\.?|S\.?\s?C\.?|A\.?\s?C\.?|S\.?\s?A\.?\s?P\.?\s?I\.?|S\.?\s?A\.?\s?S\.?|I\.?\s?A\.?\s?P\.?)(\s|,|\.|$)', re.I)
 
 # Importación de clientes exportados de Aspel SAE (Excel o CSV). Los encabezados cambian según la versión
 # y la configuración de la exportación: se reconocen por sinónimos, sin acentos, espacios ni signos.
 COLUMNAS_ASPEL = {
-    'clave': ('CLAVE', 'CVE', 'CLAVECLIENTE', 'CVECLIENTE', 'NOCLIENTE', 'NUMCLIENTE', 'CODIGOCLIENTE', 'CLIENTE'),
+    'clave': ('CLAVE', 'CVE', 'CLAVECLIENTE', 'CLAVEDELCLIENTE', 'CVECLIENTE', 'NOCLIENTE', 'NUMCLIENTE', 'CODIGOCLIENTE', 'CLIENTE'),
+    # Estatus de Aspel SAE: A = activo, S = suspendido, B = dado de baja (no se importa)
+    'estatus': ('ESTATUS', 'STATUS', 'ESTADOCLIENTE'),
     'nombre': ('NOMBRE', 'RAZONSOCIAL', 'NOMBRECLIENTE', 'NOMBREORAZONSOCIAL', 'NOMBRERAZONSOCIAL', 'CLIENTENOMBRE'),
     'rfc': ('RFC', 'RFCCLIENTE'),
+    'curp': ('CURP',),
     'calle': ('CALLE', 'DOMICILIO', 'DIRECCION', 'CALLEYNUMERO'),
     'numext': ('NUMEXT', 'NUMEROEXTERIOR', 'NOEXT', 'NUMEXTERIOR', 'NOEXTERIOR', 'EXTERIOR'),
     'numint': ('NUMINT', 'NUMEROINTERIOR', 'NOINT', 'NUMINTERIOR', 'NOINTERIOR', 'INTERIOR'),
+    'entrecalle': ('ENTRECALLE',),
+    'ycalle': ('YCALLE',),
     'colonia': ('COLONIA',),
-    'municipio': ('MUNICIPIO', 'DELEGACION', 'MUNICIPIODELEGACION', 'DELEGACIONMUNICIPIO'),
-    'ciudad': ('CIUDAD', 'LOCALIDAD', 'POBLACION'),
-    'estado': ('ESTADO', 'ENTIDAD', 'ENTIDADFEDERATIVA'),
     'cp': ('CP', 'CODIGO', 'CODIGOPOSTAL', 'CODPOSTAL', 'CPOSTAL'),
+    'ciudad': ('CIUDAD', 'LOCALIDAD', 'POBLACION'),
+    'municipio': ('MUNICIPIO', 'DELEGACION', 'MUNICIPIODELEGACION', 'DELEGACIONMUNICIPIO'),
+    'estado': ('ESTADO', 'ENTIDAD', 'ENTIDADFEDERATIVA'),
+    'pais': ('PAIS',),
+    'nacionalidad': ('NACIONALIDAD',),
+    'referencia': ('REFERENCIA',),
     'telefono': ('TELEFONO', 'TELEFONOS', 'TEL', 'TELEFONO1'),
-    'email': ('EMAIL', 'CORREO', 'CORREOELECTRONICO', 'MAIL', 'EMAILPRED', 'EMAILPREDETERMINADO', 'EMAILCLIENTE'),
+    'fax': ('FAX',),
+    'web': ('PAGINAWEB', 'SITIOWEB', 'WEB'),
+    'email': ('EMAIL', 'CORREO', 'CORREOELECTRONICO', 'MAIL', 'MAILPREDETERMINADO', 'EMAILPRED', 'EMAILPREDETERMINADO', 'EMAILCLIENTE'),
     'contacto': ('CONTACTO', 'ATENCION', 'ATENCIONA', 'NOMBRECONTACTO'),
+    'clasificacion': ('CLASIFICACION',),
+    'zona': ('CLAVEDEZONA', 'ZONA'),
+    'vendedor': ('CLAVEDEVENDEDOR', 'VENDEDOR'),
+    'tipoempresa': ('TIPODEEMPRESA', 'TIPOEMPRESA'),
+    'cuenta': ('CUENTACONTABLE',),
+    'enviarcfd': ('ENVIARCFDPORCORREOELECTRONICO', 'ENVIARCFDPORCORREO'),
+    'concredito': ('CONCREDITO',),
+    'diascredito': ('DIASDECREDITO', 'DIASCREDITO'),
+    'limitecredito': ('LIMITEDECREDITO', 'LIMITECREDITO'),
+    # Domicilio de envío
+    'e_calle': ('CALLEDEENVIO', 'CALLEENVIO'),
+    'e_numint': ('NUMINTDEENVIO', 'NUMEROINTERIORDEENVIO', 'NUMINTENVIO'),
+    'e_numext': ('NUMEXTDEENVIO', 'NUMEROEXTERIORDEENVIO', 'NUMEXTENVIO'),
+    'e_entrecalle': ('ENTRECALLEENVIO', 'ENTRECALLEDEENVIO'),
+    'e_ycalle': ('YCALLEDEENVIO', 'YCALLEENVIO'),
+    'e_colonia': ('COLONIADEENVIO', 'COLONIAENVIO'),
+    'e_poblacion': ('POBLACIONDEENVIO', 'POBLACIONENVIO'),
+    'e_municipio': ('MUNICIPIODEENVIO', 'MUNICIPIOENVIO'),
+    'e_estado': ('ESTADODEENVIO', 'ESTADOENVIO'),
+    'e_pais': ('PAISDEENVIO', 'PAISENVIO'),
+    'e_cp': ('CODIGOPOSTALDEENVIO', 'CPDEENVIO', 'CODIGOPOSTALENVIO'),
+    'e_zona': ('CLAVEDEZONADEENVIO', 'ZONADEENVIO'),
+    'e_referencia': ('REFERENCIADEENVIO', 'REFERENCIAENVIO'),
+}
+# Columna de Aspel -> campo de texto del cliente (res.partner)
+TEXTO_ASPEL = {
+    'curp': 'uva_curp', 'calle': 'street', 'numext': 'uva_num_exterior', 'numint': 'uva_num_interior',
+    'entrecalle': 'uva_entre_calle', 'ycalle': 'uva_y_calle', 'colonia': 'uva_colonia', 'cp': 'zip', 'ciudad': 'city',
+    'municipio': 'uva_municipio', 'nacionalidad': 'uva_nacionalidad', 'referencia': 'uva_aspel_referencia',
+    'telefono': 'phone', 'fax': 'uva_fax', 'web': 'website', 'email': 'email', 'clasificacion': 'uva_aspel_clasificacion',
+    'zona': 'uva_aspel_zona', 'vendedor': 'uva_aspel_vendedor', 'tipoempresa': 'uva_aspel_tipo_empresa',
+    'cuenta': 'uva_aspel_cuenta_contable',
+    'e_calle': 'uva_envio_calle', 'e_numint': 'uva_envio_num_interior', 'e_numext': 'uva_envio_num_exterior',
+    'e_entrecalle': 'uva_envio_entre_calle', 'e_ycalle': 'uva_envio_y_calle', 'e_colonia': 'uva_envio_colonia',
+    'e_poblacion': 'uva_envio_poblacion', 'e_municipio': 'uva_envio_municipio', 'e_estado': 'uva_envio_estado',
+    'e_pais': 'uva_envio_pais', 'e_cp': 'uva_envio_cp', 'e_zona': 'uva_envio_zona', 'e_referencia': 'uva_envio_referencia',
 }
 MAX_FILAS_ASPEL = 20000
 
@@ -40,6 +88,17 @@ MAX_FILAS_ASPEL = 20000
 def _normalizar_encabezado(texto):
     texto = unicodedata.normalize('NFKD', str(texto or '')).encode('ascii', 'ignore').decode()
     return re.sub(r'[^A-Z0-9]', '', texto.upper())
+
+
+NUMERICOS_ASPEL = ('uva_aspel_dias_credito', 'uva_aspel_limite_credito')
+
+
+def numero_aspel(texto):
+    """Número de Aspel: «25,000.00», «$ 1500», «15». Vacío o inválido = 0."""
+    try:
+        return float(re.sub(r'[^\d.\-]', '', str(texto)) or 0)
+    except ValueError:
+        return 0.0
 
 
 def _texto_celda(valor):
@@ -119,6 +178,10 @@ class UvaApiCatalogos(models.AbstractModel):
             res['vat'] = res['vat'].upper()
             if not RE_RFC.match(res['vat']):
                 raise UserError('El RFC «%s» no tiene un formato válido.' % res['vat'])
+            if res['vat'] in RFC_GENERICOS:
+                # El RFC es único por contribuyente; el genérico del SAT no identifica a ningún cliente
+                raise UserError('%s es el RFC genérico del SAT (público en general), no el RFC de un cliente. '
+                                'Capture el RFC del titular.' % res['vat'])
         if nuevo:
             if not res.get('name'):
                 raise UserError('Capture la razón social del cliente.')
@@ -249,9 +312,29 @@ class UvaApiCatalogos(models.AbstractModel):
             raise UserError('El archivo tiene más de %d renglones; divídalo en partes.' % MAX_FILAS_ASPEL)
 
         Partner = self.env['res.partner']
-        existentes = {p.vat: p for p in Partner.with_context(active_test=False).search(
-            [('uva_es_cliente', '=', True), ('vat', '!=', False)])}
+        clientes = Partner.with_context(active_test=False).search([('uva_es_cliente', '=', True)])
+        # El RFC es único por cliente. Los que Aspel tiene con el RFC genérico del SAT (público en general) se
+        # importan sin RFC («pendiente») y se identifican por su clave de Aspel, que también reconoce a un cliente
+        # al que en Aspel le capturaron después su RFC real.
+        por_rfc = {c.vat: c for c in clientes if c.vat and c.vat not in RFC_GENERICOS}
+        por_clave = {c.uva_codigo_aspel: c for c in clientes if c.uva_codigo_aspel}
         valor = lambda fila, campo: fila[columnas[campo]] if campo in columnas and columnas[campo] < len(fila) else ''
+        mexico = self.env.ref('base.mx', raise_if_not_found=False)
+        estados = {_normalizar_encabezado(e.name): e.id for e in self.env['res.country.state'].search([('country_id', '=', mexico.id)])} if mexico else {}
+        paises = {}
+
+        def estado_id(nombre):
+            return estados.get(_normalizar_encabezado(nombre), False)
+
+        def pais_id(nombre):
+            clave_pais = _normalizar_encabezado(nombre)
+            if clave_pais not in paises:
+                if clave_pais in ('MEXICO', 'MX', 'MEX') and mexico:
+                    paises[clave_pais] = mexico.id
+                else:
+                    pais = self.env['res.country'].search([('name', '=ilike', nombre)], limit=1)
+                    paises[clave_pais] = pais.id or False
+            return paises[clave_pais]
         nuevos, actualizar, errores, vistos = [], [], [], {}
         sin_cambios = 0
         for numero, fila in enumerate(datos, start=inicio + 2):
@@ -261,11 +344,16 @@ class UvaApiCatalogos(models.AbstractModel):
             rfc = re.sub(r'[\s\-_.]', '', valor(fila, 'rfc')).upper()
             if not nombre and not rfc:
                 continue
+            if valor(fila, 'estatus').upper() == 'B':
+                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'Dado de baja en Aspel (estatus B)'})
+                continue
             if not rfc:
                 errores.append({'fila': numero, 'nombre': nombre, 'motivo': 'Sin RFC'})
                 continue
-            if rfc in RFC_GENERICOS:
-                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC genérico (público en general o extranjero)'})
+            clave = valor(fila, 'clave')
+            generico = rfc in RFC_GENERICOS
+            if generico and not clave:
+                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC genérico sin clave de Aspel (no se puede identificar)'})
                 continue
             if not RE_RFC.match(rfc):
                 errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC con formato no válido'})
@@ -273,10 +361,12 @@ class UvaApiCatalogos(models.AbstractModel):
             if not nombre:
                 errores.append({'fila': numero, 'rfc': rfc, 'motivo': 'Sin nombre o razón social'})
                 continue
-            if rfc in vistos:
-                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': 'RFC repetido en el archivo (fila %d)' % vistos[rfc]})
+            llave = ('clave', clave) if generico else ('rfc', rfc)
+            if llave in vistos:
+                motivo = 'Clave de Aspel repetida' if generico else 'RFC repetido'
+                errores.append({'fila': numero, 'nombre': nombre, 'rfc': rfc, 'motivo': '%s en el archivo (fila %d)' % (motivo, vistos[llave])})
                 continue
-            vistos[rfc] = numero
+            vistos[llave] = numero
             calle = ' '.join(x for x in (valor(fila, 'calle'), valor(fila, 'numext')) if x)
             if valor(fila, 'numint'):
                 calle += ' Int. %s' % valor(fila, 'numint')
@@ -287,20 +377,43 @@ class UvaApiCatalogos(models.AbstractModel):
                       'C.P. %s' % valor(fila, 'cp') if valor(fila, 'cp') else '']
             vals = {
                 'name': nombre,
-                'vat': rfc,
-                'uva_tipo_fiscal': 'moral' if len(rfc) == 12 else 'fisica',
-                'uva_codigo_aspel': valor(fila, 'clave') or False,
+                'vat': False if generico else rfc,
+                'uva_tipo_fiscal': ('moral' if RE_SOCIEDAD.search(nombre) else 'fisica') if generico else ('moral' if len(rfc) == 12 else 'fisica'),
+                'uva_codigo_aspel': clave or False,
                 'uva_domicilio_fiscal': ', '.join(x for x in partes if x) or False,
-                'phone': valor(fila, 'telefono') or False,
-                'email': valor(fila, 'email') or False,
                 'uva_contacto_avisos': valor(fila, 'contacto') or valor(fila, 'email') or False,
-                'zip': valor(fila, 'cp') or False,
             }
-            resumen = {'fila': numero, 'rfc': rfc, 'nombre': nombre, 'clave': vals['uva_codigo_aspel'] or ''}
-            cliente = existentes.get(rfc)
+            # Texto: solo las columnas que trae el archivo (lo vacío no borra lo capturado en el Sistema UVA)
+            for col, campo in TEXTO_ASPEL.items():
+                if col in columnas:
+                    vals[campo] = valor(fila, col) or False
+            if valor(fila, 'estatus').upper() in ('A', 'S'):
+                vals['uva_aspel_estatus'] = valor(fila, 'estatus').upper()
+            if valor(fila, 'estado'):
+                vals['state_id'] = estado_id(valor(fila, 'estado'))
+            if valor(fila, 'pais'):
+                vals['country_id'] = pais_id(valor(fila, 'pais'))
+            elif valor(fila, 'estado'):
+                vals['country_id'] = pais_id('MEXICO')
+            for col, campo in (('enviarcfd', 'uva_aspel_enviar_cfd'), ('concredito', 'uva_aspel_con_credito')):
+                if valor(fila, col).upper() in ('S', 'N', 'SI', 'SÍ', 'NO'):
+                    vals[campo] = valor(fila, col).upper().startswith('S')
+            if valor(fila, 'diascredito'):
+                vals['uva_aspel_dias_credito'] = int(numero_aspel(valor(fila, 'diascredito')))
+            if valor(fila, 'limitecredito'):
+                vals['uva_aspel_limite_credito'] = numero_aspel(valor(fila, 'limitecredito'))
+            resumen = {'fila': numero, 'rfc': rfc, 'nombre': nombre, 'clave': vals['uva_codigo_aspel'] or '', 'generico': generico}
+            cliente = (por_clave.get(clave) if generico else por_rfc.get(rfc) or (por_clave.get(clave) if clave else None))
+            if cliente and generico:
+                # Sin RFC en Aspel: no se toca el RFC del Sistema UVA (ni se borra uno ya capturado)
+                vals.pop('vat')
+                if cliente.vat:
+                    vals.pop('uva_tipo_fiscal')
             if cliente:
                 # Solo se escriben los datos que Aspel trae (no se borra lo capturado en el Sistema UVA)
-                cambios = {k: v for k, v in vals.items() if v and (cliente[k] or False) != v}
+                actual = lambda k: cliente[k].id if k in ('state_id', 'country_id') else (cliente[k] or False)
+                cambios = {k: v for k, v in vals.items()
+                           if (v or isinstance(v, bool) or k in NUMERICOS_ASPEL) and actual(k) != v and v is not None}
                 if cambios:
                     actualizar.append((cliente, cambios, dict(resumen, campos=sorted(cambios))))
                 else:
@@ -309,11 +422,12 @@ class UvaApiCatalogos(models.AbstractModel):
                 nuevos.append((vals, resumen))
 
         if confirmar:
+            ahora = fields.Datetime.now()
             for vals, _r in nuevos:
-                vals.update({'uva_es_cliente': True, 'is_company': vals['uva_tipo_fiscal'] == 'moral'})
+                vals.update({'uva_es_cliente': True, 'is_company': vals['uva_tipo_fiscal'] == 'moral', 'uva_aspel_importado': ahora})
                 Partner.create(vals)
             for cliente, cambios, _r in actualizar:
-                cliente.write(dict(cambios, uva_es_cliente=True))
+                cliente.write(dict(cambios, uva_es_cliente=True, uva_aspel_importado=ahora))
             mensaje = 'Importación desde Aspel: %d cliente(s) nuevo(s), %d actualizado(s), %d sin cambios, %d con error.' % (
                 len(nuevos), len(actualizar), sin_cambios, len(errores))
             self.env.company.partner_id.sudo().message_post(body='%s Archivo: %s' % (mensaje, nombre_archivo or ''))
@@ -326,7 +440,8 @@ class UvaApiCatalogos(models.AbstractModel):
             filaEncabezados=inicio + 1,
             nuevos=[r for _v, r in nuevos[:200]], totalNuevos=len(nuevos),
             actualizar=[r for _c, _v, r in actualizar[:200]], totalActualizar=len(actualizar),
-            sinCambios=sin_cambios, errores=errores[:200], totalErrores=len(errores))
+            sinCambios=sin_cambios, errores=errores[:200], totalErrores=len(errores),
+            totalGenericos=sum(1 for _v, r in nuevos if r['generico']) + sum(1 for _c, _v, r in actualizar if r['generico']))
 
     # ==================================================================
     # Verificadores y usuarios

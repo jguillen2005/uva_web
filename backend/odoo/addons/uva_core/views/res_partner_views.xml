@@ -20,6 +20,56 @@
                             <field name="uva_contacto_avisos" invisible="not uva_es_cliente"/>
                         </group>
                     </group>
+                    <group string="Aspel SAE" invisible="not uva_es_cliente">
+                        <group string="Datos fiscales">
+                            <field name="uva_aspel_estatus"/>
+                            <field name="uva_curp"/>
+                            <field name="uva_nacionalidad"/>
+                            <field name="uva_aspel_tipo_empresa"/>
+                            <field name="uva_aspel_clasificacion"/>
+                            <field name="uva_aspel_zona"/>
+                            <field name="uva_aspel_vendedor"/>
+                            <field name="uva_aspel_cuenta_contable"/>
+                        </group>
+                        <group string="Domicilio fiscal">
+                            <field name="street" string="Calle"/>
+                            <field name="uva_num_exterior"/>
+                            <field name="uva_num_interior"/>
+                            <field name="uva_entre_calle"/>
+                            <field name="uva_y_calle"/>
+                            <field name="uva_colonia"/>
+                            <field name="zip" string="C.P."/>
+                            <field name="city" string="Población"/>
+                            <field name="uva_municipio"/>
+                            <field name="state_id" string="Estado"/>
+                            <field name="country_id" string="País"/>
+                            <field name="uva_aspel_referencia"/>
+                        </group>
+                        <group string="Contacto y crédito">
+                            <field name="uva_fax"/>
+                            <field name="website"/>
+                            <field name="uva_aspel_enviar_cfd"/>
+                            <field name="uva_aspel_con_credito"/>
+                            <field name="uva_aspel_dias_credito" invisible="not uva_aspel_con_credito"/>
+                            <field name="uva_aspel_limite_credito" invisible="not uva_aspel_con_credito"/>
+                            <field name="uva_aspel_importado"/>
+                        </group>
+                        <group string="Domicilio de envío">
+                            <field name="uva_envio_calle"/>
+                            <field name="uva_envio_num_exterior"/>
+                            <field name="uva_envio_num_interior"/>
+                            <field name="uva_envio_entre_calle"/>
+                            <field name="uva_envio_y_calle"/>
+                            <field name="uva_envio_colonia"/>
+                            <field name="uva_envio_cp"/>
+                            <field name="uva_envio_poblacion"/>
+                            <field name="uva_envio_municipio"/>
+                            <field name="uva_envio_estado"/>
+                            <field name="uva_envio_pais"/>
+                            <field name="uva_envio_zona"/>
+                            <field name="uva_envio_referencia"/>
+                        </group>
+                    </group>
                     <field name="uva_pozo_ids" invisible="not uva_es_cliente">
                         <list>
                             <field name="identificador"/>

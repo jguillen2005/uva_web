@@ -20,10 +20,15 @@ import {
   CalendarClock,
   History,
   AlertTriangle,
+  ChevronDown,
 } from 'lucide-react';
 
 // Importación de clientes desde el archivo exportado de Aspel SAE (Excel o CSV)
 const ASPEL_HABILITADO = true;
+// Clientes importados de Aspel con el RFC genérico del SAT: quedan sin RFC hasta capturar el del titular
+const rfcPendiente = (rfc?: string) => !rfc || rfc.trim() === '' || rfc.trim() === '—';
+// RFC genéricos del SAT (público en general / extranjero): no identifican a un cliente
+const RFC_GENERICOS = ['XAXX010101000', 'XEXX010101000'];
 
 interface ClientesViewProps {
   onNavigate: (screen: ScreenKey) => void;
@@ -224,7 +229,10 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
                   >
                     <span className="font-semibold text-xs leading-snug line-clamp-2">{client.name}</span>
                     <span className={`text-[11px] ${isSelected ? 'text-brand-800/80' : 'text-ink-500'}`}>
-                      <span className="font-mono">{client.rfc}</span> · {client.wells.length} aprovechamiento
+                      {rfcPendiente(client.rfc)
+                        ? <span className="text-amber-700 font-semibold">RFC pendiente</span>
+                        : <span className="font-mono">{client.rfc}</span>}
+                      {' '}· {client.wells.length} aprovechamiento
                       {client.wells.length !== 1 ? 's' : ''}
                     </span>
                   </button>
@@ -246,7 +254,16 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
                 <div className="min-w-0">
                   <h2 className="text-base sm:text-lg font-bold text-ink-900 leading-snug text-balance">{selectedClient.name}</h2>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    <Chip mono>{selectedClient.rfc}</Chip>
+                    {!rfcPendiente(selectedClient.rfc) && <Chip mono>{selectedClient.rfc}</Chip>}
+                    {rfcPendiente(selectedClient.rfc) && (
+                      <span
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1"
+                        title="En Aspel tiene el RFC genérico (público en general). Capture el RFC del titular en «Editar datos»: se requiere para el dictamen."
+                      >
+                        <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+                        RFC pendiente: capture el RFC del titular
+                      </span>
+                    )}
                     <Chip>{selectedClient.fiscalType}</Chip>
                     <Chip mono>Aspel {selectedClient.aspelCode}</Chip>
                   </div>
@@ -275,6 +292,9 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
                 {selectedClient.fiscalAddress}
               </Field>
               <Field label="Carpeta en SharePoint" icon={<FolderOpen className="w-3.5 h-3.5" />} className="@lg:col-span-2 @4xl:col-span-4">
+                {rfcPendiente(selectedClient.sharePointFolder) ? (
+                  <span className="text-ink-500">Se crea al capturar el RFC del titular</span>
+                ) : (
                 <a
                   href="#SharePoint"
                   onClick={(e) => {
@@ -286,8 +306,26 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
                   {selectedClient.sharePointFolder}
                   <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
+                )}
               </Field>
             </dl>
+
+            {selectedClient.aspel && selectedClient.aspel.length > 0 && (
+              <details className="group border-t border-line-100 pt-3">
+                <summary className="cursor-pointer select-none text-xs font-semibold text-brand-700 inline-flex items-center gap-1.5 list-none">
+                  <ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" aria-hidden="true" />
+                  Datos de Aspel SAE ({selectedClient.aspel.length})
+                </summary>
+                <dl className="mt-3 grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 gap-x-6 gap-y-2 text-xs">
+                  {selectedClient.aspel.map(([etiqueta, valor]) => (
+                    <div key={etiqueta} className="min-w-0">
+                      <dt className="text-ink-500">{etiqueta}</dt>
+                      <dd className="text-ink-900 font-medium break-words">{valor}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+            )}
           </section>
 
           <div className="grid grid-cols-1 @5xl:grid-cols-[minmax(0,1fr)_24rem] gap-5 items-start">
@@ -587,6 +625,9 @@ const ClienteFormModal: React.FC<{
     const rfc = (vals.rfc ?? '').trim().toUpperCase();
     if (!name) return setError('Capture la razón social del cliente.');
     if (!rfc) return setError('Capture el RFC del cliente.');
+    if (RFC_GENERICOS.includes(rfc)) {
+      return setError(`${rfc} es el RFC genérico del SAT (público en general), no el RFC de un cliente. Capture el RFC del titular.`);
+    }
     if (!RE_RFC.test(rfc)) {
       return setError(`El RFC «${rfc}» no tiene un formato válido (12 caracteres persona moral, 13 persona física).`);
     }
