@@ -169,9 +169,9 @@ export const AppMovilView: React.FC = () => {
               <ol className="flex flex-col gap-3">
                 <PasoPc n={1}>Conéctelo al <strong>mismo Wi-Fi</strong> que esta computadora.</PasoPc>
                 <PasoPc n={2}>
-                  <span>Abra el navegador (<strong>Chrome</strong> en Android, <strong>Safari</strong> en iPhone o iPad) y escriba esta dirección:</span>
+                  <span>Abra el navegador (<strong>Chrome</strong> en Android, <strong>Safari</strong> en iPhone o iPad) y escriba esta dirección <strong>completa, con http://</strong> al inicio (si el navegador dice «La conexión no es segura», toque <strong>Continuar al sitio</strong>):</span>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-lg sm:text-xl font-bold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg px-3 py-1.5 break-all">{web.replace(/^http:\/\//, '')}</span>
+                    <span className="font-mono text-lg sm:text-xl font-bold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg px-3 py-1.5 break-all">{web}</span>
                     <button
                       type="button"
                       onClick={() => { void navigator.clipboard?.writeText(web).then(() => setCopiado(true), () => setCopiado(false)); }}
