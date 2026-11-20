@@ -53,7 +53,7 @@ Invoke-Nativo { robocopy (Join-Path $Repo 'backend') (Join-Path $Contenido 'back
     /XD node_modules __pycache__ .git certs /XF .env .env.* *.pyc *.log } | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy backend falló ($LASTEXITCODE)." }
 Get-ChildItem $Contenido -Recurse -Force -Filter '.env' | Remove-Item -Force   # nunca empaquetar secretos
-Copy-Item (Join-Path $Aqui 'uva.sh') (Join-Path $Contenido 'uva.sh')
+Copy-Item (Join-Path $Aqui '..\comun\uva.sh') (Join-Path $Contenido 'uva.sh')
 Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Contenido 'LEEME.txt')
 Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Raiz 'LEEME.txt')
 Copy-Item (Join-Path $Aqui 'instalar.command') (Join-Path $Raiz 'Instalar Sistema UVA.command')

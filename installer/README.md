@@ -107,3 +107,29 @@ arranque al iniciar sesión. Instala en `~/SistemaUVA`; la configuración se res
 - Probado en Linux (Docker en Docker): instalar, retomar tras un error, actualizar, inicio de sesión web,
   app por HTTPS con la CA local y desinstalar. Las partes exclusivas de macOS (diálogos, Llavero,
   accesos y LaunchAgent) no se pudieron probar en un Mac real.
+
+`uva.sh` es común a Mac y Linux: vive en `installer/comun/` y cada `build.ps1` lo copia al paquete.
+
+## Instalador para Linux (Ubuntu 22.04 o superior)
+
+`installer/linux/` genera `SistemaUVA-Instalador-Linux-<versión>.tar.gz` con **«Instalar Sistema UVA.sh»**
+(clic derecho > «Ejecutar como un programa», o `bash` en una terminal) y la carpeta `contenido/`.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\linux\build.ps1 -Version 1.1.1 `
+  -App C:\ruta\asercontrol -Apk C:\ruta\Asercontrol-Campo.apk
+```
+
+Igual que en Mac, más lo propio de Linux: si falta Docker ofrece instalarlo (`docker.io` y
+`docker-compose-v2` de Ubuntu, o el instalador oficial de Docker) y agrega al usuario al grupo `docker`
+(en esa sesión usa `sg docker`). Instala la CA local en el sistema (`update-ca-certificates`) y en la base
+NSS de Chrome/Chromium (`certutil`); crea lanzadores `.desktop` en el menú de aplicaciones y el escritorio
+y el arranque automático (`~/.config/autostart`). Docker inicia con el equipo y los contenedores se
+reinician solos. Instala en `~/SistemaUVA`; la configuración se respalda en `~/.config/sistema-uva/`.
+
+- Las preguntas se hacen en la terminal (opciones numeradas); sin terminal, con ventanas de `zenity`.
+- La imagen de los microservicios se construye una sola vez: sin `buildx` (paquete `docker.io`) construirla
+  en paralelo para los seis servicios falla con «image already exists».
+- Probado en Ubuntu 24.04 (contenedor con Docker propio): instalación nueva con un usuario sin permiso de
+  Docker, accesos, certificado, actualizar, desinstalar y las pruebas funcionales, sin conexión y no
+  funcionales sobre la instalación resultante.

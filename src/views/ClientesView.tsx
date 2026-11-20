@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { ScreenKey, ClientItem, WellSite } from '../types';
+import React, { useEffect, useRef, useState } from 'react';
+import { ScreenKey, ClientItem, ClienteInput, WellSite } from '../types';
 import { catalogos } from '../api/endpoints';
 import { useApi, errorMessage } from '../api/useApi';
 import { AsyncState } from '../components/AsyncState';
@@ -20,6 +20,9 @@ import {
   History,
   AlertTriangle,
 } from 'lucide-react';
+
+// Importación de clientes desde Aspel: desactivada hasta tener la integración lista
+const ASPEL_HABILITADO = false;
 
 interface ClientesViewProps {
   onNavigate: (screen: ScreenKey) => void;
@@ -53,28 +56,28 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
     }
   };
 
-  const handleNewClient = async () => {
-    try {
-      const res = await catalogos.createCliente({ name: 'Nuevo cliente' });
+  // Formulario de cliente: 'nuevo' o 'editar' (datos del cliente seleccionado); null = cerrado
+  const [formulario, setFormulario] = useState<'nuevo' | 'editar' | null>(null);
+
+  // Lanza el error para que el formulario lo muestre y siga abierto
+  const guardarCliente = async (vals: ClienteInput) => {
+    if (formulario === 'nuevo') {
+      const res = await catalogos.createCliente(vals);
       onShowToast(res.message);
       setClients((prev) => [...prev, res.cliente]);
       setSelectedClientId(res.cliente.id);
-    } catch (e) {
-      onShowToast(errorMessage(e));
-    }
-  };
-
-  const handleEditClient = async () => {
-    if (!selectedClient) return;
-    const { id, wells, ...vals } = selectedClient;
-    try {
+      setSearchQuery('');
+    } else if (selectedClient) {
+      const id = selectedClient.id;
       const res = await catalogos.updateCliente(id, vals);
       onShowToast(res.message);
       setClients((prev) => prev.map((c) => (c.id === id ? { ...c, ...res.cliente, wells: res.cliente.wells ?? c.wells } : c)));
-    } catch (e) {
-      onShowToast(errorMessage(e));
     }
+    setFormulario(null);
   };
+
+  const handleNewClient = () => setFormulario('nuevo');
+  const handleEditClient = () => setFormulario('editar');
 
   const handleNewWell = async () => {
     if (!selectedClient) return;
@@ -141,10 +144,13 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {/* Integración con Aspel desactivada por ahora: el botón queda visible pero no se puede usar */}
           <button
             type="button"
-            onClick={handleSyncAspel}
-            className="h-10 px-4 rounded-lg border border-line-300 bg-white hover:bg-surface-50 text-ink-900 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+            disabled={!ASPEL_HABILITADO}
+            onClick={ASPEL_HABILITADO ? handleSyncAspel : undefined}
+            title={ASPEL_HABILITADO ? undefined : 'La importación desde Aspel no está disponible por ahora.'}
+            className="h-10 px-4 rounded-lg border border-line-300 bg-white hover:bg-surface-50 text-ink-900 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Importar de Aspel
@@ -506,6 +512,150 @@ const ClientesContent: React.FC<ClientesViewProps & { initialClients: ClientItem
             )}
           </div>
         </div>
+      </div>
+
+      {formulario && (
+        <ClienteFormModal
+          titulo={formulario === 'nuevo' ? 'Nuevo cliente' : 'Editar datos del cliente'}
+          inicial={formulario === 'editar' ? selectedClient : undefined}
+          onCancelar={() => setFormulario(null)}
+          onGuardar={guardarCliente}
+        />
+      )}
+    </div>
+  );
+};
+
+/* ---------- Formulario de cliente (alta y edición) ---------- */
+
+// Mismo formato que valida Odoo (uva_api): 3-4 letras, fecha AAMMDD y homoclave de 3
+const RE_RFC = /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;
+const TIPOS_FISCALES = ['Persona moral', 'Persona física'];
+const CAMPOS_TEXTO: { clave: keyof ClienteInput; etiqueta: string; ayuda?: string; ancho?: boolean }[] = [
+  { clave: 'fiscalAddress', etiqueta: 'Domicilio fiscal', ancho: true },
+  { clave: 'legalRep', etiqueta: 'Representante legal' },
+  { clave: 'noticeContact', etiqueta: 'Contacto para avisos', ayuda: 'Nombre o correo' },
+  { clave: 'phone', etiqueta: 'Teléfono' },
+  { clave: 'aspelCode', etiqueta: 'Código Aspel' },
+  { clave: 'sharePointFolder', etiqueta: 'Carpeta en SharePoint', ayuda: 'Ruta o enlace', ancho: true },
+];
+
+// Los datos vacíos llegan como «—»: en el formulario se muestran vacíos
+const limpio = (v?: string) => (v && v.trim() !== '—' ? v : '');
+
+const ClienteFormModal: React.FC<{
+  titulo: string;
+  inicial?: ClientItem;
+  onCancelar: () => void;
+  onGuardar: (vals: ClienteInput) => Promise<void>;
+}> = ({ titulo, inicial, onCancelar, onGuardar }) => {
+  const [vals, setVals] = useState<ClienteInput>(() => ({
+    name: limpio(inicial?.name),
+    rfc: limpio(inicial?.rfc),
+    fiscalType: TIPOS_FISCALES.includes(inicial?.fiscalType ?? '') ? inicial!.fiscalType : 'Persona moral',
+    fiscalAddress: limpio(inicial?.fiscalAddress),
+    legalRep: limpio(inicial?.legalRep),
+    noticeContact: limpio(inicial?.noticeContact),
+    phone: limpio(inicial?.phone),
+    aspelCode: limpio(inicial?.aspelCode),
+    sharePointFolder: limpio(inicial?.sharePointFolder),
+  }));
+  const [error, setError] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  const primerCampo = useRef<HTMLInputElement>(null);
+
+  // Enfocar solo al abrir; Escape cierra (con la versión más reciente de onCancelar)
+  const cancelarRef = useRef(onCancelar);
+  cancelarRef.current = onCancelar;
+  useEffect(() => {
+    primerCampo.current?.focus();
+    const alEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') cancelarRef.current(); };
+    window.addEventListener('keydown', alEscape);
+    return () => window.removeEventListener('keydown', alEscape);
+  }, []);
+
+  const cambiar = (clave: keyof ClienteInput, valor: string) => setVals((v) => ({ ...v, [clave]: valor }));
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = (vals.name ?? '').trim();
+    const rfc = (vals.rfc ?? '').trim().toUpperCase();
+    if (!name) return setError('Capture la razón social del cliente.');
+    if (!rfc) return setError('Capture el RFC del cliente.');
+    if (!RE_RFC.test(rfc)) {
+      return setError(`El RFC «${rfc}» no tiene un formato válido (12 caracteres persona moral, 13 persona física).`);
+    }
+    setError(null);
+    setGuardando(true);
+    try {
+      const datos: ClienteInput = {};
+      for (const [clave, valor] of Object.entries({ ...vals, name, rfc })) {
+        (datos as Record<string, string>)[clave] = (valor ?? '').trim();
+      }
+      await onGuardar(datos);
+    } catch (err) {
+      setError(errorMessage(err));
+      setGuardando(false);
+    }
+  };
+
+  const claseCampo = 'w-full px-3 py-2 border border-line-300 rounded-lg text-sm bg-white focus:outline-none focus:border-brand-600';
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      onMouseDown={(e) => { if (e.target === e.currentTarget && !guardando) onCancelar(); }}
+    >
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-form-cliente"
+        className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl max-w-xl w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto">
+        <div className="flex justify-between items-center border-b border-line-100 pb-3">
+          <h3 id="titulo-form-cliente" className="text-lg font-bold text-ink-900">{titulo}</h3>
+          <button type="button" onClick={onCancelar} aria-label="Cerrar" className="text-ink-400 hover:text-ink-600 text-lg font-bold">
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={enviar} noValidate className="space-y-4">
+          {error && (
+            <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
+              <label htmlFor="cli-name" className="block text-xs font-bold text-ink-600 mb-1">Razón social *</label>
+              <input id="cli-name" ref={primerCampo} type="text" value={vals.name ?? ''} onChange={(e) => cambiar('name', e.target.value)}
+                className={claseCampo} autoComplete="organization" />
+            </div>
+            <div>
+              <label htmlFor="cli-rfc" className="block text-xs font-bold text-ink-600 mb-1">RFC *</label>
+              <input id="cli-rfc" type="text" value={vals.rfc ?? ''} maxLength={13}
+                onChange={(e) => cambiar('rfc', e.target.value.toUpperCase().replace(/\s/g, ''))}
+                className={`${claseCampo} font-mono uppercase`} placeholder="ABC123456XY9" />
+            </div>
+            <div>
+              <label htmlFor="cli-tipo" className="block text-xs font-bold text-ink-600 mb-1">Tipo fiscal</label>
+              <select id="cli-tipo" value={vals.fiscalType} onChange={(e) => cambiar('fiscalType', e.target.value)} className={claseCampo}>
+                {TIPOS_FISCALES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            {CAMPOS_TEXTO.map(({ clave, etiqueta, ayuda, ancho }) => (
+              <div key={clave} className={ancho ? 'sm:col-span-2' : undefined}>
+                <label htmlFor={`cli-${clave}`} className="block text-xs font-bold text-ink-600 mb-1">{etiqueta}</label>
+                <input id={`cli-${clave}`} type="text" value={(vals[clave] as string) ?? ''} placeholder={ayuda}
+                  onChange={(e) => cambiar(clave, e.target.value)} className={claseCampo} />
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-ink-500">* Campos obligatorios.</p>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1">
+            <button type="button" onClick={onCancelar} disabled={guardando}
+              className="h-10 px-4 rounded-lg border border-line-300 text-ink-700 hover:bg-surface-50 text-sm font-semibold disabled:opacity-60">
+              Cancelar
+            </button>
+            <button type="submit" disabled={guardando}
+              className="h-10 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-60">
+              {guardando ? 'Guardando…' : inicial ? 'Guardar cambios' : 'Registrar cliente'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

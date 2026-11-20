@@ -120,13 +120,13 @@ export default function App() {
   }, []);
   const cancelLogout = useCallback(() => setConfirmLogout(false), []);
 
-  const doLogout = () => {
+  const doLogout = async () => {
     if (requiereSesion) {
-      // Cierra la sesión en el servidor y vuelve al inicio de sesión
+      // Cierra la sesión en el servidor (el diálogo muestra «Cerrando sesión…») y vuelve al inicio de sesión
+      await sesion.cerrar().catch(() => undefined);
       setConfirmLogout(false);
       setToastMessage(null);
       setIsSidebarOpen(false);
-      sesion.cerrar().catch(() => undefined);
       setAvisoSesion('Cerraste sesión. Gracias por usar el Sistema UVA.');
       setEstadoSesion('anonima');
       window.location.hash = '';
@@ -274,7 +274,7 @@ export default function App() {
         {renderCurrentView()}
       </main>
 
-      {confirmLogout && <LogoutDialog onCancel={cancelLogout} onConfirm={doLogout} />}
+      {confirmLogout && <LogoutDialog onCancel={cancelLogout} onConfirm={doLogout} user={usuarioSesion} />}
 
       {/* Global Toast Alert */}
       {toastMessage && (

@@ -97,24 +97,73 @@ fi
 # ------------------------------------------------------------------ copiar archivos
 paso "Copiando archivos a $DESTINO"
 mkdir -p "$DESTINO"
+# Las marcas de cuarentena del .zip descargado pueden impedir leer o reemplazar archivos (sobre todo los
+# ejecutables como uva.sh): se quitan antes de copiar.
+xattr -cr "$CONTENIDO" 2>/dev/null || xattr -dr com.apple.quarantine "$CONTENIDO" 2>/dev/null || true
+copiar_dir() {  # copiar_dir <origen> <destino>: copia el contenido (fusiona y reemplaza)
+  mkdir -p "$2"
+  if command -v ditto >/dev/null 2>&1; then ditto --noqtn "$1" "$2"; else cp -R "$1/." "$2/"; fi
+}
+copiar_archivo() {  # reemplaza el archivo: lo borra antes (también si quedó bloqueado)
+  [ -e "$1" ] || return 0
+  if [ -e "$2" ]; then chflags nouchg "$2" 2>/dev/null; chmod u+w "$2" 2>/dev/null; rm -f "$2"; fi
+  cp "$1" "$2"
+}
+error_copia=0
 if [ $SOLO_APP = 1 ]; then
-  # Solo la app de campo, su módulo de Odoo, la configuración del gateway y los scripts de administración.
-  rm -rf "$DESTINO/app" "$DESTINO/backend/odoo/addons/uva_app_movil"
-  cp -R "$CONTENIDO/app" "$DESTINO/app"
-  cp -R "$CONTENIDO/backend/odoo/addons/uva_app_movil" "$DESTINO/backend/odoo/addons/uva_app_movil"
+  # Solo la app de campo, sus módulos de Odoo, la configuración del gateway y los scripts de administración.
+  # Si falta algo indispensable (p. ej. tras una actualización interrumpida), se repone desde el paquete
+  for d in backend/services backend/gateway backend/odoo/addons dist; do
+    if [ -d "$CONTENIDO/$d" ] && [ ! -d "$DESTINO/$d" ]; then
+      echo "  Reponiendo $d (faltaba en la instalación)."; mkdir -p "$(dirname "$DESTINO/$d")"
+      copiar_dir "$CONTENIDO/$d" "$DESTINO/$d" || error_copia=1
+    fi
+  done
+  for f in backend/docker-compose.yml backend/gateway/nginx.conf; do
+    [ -e "$DESTINO/$f" ] || copiar_archivo "$CONTENIDO/$f" "$DESTINO/$f" || error_copia=1
+  done
+  rm -rf "$DESTINO/app" "$DESTINO/backend/odoo/addons/uva_app_movil" "$DESTINO/backend/odoo/addons/uva_sesion_web"
+  copiar_dir "$CONTENIDO/app" "$DESTINO/app" || error_copia=1
+  for m in uva_app_movil uva_sesion_web; do
+    [ -d "$CONTENIDO/backend/odoo/addons/$m" ] && { copiar_dir "$CONTENIDO/backend/odoo/addons/$m" "$DESTINO/backend/odoo/addons/$m" || error_copia=1; }
+  done
   for f in backend/gateway/app.conf backend/docker-compose.app.yml uva.sh LEEME.txt Asercontrol-Campo.apk; do
-    [ -e "$CONTENIDO/$f" ] && cp "$CONTENIDO/$f" "$DESTINO/$f"
+    copiar_archivo "$CONTENIDO/$f" "$DESTINO/$f" || error_copia=1
   done
 else
   # Se reemplazan código, web, app y scripts; se conservan .env, certificados, CREDENCIALES, respaldos y bitácoras.
   rm -rf "$DESTINO/dist" "$DESTINO/app" "$DESTINO/backend/odoo/addons" "$DESTINO/backend/services" "$DESTINO/backend/gateway"
   conf="$DESTINO/backend/odoo/config/odoo.conf"; conf_guardada=''
   [ -f "$conf" ] && conf_guardada="$(cat "$conf")"
-  (cd "$CONTENIDO" && tar cf - --exclude version.txt .) | (cd "$DESTINO" && tar xf -)
+  copiar_archivo "$CONTENIDO/uva.sh" "$DESTINO/uva.sh" || error_copia=1
+  copiar_dir "$CONTENIDO" "$DESTINO" || error_copia=1
+  rm -f "$DESTINO/version.txt"
   [ -n "$conf_guardada" ] && printf '%s\n' "$conf_guardada" > "$conf"
 fi
-chmod +x "$UVA"
+chmod +x "$UVA" 2>/dev/null
 xattr -dr com.apple.quarantine "$DESTINO" 2>/dev/null || true
+# Comprobar que llegó lo indispensable antes de tocar Odoo o los servicios
+faltan=''
+# Copiados en esta ejecución: deben ser idénticos al paquete. El resto (solo la app): deben existir.
+iguales='uva.sh backend/docker-compose.app.yml backend/gateway/app.conf backend/odoo/addons/uva_app_movil/__manifest__.py app/index.html'
+existen='backend/docker-compose.yml backend/services/Dockerfile backend/gateway/nginx.conf'
+[ $SOLO_APP = 1 ] || { iguales="$iguales $existen"; existen=''; }
+for f in $iguales; do
+  [ -e "$CONTENIDO/$f" ] && ! cmp -s "$CONTENIDO/$f" "$DESTINO/$f" && faltan="$faltan
+  $f"
+done
+for f in $existen; do
+  [ -e "$DESTINO/$f" ] || faltan="$faltan
+  $f"
+done
+if [ $error_copia = 1 ] || [ -n "$faltan" ]; then
+  echo "  No se pudieron copiar todos los archivos.$faltan"
+  dialogo "No se pudieron copiar los archivos a:
+$DESTINO
+
+Suele deberse a permisos de macOS. Abra Ajustes del Sistema > Privacidad y seguridad > Acceso total al disco, active Terminal y vuelva a ejecutar este instalador. La base de datos y los usuarios no se modificaron." 'OK' 'OK' >/dev/null
+  salir 1
+fi
 echo '  Archivos copiados.'
 
 # ------------------------------------------------------------------ instalar / actualizar

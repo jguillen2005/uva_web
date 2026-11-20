@@ -257,54 +257,105 @@ export const SessionLoading: React.FC = () => (
 );
 
 /** Diálogo de confirmación antes de cerrar sesión. */
-export const LogoutDialog: React.FC<{ onCancel: () => void; onConfirm: () => void }> = ({ onCancel, onConfirm }) => {
+export const LogoutDialog: React.FC<{
+  onCancel: () => void;
+  onConfirm: () => void | Promise<void>;
+  user?: PerfilSesion | null;
+}> = ({ onCancel, onConfirm, user }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const [saliendo, setSaliendo] = useState(false);
+  const saliendoRef = useRef(false);
+  const cancelarRef = useRef(onCancel);
+  cancelarRef.current = onCancel;
+  const cancelar = () => { if (!saliendoRef.current) cancelarRef.current(); };
 
   useEffect(() => {
     cancelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape') cancelar();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onCancel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const confirmar = async () => {
+    if (saliendoRef.current) return;
+    saliendoRef.current = true;
+    setSaliendo(true);
+    try {
+      await onConfirm();
+    } catch {
+      saliendoRef.current = false;
+      setSaliendo(false);
+    }
+  };
+
+  const iniciales =
+    user?.initials ||
+    (user?.name || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase())
+      .join('');
+  const correo = user?.email && user.email.includes('@') ? user.email : user?.login;
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4"
-      onClick={onCancel}
+      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      onClick={cancelar}
     >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="logout-title"
         aria-describedby="logout-desc"
+        aria-busy={saliendo}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl max-w-sm w-full p-5 sm:p-6"
+        className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-sm w-full p-6 sm:p-7 text-center"
       >
-        <div className="w-11 h-11 rounded-full bg-danger-50 text-danger-700 flex items-center justify-center mb-3">
-          <LogOut className="w-5 h-5" />
+        <div className="w-14 h-14 rounded-full bg-brand-50 text-brand-700 ring-8 ring-brand-50/50 flex items-center justify-center mx-auto mb-4">
+          <LogOut className="w-6 h-6" aria-hidden="true" />
         </div>
-        <h2 id="logout-title" className="text-lg font-bold text-ink-900">¿Cerrar sesión?</h2>
-        <p id="logout-desc" className="text-sm text-ink-600 mt-1 leading-relaxed">
-          Saldrás del Sistema UVA en este dispositivo. Los cambios que no hayas guardado se perderán.
+        <h2 id="logout-title" className="text-xl font-bold text-ink-900">¿Cerrar sesión?</h2>
+        <p id="logout-desc" className="text-sm text-ink-600 mt-2 leading-relaxed text-pretty">
+          Saldrás del Sistema UVA en este dispositivo. Guarda tus cambios antes de salir.
         </p>
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5">
+
+        {user?.name && (
+          <div className="mt-5 flex items-center gap-3 rounded-xl border border-line-200 bg-surface-50 px-3 py-2.5 text-left">
+            <span
+              className="w-9 h-9 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center shrink-0"
+              aria-hidden="true"
+            >
+              {iniciales || '?'}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-ink-900 truncate">{user.name}</span>
+              {correo && <span className="block text-xs text-ink-500 truncate">{correo}</span>}
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+          <button
+            type="button"
+            onClick={confirmar}
+            disabled={saliendo}
+            className="sm:order-2 h-11 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-80 text-white text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors"
+          >
+            {saliendo ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <LogOut className="w-4 h-4" aria-hidden="true" />}
+            {saliendo ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          </button>
           <button
             ref={cancelRef}
             type="button"
-            onClick={onCancel}
-            className="h-10 px-4 rounded-lg border border-line-300 text-ink-700 hover:bg-surface-100 text-sm font-semibold"
+            onClick={cancelar}
+            disabled={saliendo}
+            className="sm:order-1 h-11 px-4 rounded-lg border border-line-300 text-ink-700 hover:bg-surface-100 disabled:opacity-60 text-sm font-semibold transition-colors"
           >
             Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="h-10 px-4 rounded-lg bg-danger-700 hover:brightness-110 text-white text-sm font-semibold inline-flex items-center justify-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Cerrar sesión
           </button>
         </div>
       </div>

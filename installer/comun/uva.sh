@@ -1,6 +1,6 @@
 #!/bin/bash
-# Sistema UVA en Mac (también funciona en Linux): administra la instalación local
-# (Docker Desktop + Odoo 19 + microservicios + gateway + app de campo).
+# Sistema UVA en Mac y Linux (Ubuntu): administra la instalación local
+# (Docker + Odoo 19 + microservicios + gateway + app de campo).
 #
 # Uso:  ./uva.sh <acción> [--demo] [--silencioso] [--eliminar-datos]
 #   instalar             Crea la base de datos (con --demo: datos de demostración) y levanta todo.
@@ -12,6 +12,7 @@
 #   renovar-clave        Nueva clave API para los microservicios
 #   regenerar-certificado  Nuevo certificado HTTPS de la app (p. ej. si cambió la IP); la CA se conserva
 #   desinstalar          Quita el sistema (pregunta si conservar los datos)
+#   --pausa              Al terminar espera Enter (accesos directos de Linux que abren una terminal)
 #
 # Compatible con el bash 3.2 de macOS (sin arreglos asociativos ni ${var,,}).
 
@@ -29,18 +30,28 @@ else
   CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/sistema-uva"
 fi
 ENV_RESPALDO="$CONFIG_DIR/configuracion.env"
+# Autoridad certificadora local (la de las tablets): se conserva al desinstalar sin borrar datos y se
+# reutiliza al reinstalar, para que las tablets no tengan que instalar otro certificado.
+CA_RESPALDO="$CONFIG_DIR/ca"
 ACCESOS_DIR="$HOME/Applications/Sistema UVA"
 AGENTE="$HOME/Library/LaunchAgents/mx.asercontrol.sistemauva.plist"
+DOCKER_NOMBRE='Docker Desktop'
+if [ "$ES_MAC" != 1 ]; then
+  DOCKER_NOMBRE='Docker'
+  ACCESOS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"   # menú de aplicaciones (.desktop)
+  AGENTE="${XDG_CONFIG_HOME:-$HOME/.config}/autostart/sistema-uva.desktop"
+fi
 DIAS_CLAVE=365
 # Verificador de campo que se crea al instalar (la app lo trae prellenado); se crea solo si no existe.
 USUARIO_CAMPO='jhovani.coss@asercontrol.com'
 CLAVE_CAMPO='asercontrol123456'
 
 ACCION="${1:-estado}"; shift || true
-DEMO=0; SILENCIOSO=0; ELIMINAR_DATOS=0
+DEMO=0; SILENCIOSO=0; ELIMINAR_DATOS=0; PAUSA=0
 for a in "$@"; do
   case "$a" in
     --demo) DEMO=1 ;;
+    --pausa) PAUSA=1 ;;
     --silencioso) SILENCIOSO=1 ;;
     --eliminar-datos) ELIMINAR_DATOS=1 ;;
   esac
@@ -53,14 +64,64 @@ aviso() { printf '  \033[33m!\033[0m   %s\n' "$*"; }
 falla() { printf '\n  \033[31mERROR\033[0m  %s\n' "$*" >&2; exit 1; }
 minus() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 
-# Diálogo con botones (macOS). Devuelve el botón elegido; en modo silencioso, el predeterminado.
+# Diálogos. macOS: ventanas de osascript. Linux: preguntas en la terminal o, sin terminal, ventanas de
+# zenity. Devuelven el botón elegido; en modo silencioso (o sin forma de preguntar), el predeterminado.
+hay_terminal() { { : </dev/tty; } 2>/dev/null; }
+hay_zenity() { [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] && command -v zenity >/dev/null 2>&1; }
+puede_preguntar() { [ "$SILENCIOSO" != 1 ] && { [ "$ES_MAC" = 1 ] || hay_terminal || hay_zenity; }; }
 dialogo() {  # dialogo "texto" "Botón1,Botón2" "Predeterminado"
   local texto="$1" botones="$2" pred="$3"
-  if [ "$SILENCIOSO" = 1 ] || [ "$ES_MAC" != 1 ]; then printf '%s' "$pred"; return; fi
-  local lista; lista="$(printf '%s' "$botones" | sed 's/[^,][^,]*/"&"/g; s/,/, /g')"
-  osascript -e "button returned of (display dialog \"$(printf '%s' "$texto" | sed 's/"/\\"/g')\" with title \"Sistema UVA\" buttons {$lista} default button \"$pred\")" 2>/dev/null || printf 'Cancelar'
+  if ! puede_preguntar; then printf '%s' "$pred"; return; fi
+  if [ "$ES_MAC" = 1 ]; then
+    local lista; lista="$(printf '%s' "$botones" | sed 's/[^,][^,]*/"&"/g; s/,/, /g')"
+    osascript -e "button returned of (display dialog \"$(printf '%s' "$texto" | sed 's/"/\\"/g')\" with title \"Sistema UVA\" buttons {$lista} default button \"$pred\")" 2>/dev/null || printf 'Cancelar'
+  elif hay_terminal; then
+    pregunta_terminal "$texto" "$botones" "$pred"
+  else
+    pregunta_zenity "$texto" "$botones" "$pred"
+  fi
 }
-mensaje() { [ "$SILENCIOSO" = 1 ] || [ "$ES_MAC" != 1 ] && return 0; osascript -e "display dialog \"$(printf '%s' "$1" | sed 's/"/\\"/g')\" with title \"Sistema UVA\" buttons {\"OK\"} default button \"OK\"" >/dev/null 2>&1 || true; }
+pregunta_terminal() {  # opciones numeradas; Enter = predeterminada. Escribe en la terminal, no en la salida.
+  local texto="$1" botones="$2" pred="$3" i n r opcion
+  while :; do
+    printf '\n%s\n\n' "$texto" >/dev/tty
+    n=0; IFS=','; for opcion in $botones; do n=$((n + 1)); [ "$opcion" = "$pred" ] && r=' (Enter)' || r=''; printf '   %d) %s%s\n' "$n" "$opcion" "$r" >/dev/tty; done; unset IFS
+    [ "$n" = 1 ] && { printf '\nPresione Enter para continuar...' >/dev/tty; read -r _ </dev/tty; printf '%s' "$pred"; return; }
+    printf '\nElija una opción [1-%d]: ' "$n" >/dev/tty; read -r r </dev/tty || r=''
+    [ -z "$r" ] && { printf '%s' "$pred"; return; }
+    i=0; IFS=','; for opcion in $botones; do i=$((i + 1)); [ "$i" = "$r" ] && { unset IFS; printf '%s' "$opcion"; return; }; done; unset IFS
+    printf '  Opción no válida.\n' >/dev/tty
+  done
+}
+pregunta_zenity() {  # Aceptar = predeterminado; Cancelar = primer botón; el resto, botones extra
+  local texto="$1" botones="$2" pred="$3" primero opcion r
+  local -a extra=()
+  IFS=','; set -- $botones; unset IFS
+  if [ $# = 1 ]; then zenity --info --title 'Sistema UVA' --no-wrap --text "$texto" 2>/dev/null; printf '%s' "$pred"; return; fi
+  primero="$1"
+  for opcion in "$@"; do [ "$opcion" != "$pred" ] && [ "$opcion" != "$primero" ] && extra+=(--extra-button "$opcion"); done
+  if r="$(zenity --question --title 'Sistema UVA' --no-wrap --text "$texto" --ok-label "$pred" --cancel-label "$primero" ${extra[@]+"${extra[@]}"} 2>/dev/null)"; then
+    printf '%s' "$pred"; return
+  fi
+  if [ -n "$r" ]; then printf '%s' "$r"; else printf '%s' "$primero"; fi
+}
+mensaje() {
+  puede_preguntar || return 0
+  if [ "$ES_MAC" = 1 ]; then
+    osascript -e "display dialog \"$(printf '%s' "$1" | sed 's/"/\\"/g')\" with title \"Sistema UVA\" buttons {\"OK\"} default button \"OK\"" >/dev/null 2>&1 || true
+  elif hay_terminal; then printf '\n  %s\n' "$1" >/dev/tty
+  else zenity --info --title 'Sistema UVA' --no-wrap --text "$1" 2>/dev/null || true; fi
+}
+carpeta_usuario() {  # carpeta_usuario DESKTOP|DOCUMENTS (en español: Escritorio, Documentos)
+  local d=''; command -v xdg-user-dir >/dev/null 2>&1 && d="$(xdg-user-dir "$1" 2>/dev/null)"
+  if [ -z "$d" ] || [ "$d" = "$HOME" ]; then
+    case "$1" in
+      DESKTOP) d="$HOME/Desktop"; [ -d "$HOME/Escritorio" ] && d="$HOME/Escritorio" ;;
+      *) d="$HOME/Documents"; [ -d "$HOME/Documentos" ] && d="$HOME/Documentos" ;;
+    esac
+  fi
+  printf '%s' "$d"
+}
 abrir_url() { if [ "$ES_MAC" = 1 ]; then open "$1"; elif command -v xdg-open >/dev/null; then xdg-open "$1" >/dev/null 2>&1 & else echo "$1"; fi; }
 
 secreto() { LC_ALL=C tr -dc 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789' </dev/urandom | head -c "${1:-24}"; }
@@ -139,12 +200,29 @@ fijar_clave_maestra() {
 # Docker ------------------------------------------------------------------------------------
 docker_listo() { docker info >/dev/null 2>&1; }
 asegurar_docker() {
-  command -v docker >/dev/null 2>&1 || falla 'Docker Desktop no está instalado. Descárguelo de https://www.docker.com/products/docker-desktop/ e intente de nuevo.'
-  docker_listo && return
-  if [ "$ES_MAC" = 1 ]; then paso 'Iniciando Docker Desktop (puede tardar un par de minutos)...'; open -a Docker >/dev/null 2>&1 || true; fi
+  if [ "$ES_MAC" = 1 ]; then
+    command -v docker >/dev/null 2>&1 || falla 'Docker Desktop no está instalado. Descárguelo de https://www.docker.com/products/docker-desktop/ e intente de nuevo.'
+  else
+    command -v docker >/dev/null 2>&1 || falla 'Docker no está instalado. Ejecute de nuevo el instalador del Sistema UVA (ofrece instalarlo) o: sudo apt install docker.io docker-compose-v2'
+  fi
+  if docker_listo; then
+    docker compose version >/dev/null 2>&1 || falla 'Falta Docker Compose. En Ubuntu: sudo apt install docker-compose-v2'
+    return
+  fi
+  if [ "$ES_MAC" = 1 ]; then
+    paso 'Iniciando Docker Desktop (puede tardar un par de minutos)...'; open -a Docker >/dev/null 2>&1 || true
+  else
+    if docker info 2>&1 | grep -qi 'permission denied'; then
+      falla "Su usuario no tiene permiso para usar Docker. Ejecute:  sudo usermod -aG docker $USER  y cierre e inicie sesión de nuevo."
+    fi
+    paso 'Iniciando el servicio de Docker'
+    if [ "$SILENCIOSO" = 1 ]; then sudo -n systemctl start docker >/dev/null 2>&1 || true
+    else sudo systemctl start docker || true; fi
+  fi
   local i=0
-  while [ $i -lt 60 ]; do sleep 5; docker_listo && { ok 'Docker Desktop está listo.'; return; }; printf '.'; i=$((i + 1)); done
-  falla 'Docker Desktop no respondió. Ábralo, espere a que diga "Engine running" y vuelva a intentar.'
+  while [ $i -lt 60 ]; do sleep 5; docker_listo && { ok "$DOCKER_NOMBRE está listo."; return; }; printf '.'; i=$((i + 1)); done
+  if [ "$ES_MAC" = 1 ]; then falla 'Docker Desktop no respondió. Ábralo, espere a que diga "Engine running" y vuelva a intentar.'
+  else falla 'Docker no respondió. Revise el servicio con:  sudo systemctl status docker'; fi
 }
 compose() { (cd "$BACKEND" && docker compose "$@") || falla "docker compose $* terminó con error."; }
 
@@ -179,7 +257,10 @@ importar_imagenes() {
   rm -rf "$dir"
   ok 'Imágenes cargadas.'
 }
-opciones_arranque() { if [ "$(leer_env UVA_SIN_INTERNET)" = "1" ]; then echo '--no-build --pull never'; else echo '--build'; fi; }
+opciones_arranque() { if [ "$(leer_env UVA_SIN_INTERNET)" = "1" ]; then echo '--no-build --pull never'; else echo '--no-build'; fi; }
+# Los 6 microservicios comparten una imagen: se construye una sola vez. Sin buildx (docker.io de Ubuntu),
+# construirla en paralelo para cada servicio choca («image ... already exists»).
+construir_servicios() { [ "$(leer_env UVA_SIN_INTERNET)" = "1" ] || compose build svc-catalogos; }
 
 # Red y certificado -------------------------------------------------------------------------
 nombre_equipo() {
@@ -195,10 +276,19 @@ ips_equipo() {
 
 inicializar_certificados() {  # [forzar]
   local dir="$BACKEND/certs" alt ip nombre
+  # Respaldo de la CA también en instalaciones que ya la tenían (antes no se respaldaba)
+  if [ -f "$dir/ca.key" ] && [ ! -f "$CA_RESPALDO/ca.key" ]; then
+    ( umask 077; mkdir -p "$CA_RESPALDO" ) && cp "$dir/ca.crt" "$dir/ca.key" "$CA_RESPALDO/" 2>/dev/null && chmod 600 "$CA_RESPALDO/ca.key"
+  fi
   if [ "${1:-}" != "forzar" ] && [ -f "$dir/servidor-cadena.crt" ]; then return; fi
   mkdir -p "$dir"
+  if [ ! -f "$dir/ca.crt" ] && [ -f "$CA_RESPALDO/ca.key" ]; then
+    cp "$CA_RESPALDO/ca.crt" "$CA_RESPALDO/ca.key" "$dir/"
+    ok 'Se reutiliza la autoridad certificadora anterior: las tablets no necesitan reinstalar el certificado.'
+  fi
   nombre="$(nombre_equipo)"
   alt="DNS:localhost,DNS:$nombre,DNS:${nombre%.local},IP:127.0.0.1"
+  [ "$ES_MAC" = 1 ] || alt="$alt,DNS:$nombre.local"
   for ip in $(ips_equipo); do alt="$alt,IP:$ip"; done
   printf 'basicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\nsubjectAltName=%s\n' "$alt" > "$dir/servidor.ext"
   cat > "$dir/generar.sh" <<EOF
@@ -212,6 +302,8 @@ openssl x509 -req -in servidor.csr -CA ca.crt -CAkey ca.key -CAcreateserial -day
 cat servidor.crt ca.crt > servidor-cadena.crt
 rm -f servidor.csr ca.srl
 chmod 644 servidor.key
+# Los archivos quedan a nombre del usuario (en Linux, root dentro del contenedor los crearía como root)
+chown $(id -u):$(id -g) ca.crt ca.key servidor.key servidor.crt servidor-cadena.crt
 EOF
   paso 'Generando el certificado HTTPS de la app de campo'
   # openssl viene en la imagen de Odoo (ya cargada o descargada para el sistema).
@@ -219,6 +311,7 @@ EOF
   [ -f "$dir/servidor-cadena.crt" ] || falla 'No se pudo generar el certificado HTTPS.'
   rm -f "$dir/generar.sh" "$dir/servidor.ext"
   cp "$dir/ca.crt" "$RAIZ/$CERT_TABLETS"
+  ( umask 077; mkdir -p "$CA_RESPALDO" ) && cp "$dir/ca.crt" "$dir/ca.key" "$CA_RESPALDO/" && chmod 600 "$CA_RESPALDO/ca.key"
   ok "Certificado para: $(printf '%s' "$alt" | sed 's/DNS://g; s/IP://g; s/,/, /g')"
   # En este Mac, confiar en la CA para abrir la app sin advertencias (macOS pide la contraseña).
   if [ "$ES_MAC" = 1 ] && [ "$SILENCIOSO" != 1 ]; then
@@ -227,6 +320,45 @@ EOF
     else
       aviso 'No se instaló el certificado en este Mac; el navegador mostrará una advertencia.'
     fi
+  fi
+  if [ "$ES_MAC" != 1 ] && [ "$SILENCIOSO" != 1 ]; then confiar_ca_linux "$dir/ca.crt"; fi
+}
+
+# Linux: la CA local en el sistema (curl, apps) y en la base NSS de Chrome/Chromium del usuario.
+CA_SISTEMA='/usr/local/share/ca-certificates/asercontrol-ca-local.crt'
+bases_nss() {
+  printf '%s\n' "$HOME/.pki/nssdb"
+  [ -d "$HOME/snap/chromium" ] && printf '%s\n' "$HOME/snap/chromium/current/.pki/nssdb"
+  return 0
+}
+confiar_ca_linux() {
+  local ca="$1" d
+  paso 'Instalando el certificado «Asercontrol CA local» en este equipo (puede pedir su contraseña)'
+  if command -v update-ca-certificates >/dev/null 2>&1 && sudo install -m 644 "$ca" "$CA_SISTEMA" && sudo update-ca-certificates >/dev/null 2>&1; then
+    ok 'Certificado de confianza instalado en el sistema.'
+  else
+    aviso 'No se instaló el certificado en el sistema.'
+  fi
+  if ! command -v certutil >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get install -y -qq libnss3-tools >/dev/null 2>&1 || true
+  fi
+  if command -v certutil >/dev/null 2>&1; then
+    for d in $(bases_nss); do
+      mkdir -p "$d"
+      [ -f "$d/cert9.db" ] || certutil -d "sql:$d" -N --empty-password >/dev/null 2>&1
+      certutil -d "sql:$d" -D -n 'Asercontrol CA local' >/dev/null 2>&1 || true
+      certutil -d "sql:$d" -A -t 'C,,' -n 'Asercontrol CA local' -i "$ca" >/dev/null 2>&1
+    done
+    ok 'Chrome/Chromium confiarán en la app de campo (reinicie el navegador si estaba abierto).'
+  else
+    aviso 'Sin certutil (paquete libnss3-tools): Chrome mostrará una advertencia la primera vez.'
+  fi
+}
+quitar_ca_linux() {
+  local d
+  if [ -f "$CA_SISTEMA" ]; then sudo rm -f "$CA_SISTEMA" && sudo update-ca-certificates --fresh >/dev/null 2>&1 || true; fi
+  if command -v certutil >/dev/null 2>&1; then
+    for d in $(bases_nss); do certutil -d "sql:$d" -D -n 'Asercontrol CA local' >/dev/null 2>&1 || true; done
   fi
 }
 
@@ -321,6 +453,14 @@ urls_app_red() {
   echo "$lista  https://$(nombre_equipo):$p"
 }
 
+texto_firewall() {
+  if [ "$ES_MAC" = 1 ]; then
+    printf '  Firewall del Mac: si está activado, permite las conexiones entrantes de Docker\n    (Ajustes del Sistema > Red > Firewall > Opciones).'
+  else
+    printf '  Firewall: Docker publica los puertos directamente (ufw no los bloquea). Si las tablets no\n    conectan, revisa que estén en la misma red y la dirección (https:// y puerto).'
+  fi
+}
+
 escribir_credenciales() {
   cat > "$RAIZ/CREDENCIALES.txt" <<EOF
 SISTEMA UVA - DATOS DE ACCESO
@@ -347,8 +487,7 @@ App de campo (tablets de los verificadores):
     Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
     Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
     "Agregar a la pantalla de inicio", o instala Asercontrol-Campo.apk y escribe la dirección en "Servidor".
-  Firewall del Mac: si está activado, permite las conexiones entrantes de Docker
-    (Ajustes del Sistema > Red > Firewall > Opciones).
+$(texto_firewall)
 
 Cambia la contraseña de admin al primer ingreso. Este archivo contiene contraseñas: no lo compartas.
 EOF
@@ -376,7 +515,7 @@ esperar_app() {
 
 # Accesos directos y arranque automático ----------------------------------------------------
 crear_accesos() {
-  [ "$ES_MAC" = 1 ] || return 0
+  [ "$ES_MAC" = 1 ] || { crear_accesos_linux; return; }
   mkdir -p "$ACCESOS_DIR"
   local accion nombre
   while IFS='|' read -r nombre accion; do
@@ -414,8 +553,64 @@ EOF
   ok 'Accesos en ~/Applications/Sistema UVA y en el escritorio; arranque automático al iniciar sesión.'
 }
 
+# Linux: lanzadores .desktop en el menú de aplicaciones, dos en el escritorio y arranque al iniciar sesión.
+# Docker arranca con el equipo y los contenedores se reinician solos (restart: unless-stopped).
+crear_accesos_linux() {
+  local nombre accion terminal archivo icono escritorio
+  mkdir -p "$ACCESOS_DIR" "$(dirname "$AGENTE")"
+  icono="$RAIZ/dist/brand/logo-uva.png"; [ -f "$icono" ] || icono='applications-office'
+  while IFS='|' read -r archivo nombre accion terminal; do
+    cat > "$ACCESOS_DIR/sistema-uva-$archivo.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$nombre
+Comment=Sistema UVA - Asercontrol
+Exec=$accion
+Icon=$icono
+Terminal=$terminal
+Categories=Office;
+EOF
+    chmod +x "$ACCESOS_DIR/sistema-uva-$archivo.desktop"
+  done <<EOF
+abrir|Sistema UVA|"$RAIZ/uva.sh" abrir|false
+app|App de campo Asercontrol|"$RAIZ/uva.sh" abrir-app|false
+odoo|Administrador de Odoo (Sistema UVA)|"$RAIZ/uva.sh" abrir-odoo|false
+iniciar|Iniciar Sistema UVA|"$RAIZ/uva.sh" iniciar --pausa|true
+detener|Detener Sistema UVA|"$RAIZ/uva.sh" detener --pausa|true
+estado|Estado del Sistema UVA|"$RAIZ/uva.sh" estado --pausa|true
+respaldar|Respaldar base de datos (Sistema UVA)|"$RAIZ/uva.sh" respaldar --pausa|true
+credenciales|Datos de acceso (Sistema UVA)|xdg-open "$RAIZ/CREDENCIALES.txt"|false
+carpeta|Carpeta del Sistema UVA (certificado y APK)|xdg-open "$RAIZ"|false
+desinstalar|Desinstalar Sistema UVA|"$RAIZ/uva.sh" desinstalar --pausa|true
+EOF
+  command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$ACCESOS_DIR" >/dev/null 2>&1
+  escritorio="$(carpeta_usuario DESKTOP)"
+  if [ -d "$escritorio" ]; then
+    for archivo in abrir app; do
+      cp "$ACCESOS_DIR/sistema-uva-$archivo.desktop" "$escritorio/sistema-uva-$archivo.desktop"
+      chmod +x "$escritorio/sistema-uva-$archivo.desktop"
+      # GNOME (Ubuntu) solo ejecuta lanzadores del escritorio marcados como de confianza
+      command -v gio >/dev/null 2>&1 && gio set "$escritorio/sistema-uva-$archivo.desktop" metadata::trusted true >/dev/null 2>&1
+    done
+  fi
+  cat > "$AGENTE" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Sistema UVA (arranque)
+Exec="$RAIZ/uva.sh" iniciar --silencioso
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+EOF
+  sudo -n systemctl enable docker >/dev/null 2>&1 || true
+  ok 'Accesos en el menú de aplicaciones y en el escritorio; arranque automático con el equipo.'
+}
+
 quitar_accesos() {
-  [ "$ES_MAC" = 1 ] || return 0
+  if [ "$ES_MAC" != 1 ]; then
+    rm -f "$ACCESOS_DIR"/sistema-uva-*.desktop "$AGENTE" "$(carpeta_usuario DESKTOP)"/sistema-uva-*.desktop
+    return 0
+  fi
   launchctl unload "$AGENTE" >/dev/null 2>&1 || true
   rm -f "$AGENTE" "$HOME/Desktop/Sistema UVA.command" "$HOME/Desktop/App de campo Asercontrol.command"
   rm -rf "$ACCESOS_DIR"
@@ -445,6 +640,7 @@ accion_instalar() {
   [ -n "$(cd "$BACKEND" && docker compose ps -q odoo 2>/dev/null)" ] && compose restart odoo
   paso 'Levantando Odoo, microservicios y gateway'
   # shellcheck disable=SC2046
+  construir_servicios
   compose up -d $(opciones_arranque) --wait
   escribir_credenciales
   crear_accesos
@@ -466,6 +662,7 @@ accion_agregar_app() {
   inicializar_certificados
   paso 'Publicando la app de campo en el gateway'
   # shellcheck disable=SC2046
+  construir_servicios
   compose up -d $(opciones_arranque) --wait
   compose restart odoo gateway
   escribir_credenciales
@@ -485,6 +682,7 @@ accion_actualizar() {
   asegurar_usuario_campo
   paso 'Reconstruyendo servicios'
   # shellcheck disable=SC2046
+  construir_servicios
   compose up -d $(opciones_arranque) --wait
   compose restart odoo gateway
   escribir_credenciales
@@ -525,7 +723,7 @@ accion_respaldar() {
 
 accion_desinstalar() {
   local borrar=$ELIMINAR_DATOS r
-  if [ "$SILENCIOSO" != 1 ] && [ "$ES_MAC" = 1 ]; then
+  if puede_preguntar; then
     r="$(dialogo "¿Eliminar también la base de datos y los archivos del Sistema UVA?
 
 Eliminar: se borra todo de forma permanente.
@@ -534,7 +732,7 @@ Conservar: los datos quedan para una reinstalación futura." "Cancelar,Conservar
     [ "$r" = "Eliminar" ] && borrar=1
     if [ "$borrar" = 1 ] && docker_listo && [ "$(dialogo '¿Hacer un respaldo antes de borrar?' 'No,Sí' 'Sí')" = "Sí" ]; then
       accion_respaldar
-      cp -R "$RESPALDO_HECHO" "$HOME/Documents/Respaldo Sistema UVA $(basename "$RESPALDO_HECHO")" && ok 'Respaldo copiado a Documentos.'
+      cp -R "$RESPALDO_HECHO" "$(carpeta_usuario DOCUMENTS)/Respaldo Sistema UVA $(basename "$RESPALDO_HECHO")" && ok 'Respaldo copiado a Documentos.'
     fi
   fi
   if docker_listo; then
@@ -544,22 +742,27 @@ Conservar: los datos quedan para una reinstalación futura." "Cancelar,Conservar
       for im in $(docker image ls --format '{{.Repository}}:{{.Tag}}' sistema-uva-servicios); do docker image rm "$im" >/dev/null 2>&1; done
     fi
   else
-    aviso 'Docker Desktop no está activo: los contenedores no se quitaron (proyecto "sistema-uva" en Docker Desktop).'
+    aviso "$DOCKER_NOMBRE no está activo: los contenedores no se quitaron (proyecto \"sistema-uva\")."
   fi
-  [ "$borrar" = 1 ] && rm -f "$ENV_RESPALDO"
+  [ "$borrar" = 1 ] && rm -rf "$ENV_RESPALDO" "$CA_RESPALDO"
   if [ "$ES_MAC" = 1 ] && [ "$borrar" = 1 ]; then
     security delete-certificate -c 'Asercontrol CA local' "$HOME/Library/Keychains/login.keychain-db" >/dev/null 2>&1 || true
   fi
+  if [ "$ES_MAC" != 1 ] && [ "$borrar" = 1 ]; then quitar_ca_linux; fi
   paso 'Quitando accesos directos'
   quitar_accesos
   cd / && rm -rf "$RAIZ"
   ok 'Sistema UVA desinstalado.'
-  [ "$borrar" = 1 ] || echo '  Los datos se conservaron. Para borrarlos después: Docker Desktop > Volumes > sistema-uva_*'
+  if [ "$borrar" != 1 ]; then
+    if [ "$ES_MAC" = 1 ]; then echo '  Los datos se conservaron. Para borrarlos después: Docker Desktop > Volumes > sistema-uva_*'
+    else echo '  Los datos se conservaron. Para borrarlos después: docker volume rm sistema-uva_uva-db sistema-uva_uva-odoo-data'; fi
+  fi
   mensaje 'Sistema UVA se desinstaló correctamente.'
 }
 
 # ----------------------------------------------------------------------------- principal
 mkdir -p "$RAIZ/logs"
+if [ "$PAUSA" = 1 ]; then trap 'printf "\nPresione Enter para cerrar..." >/dev/tty 2>/dev/null; read -r _ </dev/tty 2>/dev/null' EXIT; fi
 case "$ACCION" in
   abrir|abrir-odoo|abrir-app|estado) ;;
   *) exec > >(tee -a "$RAIZ/logs/$ACCION-$(date '+%Y%m%d-%H%M%S').log") 2>&1 ;;

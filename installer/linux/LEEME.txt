@@ -1,0 +1,45 @@
+SISTEMA UVA PARA LINUX (UBUNTU) - INSTALACIÓN LOCAL
+Web del Sistema UVA + app de campo de las tablets + backend Odoo 19
+
+Requisitos
+  - Ubuntu 22.04 o superior (también Debian 12 y derivados), equipo amd64 o arm64.
+  - 8 GB de RAM (16 recomendados) y 8 GB libres en disco (15 recomendados).
+  - Docker Engine y Docker Compose. Si faltan, el instalador ofrece instalarlos
+    (paquetes docker.io y docker-compose-v2 de Ubuntu). Pide la contraseña de administrador (sudo).
+  - Internet durante la instalación (descarga Odoo, PostgreSQL y nginx).
+
+Instalar
+  1. Descomprima el archivo: clic derecho > «Extraer aquí», o en una terminal:
+       tar xzf SistemaUVA-Instalador-Linux-*.tar.gz
+  2. En la carpeta «Instalador Sistema UVA», clic derecho en «Instalar Sistema UVA.sh» >
+     «Ejecutar como un programa». O en una terminal:
+       bash "Instalador Sistema UVA/Instalar Sistema UVA.sh"
+  3. Responda en la terminal (escriba el número de la opción; Enter elige la marcada):
+     si instalar Docker (si falta) y si desea datos de demostración.
+  4. Escriba su contraseña cuando la pida (sudo): para instalar Docker y para confiar en el
+     certificado «Asercontrol CA local» (abrir la app de campo en este equipo sin advertencias).
+  5. Al terminar se abren el sistema y CREDENCIALES.txt (usuario admin, contraseñas y el
+     verificador predeterminado jhovani.coss@asercontrol.com / asercontrol123456).
+
+  Si el sistema ya estaba instalado, el instalador pregunta:
+    Actualizar todo  - web, backend Odoo y app (respalda y conserva datos y usuarios).
+    Solo la app      - solo la app de campo de las tablets.
+
+Qué queda instalado
+  Carpeta:   ~/SistemaUVA  (configuración, certificado para tablets, APK y respaldos)
+  Accesos:   menú de aplicaciones (busque «Sistema UVA») y en el escritorio
+             (Sistema UVA, App de campo Asercontrol). Si el escritorio muestra el acceso
+             como archivo: clic derecho > «Permitir ejecutar».
+  Arranque:  automático. Docker inicia con el equipo y el sistema se levanta solo.
+
+Tablets (misma red Wi-Fi que este equipo)
+  1. Instale en la tablet Certificado-tablets-Asercontrol.crt (de ~/SistemaUVA):
+     Ajustes > Seguridad > Cifrado y credenciales > Instalar un certificado > Certificado de CA.
+  2. Abra en Chrome la dirección «App de campo» de CREDENCIALES.txt y elija
+     «Agregar a la pantalla de inicio», o instale Asercontrol-Campo.apk y escriba esa dirección en «Servidor».
+  Conviene fijar la IP de este equipo en el router. Si cambia: ~/SistemaUVA/uva.sh regenerar-certificado
+
+Administración (terminal, en ~/SistemaUVA)
+  ./uva.sh estado | iniciar | detener | respaldar | actualizar | renovar-clave
+  ./uva.sh abrir | abrir-app | abrir-odoo | agregar-app | regenerar-certificado | desinstalar
+  Bitácoras en ~/SistemaUVA/logs. Respaldos en ~/SistemaUVA/respaldos.

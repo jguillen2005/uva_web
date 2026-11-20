@@ -27,12 +27,16 @@ class UvaAppAcceso(models.Model):
 
     @api.model
     def registrar_fallo(self, clave):
-        rec = self.sudo().search([('clave', '=', clave)], limit=1) or self.sudo().create({'clave': clave})
-        fallos = rec.fallos + 1
-        if fallos >= MAX_INTENTOS:
-            rec.write({'fallos': 0, 'bloqueado_hasta': fields.Datetime.now() + timedelta(minutes=BLOQUEO_MINUTOS)})
-        else:
-            rec.write({'fallos': fallos})
+        # En su propia transacción: después se responde con un error («contraseña incorrecta») que deshace la
+        # transacción de la petición; si el intento se guardara en ella, el bloqueo nunca se activaría.
+        with self.env.registry.cursor() as cr:
+            Acceso = self.with_env(self.env(cr=cr, su=True))
+            rec = Acceso.search([('clave', '=', clave)], limit=1) or Acceso.create({'clave': clave})
+            fallos = rec.fallos + 1
+            if fallos >= MAX_INTENTOS:
+                rec.write({'fallos': 0, 'bloqueado_hasta': fields.Datetime.now() + timedelta(minutes=BLOQUEO_MINUTOS)})
+            else:
+                rec.write({'fallos': fallos})
 
     @api.model
     def registrar_exito(self, clave):

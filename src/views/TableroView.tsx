@@ -146,6 +146,8 @@ export const TableroView: React.FC<TableroViewProps> = ({ onNavigate }) => {
                 className="h-full rounded-full bg-linear-to-r from-brand-600 to-accent-400 transition-all duration-500"
                 style={{ width: '60%' }}
                 role="progressbar"
+                aria-label="Avance de verificaciones del mes respecto a la meta"
+                aria-valuetext="18 de 30 verificaciones (60%)"
                 aria-valuenow={60}
                 aria-valuemin={0}
                 aria-valuemax={100}

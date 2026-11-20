@@ -36,6 +36,9 @@ $Raiz = $PSScriptRoot
 $Backend = Join-Path $Raiz 'backend'
 $EnvFile = Join-Path $Backend '.env'
 $EnvRespaldo = Join-Path $env:LOCALAPPDATA 'SistemaUVA-configuracion.env'
+# Autoridad certificadora local (la que se instala en las tablets): se conserva al desinstalar sin borrar
+# datos, para que una reinstalación la reutilice y las tablets no tengan que instalar otro certificado.
+$CaRespaldo = Join-Path $env:LOCALAPPDATA 'SistemaUVA-ca'
 $Proyecto = 'sistema-uva'
 $ComposeArchivos = 'docker-compose.yml;docker-compose.app.yml'   # el segundo publica la app de campo
 $CertTablets = 'Certificado-tablets-Asercontrol.crt'
@@ -179,8 +182,17 @@ function Initialize-Certificados([bool]$Forzar = $false) {
     # Una autoridad local (CA) firma el certificado HTTPS del equipo. La CA se instala una vez en cada
     # tablet; si el certificado del equipo se regenera (cambio de IP), la CA sigue siendo la misma.
     $dir = Join-Path $Backend 'certs'
+    # Respaldo de la CA también en instalaciones que ya la tenían (antes no se respaldaba)
+    if ((Test-Path (Join-Path $dir 'ca.key')) -and -not (Test-Path (Join-Path $CaRespaldo 'ca.key'))) {
+        New-Item -ItemType Directory -Force $CaRespaldo | Out-Null
+        Copy-Item (Join-Path $dir 'ca.crt'), (Join-Path $dir 'ca.key') $CaRespaldo -Force
+    }
     if (-not $Forzar -and (Test-Path (Join-Path $dir 'servidor-cadena.crt'))) { return }
     New-Item -ItemType Directory -Force $dir | Out-Null
+    if (-not (Test-Path (Join-Path $dir 'ca.crt')) -and (Test-Path (Join-Path $CaRespaldo 'ca.key'))) {
+        Copy-Item (Join-Path $CaRespaldo 'ca.crt'), (Join-Path $CaRespaldo 'ca.key') $dir -Force
+        Write-Ok 'Se reutiliza la autoridad certificadora anterior: las tablets no necesitan reinstalar el certificado.'
+    }
     $eq = Get-DireccionesEquipo
     $alt = @($eq.Nombres | ForEach-Object { "DNS:$_" }) + @($eq.Ips | ForEach-Object { "IP:$_" })
     $ext = "basicConstraints=CA:FALSE`nkeyUsage=digitalSignature,keyEncipherment`nextendedKeyUsage=serverAuth`nsubjectAltName=$($alt -join ',')`n"
@@ -204,6 +216,8 @@ function Initialize-Certificados([bool]$Forzar = $false) {
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $dir 'servidor-cadena.crt'))) { Stop-ConError 'No se pudo generar el certificado HTTPS.' }
     Remove-Item (Join-Path $dir 'generar.sh'), (Join-Path $dir 'servidor.ext') -Force -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $dir 'ca.crt') (Join-Path $Raiz $CertTablets) -Force
+    New-Item -ItemType Directory -Force $CaRespaldo | Out-Null
+    Copy-Item (Join-Path $dir 'ca.crt'), (Join-Path $dir 'ca.key') $CaRespaldo -Force
     Write-Ok "Certificado para: $(($eq.Nombres + $eq.Ips) -join ', ')"
     # En este equipo, confiar en la CA para abrir la app sin advertencias (Windows pide confirmar).
     if (-not $Silencioso) {
@@ -661,7 +675,7 @@ function Invoke-Desinstalar {
     } else {
         Write-Aviso 'Docker Desktop no está activo: los contenedores no se quitaron (puedes hacerlo desde Docker Desktop, proyecto "sistema-uva").'
     }
-    if ($borrar) { Remove-Item $EnvRespaldo -Force -ErrorAction SilentlyContinue }
+    if ($borrar) { Remove-Item $EnvRespaldo -Force -ErrorAction SilentlyContinue; Remove-Item $CaRespaldo -Recurse -Force -ErrorAction SilentlyContinue }
 
     Write-Paso 'Quitando accesos directos y registro'
     $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Sistema UVA'
