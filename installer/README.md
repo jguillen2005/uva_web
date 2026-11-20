@@ -1,6 +1,6 @@
 # Instalador de Windows
 
-Genera `SistemaUVA-Instalador-<versión>.exe`, un instalador autoextraíble con el ícono del sistema.
+Genera `SistemaUVA-Instalador-Windows-<versión>.exe`, un instalador autoextraíble con el ícono del sistema.
 El ejecutable ([windows/stub/Instalador.cs](windows/stub/Instalador.cs)) se compila con el `csc.exe` de
 .NET Framework incluido en Windows: no hace falta instalar herramientas. Lleva el contenido en un zip
 pegado al final, sin límite práctico de tamaño, y no pide permisos de administrador.
@@ -12,19 +12,19 @@ El instalador lleva juntos la **web del Sistema UVA**, la **app de campo** de la
 
 ```powershell
 # Con internet (~7 MB): descarga las imágenes de Docker durante la instalación
-powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 `
+powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 `
   -App C:\ruta\asercontrol -Nombre ASERCONTROL-Instalador_web
 
 # Sin internet (~1 GB): incluye las imágenes de Odoo, PostgreSQL, nginx y los microservicios
-powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 `
+powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 `
   -App C:\ruta\asercontrol -Nombre ASERCONTROL-Instalador -SinInternet
 ```
 
 `-App` es la carpeta del proyecto de la app de campo (por omisión `..\asercontrol` o `$env:ASERCONTROL_APP`).
 `-Salida` cambia la
 carpeta del `.exe`; por omisión queda en `installer\windows\salida\`. Para revisar el contenido sin instalar:
-`SistemaUVA-Instalador-1.0.0.exe /extraer C:\ruta\carpeta`. Instalación desatendida:
-`SistemaUVA-Instalador-1.0.0.exe -Silencioso -Demo no`. Requisitos del equipo que compila: Node/npm y,
+`SistemaUVA-Instalador-Windows-1.1.1.exe /extraer C:\ruta\carpeta`. Instalación desatendida:
+`SistemaUVA-Instalador-Windows-1.1.1.exe -Silencioso -Demo no`. Requisitos del equipo que compila: Node/npm y,
 para `-SinInternet`, Docker y ~5 GB libres temporales.
 
 El paquete **nunca** incluye `backend\.env` ni claves: cada instalación genera sus propias contraseñas.

@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  Asistente de instalación del Sistema UVA. Lo ejecuta SistemaUVA-Instalador-<versión>.exe.
+  Asistente de instalación del Sistema UVA. Lo ejecuta SistemaUVA-Instalador-Windows-<versión>.exe.
 
 .PARAMETER Destino     Carpeta de instalación (por omisión %LOCALAPPDATA%\Programs\SistemaUVA).
 .PARAMETER Demo        'si' o 'no': cargar datos de demostración (si se omite, se pregunta).
@@ -25,7 +25,7 @@ if (-not $Destino) {
 
 $ErrorActionPreference = 'Stop'
 $Origen = $PSScriptRoot
-$Version = if (Test-Path (Join-Path $Origen 'version.txt')) { (Get-Content (Join-Path $Origen 'version.txt') -Raw).Trim() } else { '1.0.0' }
+$Version = if (Test-Path (Join-Path $Origen 'version.txt')) { (Get-Content (Join-Path $Origen 'version.txt') -Raw).Trim() } else { '1.1.1' }
 $Host.UI.RawUI.WindowTitle = "Instalador Sistema UVA $Version"
 
 function Write-Paso([string]$Texto) { Write-Host "`n> $Texto" -ForegroundColor Cyan }

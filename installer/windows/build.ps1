@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  Genera el instalador SistemaUVA-Instalador-<versión>.exe. El ejecutable se compila con el csc.exe
+  Genera el instalador SistemaUVA-Instalador-Windows-<versión>.exe. El ejecutable se compila con el csc.exe
   de .NET Framework (incluido en Windows): no hace falta instalar herramientas.
 
 .PARAMETER Version      Versión que se muestra en el instalador y en "Aplicaciones instaladas".
@@ -14,16 +14,16 @@
 .PARAMETER Nombre       Nombre base del .exe.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 -App C:\ruta\asercontrol
-  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.0 -App C:\ruta\asercontrol -SinInternet
+  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol
+  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol -SinInternet
 #>
 param(
-    [string]$Version = '1.1.0',
+    [string]$Version = '1.1.1',
     [switch]$SinInternet,
     [switch]$OmitirFrontend,
     [string]$App = '',
     [string]$Salida = '',
-    [string]$Nombre = 'SistemaUVA-Instalador'
+    [string]$Nombre = 'SistemaUVA-Instalador-Windows'
 )
 
 $ErrorActionPreference = 'Stop'
