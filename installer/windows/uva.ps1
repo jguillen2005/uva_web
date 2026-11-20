@@ -90,6 +90,68 @@ function Get-PuertoLibre([int]$Desde) {
     Stop-ConError "No hay puertos libres a partir de $Desde."
 }
 
+# Puertos ocupados al arrancar ---------------------------------------------------------------
+# Si otro programa tomó un puerto del sistema (web, app de campo u Odoo), se cambia solo al siguiente
+# libre, sin preguntar. Los teléfonos encuentran solos el puerto nuevo de la app (buscan en el mismo equipo).
+$Script:ProcesosDocker = 'com.docker.backend|com.docker.proxy|wslrelay|vpnkit|docker-proxy|Docker Desktop'
+function Get-UsoPuerto([int]$Puerto) {
+    # ¿Quién usa el puerto? 'propio' = el Sistema UVA (o Docker levantándolo); si no, una descripción.
+    # Contenedores que publican el puerto. Sin comillas dentro del formato: PowerShell 5.1 las quita al
+    # pasar argumentos a programas externos ({{.Labels}} trae «clave=valor,...»).
+    $contenedores = @()
+    if (Get-Command docker -ErrorAction SilentlyContinue) {
+        $contenedores = @(Invoke-Nativo { docker ps --filter "publish=$Puerto" --format '{{.Names}}|{{.Labels}}' 2>$null })
+    }
+    foreach ($c in $contenedores) {
+        $partes = "$c".Split('|', 2)
+        if (-not $partes[0]) { continue }
+        if ($partes.Count -gt 1 -and $partes[1] -match "com\.docker\.compose\.project=$([regex]::Escape($Proyecto))(,|$)") { return 'propio' }
+        return "el contenedor «$($partes[0])» de Docker"
+    }
+    try {
+        $con = Get-NetTCPConnection -LocalPort $Puerto -State Listen -ErrorAction Stop | Select-Object -First 1
+        $proc = Get-Process -Id $con.OwningProcess -ErrorAction Stop
+        # Docker Desktop publicando los puertos del sistema mientras arranca sus contenedores
+        if ($proc.ProcessName -match $Script:ProcesosDocker) { return 'propio' }
+        return "«$($proc.ProcessName)» (PID $($proc.Id))"
+    } catch { }
+    if (Test-PuertoLibre $Puerto) { return $null }
+    return 'otro programa'
+}
+
+function Resolve-PuertosOcupados {
+    # Devuelve las claves que cambiaron (GATEWAY_PORT, APP_PORT, ODOO_PORT)
+    $cfg = Read-Env
+    $usados = @($cfg['GATEWAY_PORT'], $cfg['APP_PORT'], $cfg['ODOO_PORT']) | Where-Object { $_ }
+    $cambiados = New-Object System.Collections.Generic.List[string]
+    foreach ($par in @(@('GATEWAY_PORT', 'web del Sistema UVA'), @('APP_PORT', 'app de campo'), @('ODOO_PORT', 'administrador de Odoo'))) {
+        $clave = $par[0]
+        if (-not $cfg[$clave]) { continue }
+        $actual = [int]$cfg[$clave]
+        $quien = Get-UsoPuerto $actual
+        if (-not $quien -or $quien -eq 'propio') { continue }
+        $nuevo = $actual + 1
+        while ($true) { $nuevo = Get-PuertoLibre $nuevo; if ($usados -notcontains "$nuevo") { break }; $nuevo++ }
+        Set-EnvValor $clave "$nuevo"
+        $usados += "$nuevo"
+        $cambiados.Add($clave)
+        Write-Aviso "El puerto $actual ($($par[1])) lo está usando $($quien): el Sistema UVA usa ahora el $nuevo."
+    }
+    return ,$cambiados.ToArray()
+}
+
+function Complete-CambioPuertos([string[]]$Cambiados) {
+    # Tras levantar los servicios con los puertos nuevos: direcciones de los enlaces de correo (web), datos
+    # de acceso y descargas de la app (QR de la página «App de campo (móvil)»).
+    if (-not $Cambiados -or $Cambiados.Count -eq 0) { return }
+    if ($Cambiados -contains 'GATEWAY_PORT') {
+        Update-ClaveApi $false
+        Invoke-Compose up -d --wait   # los microservicios toman la clave nueva
+    }
+    Write-Credenciales
+    Write-Ok "Puertos actualizados: $((Get-Urls).Sistema) · app $((Get-Urls).App). Los teléfonos encuentran solos el puerto nuevo."
+}
+
 # .env  ------------------------------------------------------------------------------------
 function Read-Env {
     $h = [ordered]@{}
@@ -550,6 +612,7 @@ function Invoke-AgregarApp {
     if (-not (Test-Path (Join-Path $Raiz 'app\index.html'))) { Stop-ConError 'Falta la carpeta app\ con la app de campo.' }
     Write-Paso 'Agregando la app de campo al Sistema UVA existente'
     Initialize-ConfigApp
+    $cambiados = Resolve-PuertosOcupados
     Invoke-Compose up -d --wait db odoo
     Install-ModuloApp
     Confirm-UsuarioCampo
@@ -559,6 +622,7 @@ function Invoke-AgregarApp {
     Invoke-Compose up -d @opc --wait
     Invoke-Compose restart odoo gateway
     Write-Credenciales
+    Complete-CambioPuertos $cambiados
     if (Wait-App) { Write-Ok 'La app de campo responde.' } else { Write-Aviso 'La app aún no responde; revisa "uva.ps1 estado".' }
     $u = Get-Urls
     Write-Host "`n  App de campo lista." -ForegroundColor Green
@@ -604,6 +668,8 @@ function Invoke-Instalar {
     Assert-Docker
     Write-Paso 'Preparando configuración'
     Initialize-Env $Demo.IsPresent
+    # Instalación que se retoma con configuración previa: sus puertos pudieron quedar ocupados
+    Resolve-PuertosOcupados | Out-Null
     Initialize-ConfigApp
     Import-Imagenes
     Set-ClaveMaestraOdoo
@@ -649,7 +715,11 @@ function Invoke-Instalar {
 function Invoke-Iniciar {
     Assert-Docker
     Write-Paso 'Iniciando Sistema UVA'
+    $cambiados = Resolve-PuertosOcupados
     Invoke-Compose up -d --wait
+    Complete-CambioPuertos $cambiados
+    # Comprobación final: si el gateway no pudo tomar sus puertos, no se dice «Listo»
+    if (-not (Wait-Sistema)) { Write-Aviso "El sistema no responde en $((Get-Urls).Sistema). Revisa 'uva.ps1 estado' y la bitácora en logs\." }
     $vence = (Read-Env)['ODOO_API_KEY_EXPIRA']
     if ($vence -and ([datetime]$vence - (Get-Date)).TotalDays -lt 30) {
         Write-Aviso "La clave API vence el ${vence}; se renueva."
@@ -670,6 +740,7 @@ function Invoke-Actualizar {
     Import-Imagenes
     Set-ClaveMaestraOdoo
     Initialize-ConfigApp
+    Resolve-PuertosOcupados | Out-Null   # Update-ClaveApi y Write-Credenciales de abajo toman los puertos nuevos
     Initialize-Certificados
     $db = (Read-Env)['ODOO_DB']
     Write-Paso 'Respaldando antes de actualizar'

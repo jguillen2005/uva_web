@@ -128,16 +128,77 @@ secreto() { LC_ALL=C tr -dc 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz234
 
 puerto_libre() {  # 0 si el puerto está libre
   local p="$1"
-  if command -v lsof >/dev/null 2>&1; then
+  # Puertos en escucha de cualquier usuario: ss (Linux) o netstat (Mac) los ven sin ser administrador;
+  # lsof sin permisos no ve los de otros usuarios (root, Docker), por eso va al final.
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[]:.]$p\$" && return 1
+  elif command -v netstat >/dev/null 2>&1; then
+    netstat -an 2>/dev/null | grep -iE "^tcp" | grep -i listen | awk '{print $4}' | grep -qE "[]:.]$p\$" && return 1
+  elif command -v lsof >/dev/null 2>&1; then
     lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1 && return 1
-  elif command -v ss >/dev/null 2>&1; then
-    ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]$p\$" && return 1
   fi
-  # Puertos publicados por contenedores de Docker (también de otros proyectos)
-  docker ps --format '{{.Ports}}' 2>/dev/null | grep -qE "[:\]]$p->" && return 1
+  # Puertos publicados por contenedores de Docker (también de otros proyectos). Ojo: [:\]] no sirve en grep
+  # (la barra no escapa dentro de corchetes); el corchete de cierre va primero: []:]
+  docker ps --format '{{.Ports}}' 2>/dev/null | grep -qE "[]:]$p->" && return 1
   return 0
 }
 puerto_desde() { local p="$1"; while [ "$p" -lt $(( $1 + 100 )) ]; do puerto_libre "$p" && { echo "$p"; return; }; p=$((p + 1)); done; falla "No hay puertos libres a partir de $1."; }
+
+# Puertos ocupados al arrancar ---------------------------------------------------------------
+# Si otro programa tomó un puerto del sistema (web, app de campo u Odoo), se cambia solo al siguiente
+# libre, sin preguntar. Los teléfonos encuentran solos el puerto nuevo de la app (buscan en el mismo equipo).
+uso_puerto() {  # uso_puerto <puerto>: vacío = libre; «propio» = el Sistema UVA; si no, quién lo usa
+  local p="$1" linea proy nombre puertos quien=''
+  while IFS='|' read -r proy nombre puertos; do
+    printf '%s' "$puertos" | grep -qE "[]:]$p->" || continue
+    if [ "$proy" = "$PROYECTO" ]; then echo propio; else echo "el contenedor «$nombre» de Docker"; fi
+    return
+  done <<EOF
+$(docker ps --format '{{.Label "com.docker.compose.project"}}|{{.Names}}|{{.Ports}}' 2>/dev/null)
+EOF
+  puerto_libre "$p" && return
+  if command -v lsof >/dev/null 2>&1; then
+    quien="$(lsof -nP -iTCP:"$p" -sTCP:LISTEN -Fcp 2>/dev/null | awk '/^p/{pid=substr($0,2)} /^c/{print substr($0,2) " (PID " pid ")"; exit}')"
+  fi
+  if [ -z "$quien" ] && command -v ss >/dev/null 2>&1; then
+    quien="$({ ss -ltnpH "sport = :$p" 2>/dev/null; sudo -n ss -ltnpH "sport = :$p" 2>/dev/null; } | sed -n 's/.*users:(("\([^"]*\)",pid=\([0-9]*\).*/\1 (PID \2)/p' | head -1)"
+  fi
+  # Docker publicando los puertos del sistema mientras arranca sus contenedores
+  case "$quien" in com.docker*|docker-proxy*|vpnkit*|Docker*|rootlesskit*) echo propio; return ;; esac
+  if [ -n "$quien" ]; then echo "«${quien% (PID*}» (PID ${quien##*PID })" | sed 's/))$/)/'; else echo 'otro programa'; fi
+}
+
+PUERTOS_CAMBIADOS=''
+resolver_puertos() {
+  local clave desc actual nuevo quien usados
+  PUERTOS_CAMBIADOS=''
+  usados=" $(leer_env GATEWAY_PORT) $(leer_env APP_PORT) $(leer_env ODOO_PORT) "
+  for par in 'GATEWAY_PORT|web del Sistema UVA' 'APP_PORT|app de campo' 'ODOO_PORT|administrador de Odoo'; do
+    clave="${par%%|*}"; desc="${par#*|}"
+    actual="$(leer_env "$clave")"
+    [ -n "$actual" ] || continue
+    quien="$(uso_puerto "$actual")"
+    { [ -z "$quien" ] || [ "$quien" = propio ]; } && continue
+    nuevo=$((actual + 1))
+    while :; do
+      nuevo="$(puerto_desde "$nuevo")"
+      case "$usados" in *" $nuevo "*) nuevo=$((nuevo + 1)) ;; *) break ;; esac
+    done
+    set_env "$clave" "$nuevo"
+    usados="$usados$nuevo "
+    PUERTOS_CAMBIADOS="$PUERTOS_CAMBIADOS $clave"
+    aviso "El puerto $actual ($desc) lo está usando $quien: el Sistema UVA usa ahora el $nuevo."
+  done
+}
+
+completar_cambio_puertos() {
+  # Tras levantar los servicios con los puertos nuevos: dirección de los enlaces de correo (web), datos de
+  # acceso y descargas de la app (QR de la página «App de campo (móvil)»).
+  [ -n "$PUERTOS_CAMBIADOS" ] || return 0
+  case "$PUERTOS_CAMBIADOS" in *GATEWAY_PORT*) actualizar_clave_api; compose up -d --wait ;; esac
+  escribir_credenciales
+  ok "Puertos actualizados: $(url_sistema) · app $(url_app). Los teléfonos encuentran solos el puerto nuevo."
+}
 
 # .env --------------------------------------------------------------------------------------
 leer_env() { [ -f "$ENV_FILE" ] && sed -n "s/^$1=//p" "$ENV_FILE" | head -1; }
@@ -683,6 +744,8 @@ accion_instalar() {
   asegurar_docker
   paso 'Preparando configuración'
   inicializar_env; inicializar_config_app; importar_imagenes; fijar_clave_maestra
+  # Instalación que se retoma con configuración previa: sus puertos pudieron quedar ocupados
+  resolver_puertos
   paso 'Levantando la base de datos (la primera vez descarga imágenes de Docker; puede tardar)'
   compose up -d --wait db
   local nueva=0 modulos
@@ -718,6 +781,7 @@ accion_agregar_app() {
   [ -f "$RAIZ/app/index.html" ] || falla 'Falta la carpeta app/ con la app de campo.'
   paso 'Agregando la app de campo al Sistema UVA existente'
   inicializar_config_app
+  resolver_puertos
   compose up -d --wait db odoo
   instalar_modulos_app
   asegurar_usuario_campo
@@ -728,6 +792,7 @@ accion_agregar_app() {
   compose up -d $(opciones_arranque) --wait
   compose restart odoo gateway
   escribir_credenciales
+  completar_cambio_puertos
   crear_accesos
   if esperar_app; then ok 'La app de campo responde.'; else aviso 'La app aún no responde; revise "./uva.sh estado".'; fi
 }
@@ -735,6 +800,7 @@ accion_agregar_app() {
 accion_actualizar() {
   asegurar_docker
   importar_imagenes; fijar_clave_maestra; inicializar_config_app; inicializar_certificados
+  resolver_puertos   # la clave API y los datos de acceso de abajo toman los puertos nuevos
   paso 'Respaldando antes de actualizar'; accion_respaldar
   paso 'Actualizando módulos de Odoo'
   compose run --rm odoo odoo -d "$(leer_env ODOO_DB)" -u 'uva_core,uva_legal' --stop-after-init --no-http
@@ -756,7 +822,11 @@ accion_actualizar() {
 accion_iniciar() {
   asegurar_docker
   paso 'Iniciando Sistema UVA'
+  resolver_puertos
   compose up -d --wait
+  completar_cambio_puertos
+  # Comprobación final: si el gateway no pudo tomar sus puertos, no se dice «Listo»
+  esperar_sistema || aviso "El sistema no responde en $(url_sistema). Revise «./uva.sh estado» y la bitácora en logs/."
   local vence; vence="$(leer_env ODOO_API_KEY_EXPIRA)"
   if [ -n "$vence" ]; then
     local hoy_s vence_s
