@@ -139,6 +139,8 @@ else
   copiar_dir "$CONTENIDO" "$DESTINO" || error_copia=1
   rm -f "$DESTINO/version.txt"
   [ -n "$conf_guardada" ] && printf '%s\n' "$conf_guardada" > "$conf"
+  # Se conserva la configuración (contraseña maestra); solo se sube el valor anterior de procesos (2 -> 4).
+  [ -f "$conf" ] && sed -i.bak 's/^workers = 2$/workers = 4/' "$conf" && rm -f "$conf.bak"
 fi
 chmod +x "$UVA" 2>/dev/null
 xattr -dr com.apple.quarantine "$DESTINO" 2>/dev/null || true

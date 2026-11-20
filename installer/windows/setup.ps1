@@ -137,7 +137,11 @@ if ($soloApp) {
     $confGuardada = $null
     if (Test-Path $confActual) { $confGuardada = [System.IO.File]::ReadAllText($confActual) }
     Copy-Item (Join-Path $tmp '*') $Destino -Recurse -Force
-    if ($confGuardada) { [System.IO.File]::WriteAllText($confActual, $confGuardada) }
+    if ($confGuardada) {
+        # Se conserva la configuración (contraseña maestra); solo se sube el valor anterior de procesos (2 -> 4).
+        $confGuardada = [regex]::Replace($confGuardada, '(?m)^workers = 2(\r?)$', 'workers = 4$1')
+        [System.IO.File]::WriteAllText($confActual, $confGuardada)
+    }
 }
 Remove-Item $tmp -Recurse -Force
 if (-not $soloApp -and (Test-Path (Join-Path $Origen 'imagenes.tar.gz'))) {
