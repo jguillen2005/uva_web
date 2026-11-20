@@ -82,8 +82,8 @@ export const AppMovilView: React.FC = () => {
         <p className="text-xs font-semibold text-brand-600 uppercase tracking-wider">Operación / App de campo</p>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-ink-900 mt-1">Instalar la app en teléfonos y tablets</h1>
         <p className="text-sm text-ink-600 max-w-3xl mt-1 leading-relaxed">
-          Los verificadores instalan la app de campo en su teléfono o tablet (Android, iPhone o iPad). Al iniciar sesión con su correo y
-          contraseña, la app descarga su agenda, instrumentos y datos a la base de datos del dispositivo para trabajar sin conexión.
+          Cada verificador instala la app en su teléfono o tablet (Android, iPhone o iPad). Al entrar con su correo y contraseña, la app
+          guarda en el teléfono su agenda y todo lo necesario para trabajar en campo aunque no haya Internet.
         </p>
       </header>
 
@@ -94,8 +94,8 @@ export const AppMovilView: React.FC = () => {
           <div role="alert" className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-ink-800 flex gap-3">
             <Info className="w-5 h-5 text-amber-600 shrink-0" aria-hidden="true" />
             <p>
-              Las descargas para instalar la app se generan al instalar o actualizar el Sistema UVA en el servidor. Ejecute el instalador
-              (o <code className="font-mono text-xs">uva.ps1 actualizar</code>) y vuelva a abrir esta página.
+              Todavía no están listos los archivos para instalar la app. Pida a la persona que instaló el Sistema UVA que abra de nuevo el
+              instalador y elija <strong>Actualizar todo</strong>; después vuelva a abrir esta página.
             </p>
           </div>
         )}
@@ -111,6 +111,7 @@ export const AppMovilView: React.FC = () => {
             </div>
 
             <PasoMovil n={1} titulo="Dar el permiso de seguridad" nota="Solo la primera vez.">
+              <p className="text-sm text-ink-700 -mt-1">Sirve para que su {movil === 'ios' ? 'iPhone o iPad' : 'teléfono'} confíe en el Sistema UVA de su oficina.</p>
               <BotonGrande href={`/descargas/${movil === 'ios' ? PERFIL_IOS : CERT_ANDROID}`} descargar={movil === 'android'} icono={<Download className="w-5 h-5" aria-hidden="true" />}>
                 Descargar permiso de seguridad
               </BotonGrande>
@@ -188,7 +189,7 @@ export const AppMovilView: React.FC = () => {
 
               {info.web.length > 1 && (
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-t border-line-100 pt-3">
-                  <label htmlFor="direccion-servidor" className="text-xs font-semibold text-ink-700">Dirección del servidor en su red</label>
+                  <label htmlFor="direccion-servidor" className="text-xs font-semibold text-ink-700">Otra dirección de esta computadora</label>
                   <select
                     id="direccion-servidor"
                     value={indice}
@@ -197,7 +198,7 @@ export const AppMovilView: React.FC = () => {
                   >
                     {info.web.map((u, i) => <option key={u} value={i}>{u}</option>)}
                   </select>
-                  <span className="text-[11px] text-ink-500">Use la que corresponde a la red Wi-Fi de los dispositivos.</span>
+                  <span className="text-[11px] text-ink-500">Si la de arriba no abre en el teléfono, pruebe con otra de esta lista.</span>
                 </div>
               )}
             </section>
@@ -205,16 +206,16 @@ export const AppMovilView: React.FC = () => {
             <section aria-label="Requisitos" className="grid gap-3 sm:grid-cols-2">
               <div className="bg-white border border-line-200 rounded-xl p-4 flex gap-3">
                 <ShieldCheck className="w-5 h-5 text-brand-600 shrink-0" aria-hidden="true" />
-                <p className="text-xs text-ink-700 leading-relaxed">Usuario: el de Odoo del verificador (Sistema UVA &gt; Verificadores &gt; Usuario). Al entrar a la app, descarga su agenda, instrumentos y datos para trabajar sin conexión.</p>
+                <p className="text-xs text-ink-700 leading-relaxed"><strong>¿Quién puede entrar?</strong> Cada verificador, con su propio correo y contraseña. Si a alguien no lo deja entrar, pida al administrador del sistema que le asigne un usuario en su ficha de verificador.</p>
               </div>
               <div className="bg-white border border-line-200 rounded-xl p-4 flex gap-3">
                 <TabletSmartphone className="w-5 h-5 text-brand-600 shrink-0" aria-hidden="true" />
-                <p className="text-xs text-ink-700 leading-relaxed">Funciona en teléfonos y tablets, en vertical y horizontal. Se sincroniza sola al tener conexión con el servidor.</p>
+                <p className="text-xs text-ink-700 leading-relaxed"><strong>Funciona sin Internet.</strong> Lo que se capture en campo se envía solo a la oficina en cuanto el teléfono vuelve a tener conexión.</p>
               </div>
             </section>
 
             <p className="text-[11px] text-ink-500 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span>Archivos del permiso de seguridad (por si prefiere enviarlos por correo):</span>
+              <span>Permiso de seguridad para enviarlo por correo o WhatsApp (opcional):</span>
               <a className="text-brand-700 underline inline-flex items-center gap-1" href={`/descargas/${CERT_ANDROID}`} download><Download className="w-3 h-3" aria-hidden="true" />Android</a>
               <a className="text-brand-700 underline inline-flex items-center gap-1" href={`/descargas/${PERFIL_IOS}`}><Download className="w-3 h-3" aria-hidden="true" />iPhone y iPad</a>
             </p>

@@ -843,8 +843,9 @@ try {
         'agregar-app'   { Invoke-AgregarApp }
         'abrir-app'     { Start-Process (Get-Urls).App }
         'regenerar-certificado' {
-            Assert-Docker; Initialize-Certificados $true; Invoke-Compose restart gateway; Write-Credenciales
-            Write-Ok 'Certificado renovado con la misma autoridad: las tablets no necesitan reinstalarla.'
+            Assert-Docker; Initialize-Certificados $true; Publish-Descargas; Invoke-Compose restart gateway; Write-Credenciales
+            Write-Ok 'Conexión de teléfonos renovada (misma autoridad: los teléfonos no tienen que volver a instalar el permiso de seguridad).'
+            Show-Mensaje 'Listo: los teléfonos y tablets pueden volver a conectarse con la dirección nueva de esta computadora.' | Out-Null
         }
         'iniciar'       { Invoke-Iniciar }
         'detener'       { Assert-Docker; Write-Paso 'Deteniendo Sistema UVA'; Invoke-Compose stop; Write-Ok 'Detenido (los datos se conservan).' }

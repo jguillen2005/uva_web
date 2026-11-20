@@ -653,6 +653,7 @@ Iniciar Sistema UVA|iniciar
 Detener Sistema UVA|detener
 Estado del Sistema UVA|estado
 Respaldar base de datos|respaldar
+Renovar conexión de teléfonos|regenerar-certificado
 Desinstalar Sistema UVA|desinstalar
 EOF
   ln -sf "$RAIZ/CREDENCIALES.txt" "$ACCESOS_DIR/Datos de acceso.txt"
@@ -703,6 +704,7 @@ iniciar|Iniciar Sistema UVA|"$RAIZ/uva.sh" iniciar --pausa|true
 detener|Detener Sistema UVA|"$RAIZ/uva.sh" detener --pausa|true
 estado|Estado del Sistema UVA|"$RAIZ/uva.sh" estado --pausa|true
 respaldar|Respaldar base de datos (Sistema UVA)|"$RAIZ/uva.sh" respaldar --pausa|true
+renovar|Renovar conexión de teléfonos (Sistema UVA)|"$RAIZ/uva.sh" regenerar-certificado --pausa|true
 credenciales|Datos de acceso (Sistema UVA)|xdg-open "$RAIZ/CREDENCIALES.txt"|false
 carpeta|Carpeta del Sistema UVA (certificado)|xdg-open "$RAIZ"|false
 desinstalar|Desinstalar Sistema UVA|"$RAIZ/uva.sh" desinstalar --pausa|true
@@ -918,7 +920,7 @@ case "$ACCION" in
   abrir-app)     abrir_url "$(url_app)" ;;
   respaldar)     accion_respaldar ;;
   renovar-clave) asegurar_docker; paso 'Renovando la clave API de los microservicios'; actualizar_clave_api; compose up -d --wait ;;
-  regenerar-certificado) asegurar_docker; inicializar_certificados forzar; compose restart gateway; escribir_credenciales; ok 'Certificado renovado con la misma autoridad: las tablets no necesitan reinstalarla.' ;;
+  regenerar-certificado) asegurar_docker; inicializar_certificados forzar; publicar_descargas; compose restart gateway; escribir_credenciales; ok 'Conexión de teléfonos renovada (misma autoridad: los teléfonos no tienen que volver a instalar el permiso de seguridad).'; mensaje 'Listo: los teléfonos y tablets pueden volver a conectarse con la dirección nueva de este equipo.' ;;
   desinstalar)   accion_desinstalar ;;
   *) echo "Acción desconocida: $ACCION"; sed -n '5,16p' "$0"; exit 2 ;;
 esac

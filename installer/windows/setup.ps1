@@ -257,6 +257,7 @@ New-Acceso (Join-Path $menu 'Iniciar Sistema UVA.lnk') 'iniciar' 'Arrancar los s
 New-Acceso (Join-Path $menu 'Detener Sistema UVA.lnk') 'detener' 'Detener los servicios' 'Normal'
 New-Acceso (Join-Path $menu 'Estado del Sistema UVA.lnk') 'estado' 'Ver el estado de los servicios' 'Normal'
 New-Acceso (Join-Path $menu 'Respaldar base de datos.lnk') 'respaldar' 'Respaldar base de datos y archivos' 'Normal'
+New-Acceso (Join-Path $menu 'Renovar conexión de teléfonos.lnk') 'regenerar-certificado' 'Si cambió el módem o la red de la oficina: los teléfonos vuelven a conectarse' 'Normal'
 New-Acceso (Join-Path $menu 'Desinstalar Sistema UVA.lnk') 'desinstalar' 'Quitar el Sistema UVA' 'Normal'
 $cred = $shell.CreateShortcut((Join-Path $menu 'Datos de acceso.lnk'))
 $cred.TargetPath = Join-Path $Destino 'CREDENCIALES.txt'; $cred.Save()
@@ -294,13 +295,51 @@ if ($LASTEXITCODE -ne 0) {
     Exit-Instalador 1
 }
 
+# ------------------------------------------------------------------ acceso desde teléfonos y tablets
+# Windows bloquea las conexiones que llegan de otros equipos. En lugar de pedir al usuario que pegue comandos,
+# el instalador lo hace con su permiso (ventana de Control de cuentas de usuario). Solo redes privadas.
+function Get-ValorEnv([string]$Clave, [string]$Pred) {
+    $l = Get-Content $envDestino -ErrorAction SilentlyContinue | Where-Object { $_ -like "$Clave=*" } | Select-Object -First 1
+    if ($l) { $l.Substring($Clave.Length + 1).Trim() } else { $Pred }
+}
+$puertoWeb = Get-ValorEnv 'GATEWAY_PORT' '8080'; $puertoApp = Get-ValorEnv 'APP_PORT' '8443'
+$regla = 'Sistema UVA - App de campo y web'
+function Test-ReglaFirewall {
+    try {
+        $r = @(Get-NetFirewallRule -DisplayName $regla -ErrorAction Stop | Where-Object { $_.Enabled -eq 'True' })
+        if (-not $r) { return $false }
+        $p = @($r | Get-NetFirewallPortFilter | ForEach-Object { $_.LocalPort })
+        return ($p -contains $puertoWeb) -and ($p -contains $puertoApp)
+    } catch { return $false }
+}
+if (-not $Silencioso -and -not (Test-ReglaFirewall)) {
+    $r = Show-Mensaje ("Último paso: permitir que los teléfonos y tablets se conecten a esta computadora.`n`n" +
+        "Al elegir Sí, Windows mostrará una ventana que pregunta «¿Quiere permitir que esta aplicación haga cambios en el dispositivo?». Elija Sí.`n`n" +
+        "(La red Wi-Fi de la oficina quedará marcada como red privada. Si elige No, el sistema funcionará en esta computadora, pero los teléfonos no podrán conectarse.)") 'YesNo' 'Question'
+    if ($r -eq 'Yes') {
+        $cmd = "Get-NetConnectionProfile | Where-Object { `$_.NetworkCategory -eq 'Public' } | Set-NetConnectionProfile -NetworkCategory Private; " +
+               "Remove-NetFirewallRule -DisplayName '$regla' -ErrorAction SilentlyContinue; " +
+               "New-NetFirewallRule -DisplayName '$regla' -Direction Inbound -Action Allow -Protocol TCP -LocalPort $puertoWeb,$puertoApp -Profile Private,Domain | Out-Null"
+        $codificado = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cmd))
+        try {
+            Start-Process $ps -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $codificado
+        } catch { }
+        if (Test-ReglaFirewall) {
+            Write-Host '  OK  Los teléfonos y tablets ya pueden conectarse a esta computadora.' -ForegroundColor Green
+        } else {
+            Show-Mensaje ("No se pudo dar el permiso (quizá se eligió No en la ventana de Windows).`n`n" +
+                "Puede hacerlo después volviendo a abrir este instalador y eligiendo «Solo la app». Consulte la guía de instalación, paso «Permitir que los teléfonos se conecten».") 'OK' 'Warning' | Out-Null
+        }
+    }
+}
+
 if (-not $SinAbrir) { & $ps -NoProfile -ExecutionPolicy Bypass -File $uva abrir }
 $credenciales = Join-Path $Destino 'CREDENCIALES.txt'
 if (-not $Silencioso -and (Test-Path $credenciales)) { Start-Process notepad.exe $credenciales }
 $final = if ($soloApp) {
-    "La app de campo quedó agregada al Sistema UVA (el backend y sus datos no se modificaron).`n`n"
-} else { "Sistema UVA $Version quedó instalado (web, app de campo y backend Odoo).`n`n" }
+    "La app de campo quedó actualizada. Los datos del sistema no se modificaron.`n`n"
+} else { "¡Listo! El Sistema UVA $Version quedó instalado en esta computadora.`n`n" }
 Show-Mensaje ($final +
-    "Ábrelo con los accesos «Sistema UVA» y «App de campo (tablets)» del menú Inicio.`n" +
-    "Direcciones, datos de acceso y cómo preparar las tablets están en CREDENCIALES.txt.") | Out-Null
+    "Para abrirlo use el ícono «Sistema UVA» del escritorio.`n`n" +
+    "Se abrió el archivo CREDENCIALES.txt con su usuario y contraseña: guárdelo en un lugar seguro.") | Out-Null
 Exit-Instalador 0
