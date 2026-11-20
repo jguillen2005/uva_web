@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import QRCode from 'qrcode';
-import { Apple, Download, ExternalLink, Info, MonitorSmartphone, ShieldCheck, Smartphone, TabletSmartphone, Wifi } from 'lucide-react';
+import { Check, Copy, Download, Info, MonitorSmartphone, ShieldCheck, Smartphone, TabletSmartphone } from 'lucide-react';
 
 /**
  * Instalar la app de campo (PWA) en teléfonos y tablets Android, iPhone y iPad.
- * El instalador del sistema publica en /descargas/ el certificado de la CA local (Android), el perfil de
+ * Se instala desde el propio teléfono (sin códigos QR). El instalador del sistema publica en /descargas/ el certificado de la CA local (Android), el perfil de
  * configuración para iPhone/iPad y las direcciones de la app (app-movil.json).
  */
 
@@ -47,50 +46,11 @@ const PasoMovil: React.FC<{ n: number; titulo: string; nota?: string; children: 
   </div>
 );
 
-const Qr: React.FC<{ texto: string; etiqueta: string }> = ({ texto, etiqueta }) => {
-  const [src, setSrc] = useState('');
-  useEffect(() => {
-    let vigente = true;
-    QRCode.toDataURL(texto, { margin: 1, width: 360, errorCorrectionLevel: 'M' })
-      .then((url) => { if (vigente) setSrc(url); })
-      .catch(() => setSrc(''));
-    return () => { vigente = false; };
-  }, [texto]);
-  return (
-    <figure className="flex flex-col items-center gap-1.5 shrink-0">
-      <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-xl bg-white border border-line-200 p-1.5 shadow-xs">
-        {src ? <img src={src} alt={`Código QR: ${etiqueta}`} className="w-full h-full" /> : <div className="w-full h-full bg-surface-50 animate-pulse rounded-lg" />}
-      </div>
-      <figcaption className="text-[11px] text-ink-500 text-center max-w-40 break-all">{texto.replace(/^https?:\/\//, '')}</figcaption>
-    </figure>
-  );
-};
-
-const Paso: React.FC<{ n: number; titulo: string; children: React.ReactNode; qr?: { texto: string; etiqueta: string }; accion?: React.ReactNode }> = ({ n, titulo, children, qr, accion }) => (
-  <li className="bg-white border border-line-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row gap-4">
-    <div className="flex gap-3 flex-1 min-w-0">
-      <span className="w-7 h-7 rounded-full bg-brand-600 text-white text-sm font-bold flex items-center justify-center shrink-0" aria-hidden="true">{n}</span>
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-bold text-ink-900">
-          <span className="sr-only">Paso {n}: </span>{titulo}
-        </h3>
-        <div className="text-xs sm:text-[13px] text-ink-700 mt-1.5 leading-relaxed space-y-1.5">{children}</div>
-        {accion && <div className="mt-3 flex flex-wrap gap-2">{accion}</div>}
-      </div>
-    </div>
-    {qr && <Qr {...qr} />}
+const PasoPc: React.FC<{ n: number; children: React.ReactNode }> = ({ n, children }) => (
+  <li className="flex gap-3 items-start">
+    <span className="w-7 h-7 rounded-full bg-brand-600 text-white text-sm font-bold flex items-center justify-center shrink-0" aria-hidden="true">{n}</span>
+    <div className="text-sm text-ink-800 leading-relaxed pt-0.5 min-w-0"><span className="sr-only">Paso {n}: </span>{children}</div>
   </li>
-);
-
-const BotonDescarga: React.FC<{ href: string; children: React.ReactNode }> = ({ href, children }) => (
-  <a
-    href={href}
-    download
-    className="h-9 px-3 rounded-lg border border-line-300 bg-white hover:bg-surface-50 text-brand-700 text-xs font-semibold inline-flex items-center gap-1.5"
-  >
-    <Download className="w-3.5 h-3.5" aria-hidden="true" />
-    {children}
-  </a>
 );
 
 export const AppMovilView: React.FC = () => {
@@ -98,7 +58,7 @@ export const AppMovilView: React.FC = () => {
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'sin-descargas'>('cargando');
   const [indice, setIndice] = useState(0);
   const movil = dispositivoMovil();
-  const [plataforma, setPlataforma] = useState<'android' | 'ios'>(movil || 'android');
+  const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
     fetch('/descargas/app-movil.json', { cache: 'no-store' })
@@ -110,10 +70,8 @@ export const AppMovilView: React.FC = () => {
       .catch(() => setEstado('sin-descargas'));
   }, []);
 
-  const app = info?.app[indice] || '';
   // Las descargas se piden por la web (HTTP): el teléfono aún no confía en el certificado de la app (HTTPS)
   const web = info?.web[indice] || window.location.origin;
-  const descarga = (archivo: string) => `${web}/descargas/${archivo}`;
   // En el propio teléfono: la app en la misma dirección (IP o nombre) con la que se abrió esta página
   const puertoApp = (() => { try { return new URL(info?.app[0] || '').port || '443'; } catch { return '8443'; } })();
   const appAqui = `https://${window.location.hostname}:${puertoApp}`;
@@ -201,111 +159,64 @@ export const AppMovilView: React.FC = () => {
           </section>
         )}
 
-        {estado === 'listo' && info && movil && (
-          <h2 className="text-sm font-bold text-ink-700 -mb-2">Instalar en otro dispositivo</h2>
-        )}
-
-        {estado === 'listo' && info && (
+        {estado === 'listo' && info && !movil && (
           <>
-            <section aria-label="Requisitos" className="grid gap-3 sm:grid-cols-3">
-              <div className="bg-white border border-line-200 rounded-xl p-4 flex gap-3">
-                <Wifi className="w-5 h-5 text-brand-600 shrink-0" aria-hidden="true" />
-                <p className="text-xs text-ink-700 leading-relaxed">El teléfono o tablet debe estar en la <strong>misma red Wi-Fi</strong> que el servidor para instalar y sincronizar.</p>
+            <section aria-labelledby="como-instalar" className="bg-white border border-line-200 rounded-xl p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+              <div>
+                <h2 id="como-instalar" className="text-lg font-bold text-ink-900">Cómo instalar la app en un teléfono o tablet</h2>
+                <p className="text-sm text-ink-600 mt-1">La app se instala desde el propio teléfono o tablet (Android, iPhone o iPad). En cada uno:</p>
               </div>
+              <ol className="flex flex-col gap-3">
+                <PasoPc n={1}>Conéctelo al <strong>mismo Wi-Fi</strong> que esta computadora.</PasoPc>
+                <PasoPc n={2}>
+                  <span>Abra el navegador (<strong>Chrome</strong> en Android, <strong>Safari</strong> en iPhone o iPad) y escriba esta dirección:</span>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-lg sm:text-xl font-bold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg px-3 py-1.5 break-all">{web.replace(/^http:\/\//, '')}</span>
+                    <button
+                      type="button"
+                      onClick={() => { void navigator.clipboard?.writeText(web).then(() => setCopiado(true), () => setCopiado(false)); }}
+                      className="h-9 px-3 rounded-lg border border-line-300 bg-white hover:bg-surface-50 text-brand-700 text-xs font-semibold inline-flex items-center gap-1.5"
+                    >
+                      {copiado ? <Check className="w-3.5 h-3.5" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5" aria-hidden="true" />}
+                      {copiado ? 'Copiada' : 'Copiar'}
+                    </button>
+                  </div>
+                </PasoPc>
+                <PasoPc n={3}>Inicie sesión con su correo y contraseña y abra el menú <strong>☰</strong> &gt; <strong>App de campo (móvil)</strong>.</PasoPc>
+                <PasoPc n={4}>Ahí aparece <strong>«Instalar la app en este teléfono»</strong>: toque sus botones y siga los 3 pasos (permiso de seguridad, instalar la app y entrar).</PasoPc>
+              </ol>
+
+              {info.web.length > 1 && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-t border-line-100 pt-3">
+                  <label htmlFor="direccion-servidor" className="text-xs font-semibold text-ink-700">Dirección del servidor en su red</label>
+                  <select
+                    id="direccion-servidor"
+                    value={indice}
+                    onChange={(e) => { setIndice(Number(e.target.value)); setCopiado(false); }}
+                    className="h-9 px-3 border border-line-300 rounded-lg text-sm bg-white focus:outline-none focus:border-brand-600 sm:min-w-72"
+                  >
+                    {info.web.map((u, i) => <option key={u} value={i}>{u}</option>)}
+                  </select>
+                  <span className="text-[11px] text-ink-500">Use la que corresponde a la red Wi-Fi de los dispositivos.</span>
+                </div>
+              )}
+            </section>
+
+            <section aria-label="Requisitos" className="grid gap-3 sm:grid-cols-2">
               <div className="bg-white border border-line-200 rounded-xl p-4 flex gap-3">
                 <ShieldCheck className="w-5 h-5 text-brand-600 shrink-0" aria-hidden="true" />
-                <p className="text-xs text-ink-700 leading-relaxed">Usuario: el de Odoo del verificador (Sistema UVA &gt; Verificadores &gt; Usuario). Se inicia sesión <strong>en el dispositivo</strong>.</p>
+                <p className="text-xs text-ink-700 leading-relaxed">Usuario: el de Odoo del verificador (Sistema UVA &gt; Verificadores &gt; Usuario). Al entrar a la app, descarga su agenda, instrumentos y datos para trabajar sin conexión.</p>
               </div>
               <div className="bg-white border border-line-200 rounded-xl p-4 flex gap-3">
                 <TabletSmartphone className="w-5 h-5 text-brand-600 shrink-0" aria-hidden="true" />
-                <p className="text-xs text-ink-700 leading-relaxed">Funciona en teléfonos y tablets, en vertical y horizontal.</p>
+                <p className="text-xs text-ink-700 leading-relaxed">Funciona en teléfonos y tablets, en vertical y horizontal. Se sincroniza sola al tener conexión con el servidor.</p>
               </div>
             </section>
 
-            {info.app.length > 1 && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <label htmlFor="direccion-servidor" className="text-xs font-semibold text-ink-700">Dirección del servidor en su red</label>
-                <select
-                  id="direccion-servidor"
-                  value={indice}
-                  onChange={(e) => setIndice(Number(e.target.value))}
-                  className="h-9 px-3 border border-line-300 rounded-lg text-sm bg-white focus:outline-none focus:border-brand-600 sm:min-w-72"
-                >
-                  {info.app.map((u, i) => <option key={u} value={i}>{u}</option>)}
-                </select>
-                <span className="text-[11px] text-ink-500">Use la que corresponde a la red Wi-Fi de los dispositivos.</span>
-              </div>
-            )}
-
-            <div role="tablist" aria-label="Tipo de dispositivo" className="inline-flex self-start rounded-xl border border-line-200 bg-white p-1 gap-1">
-              {([
-                ['android', 'Android (teléfono y tablet)', <Smartphone key="a" className="w-4 h-4" aria-hidden="true" />],
-                ['ios', 'iPhone y iPad', <Apple key="i" className="w-4 h-4" aria-hidden="true" />],
-              ] as const).map(([clave, texto, icono]) => (
-                <button
-                  key={clave}
-                  role="tab"
-                  type="button"
-                  id={`tab-${clave}`}
-                  aria-selected={plataforma === clave}
-                  aria-controls={`panel-${clave}`}
-                  onClick={() => setPlataforma(clave)}
-                  className={`h-10 px-4 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
-                    plataforma === clave ? 'bg-brand-600 text-white' : 'text-ink-700 hover:bg-surface-50'
-                  }`}
-                >
-                  {icono}
-                  {texto}
-                </button>
-              ))}
-            </div>
-
-            {plataforma === 'android' && (
-              <div id="panel-android" role="tabpanel" aria-labelledby="tab-android">
-              <ol className="flex flex-col gap-3">
-                <Paso n={1} titulo="Instalar el certificado del servidor (una sola vez)" qr={{ texto: descarga(CERT_ANDROID), etiqueta: 'certificado para Android' }}
-                  accion={<BotonDescarga href={`/descargas/${CERT_ANDROID}`}>Descargar certificado</BotonDescarga>}>
-                  <p>Escanee el código con la cámara y descargue el certificado.</p>
-                  <p>Después: <strong>Ajustes &gt; Seguridad &gt; Más ajustes de seguridad &gt; Cifrado y credenciales &gt; Instalar un certificado &gt; Certificado de CA</strong> y elija el archivo descargado. (En Samsung: Ajustes &gt; Seguridad y privacidad &gt; Otros ajustes de seguridad &gt; Instalar desde almacenamiento &gt; Certificado de CA).</p>
-                </Paso>
-                <Paso n={2} titulo="Abrir la app en Chrome e instalarla" qr={{ texto: app, etiqueta: 'app de campo' }}>
-                  <p>Escanee el código; la app se abre en Chrome.</p>
-                  <p>Toque <strong>Instalar app</strong> en la pantalla de la app, o el menú <strong>⋮ &gt; Instalar aplicación</strong> (o <strong>Agregar a la pantalla principal</strong>).</p>
-                </Paso>
-                <Paso n={3} titulo="Abrir desde el ícono e iniciar sesión">
-                  <p>Abra la app desde su ícono e inicie sesión con su correo y contraseña. Verá <strong>«Preparando el dispositivo»</strong> mientras se descargan la agenda, los instrumentos y sus datos; al terminar dirá <strong>«Listo para trabajar sin conexión»</strong>.</p>
-                </Paso>
-              </ol>
-              </div>
-            )}
-
-            {plataforma === 'ios' && (
-              <div id="panel-ios" role="tabpanel" aria-labelledby="tab-ios">
-              <ol className="flex flex-col gap-3">
-                <Paso n={1} titulo="Descargar el perfil del servidor (una sola vez)" qr={{ texto: descarga(PERFIL_IOS), etiqueta: 'perfil para iPhone y iPad' }}
-                  accion={<BotonDescarga href={`/descargas/${PERFIL_IOS}`}>Descargar perfil</BotonDescarga>}>
-                  <p>Escanee el código con la cámara; se abre en <strong>Safari</strong>. Toque <strong>Permitir</strong> para descargar el perfil.</p>
-                  <p>Luego: <strong>Ajustes &gt; Perfil descargado &gt; Instalar</strong> (pide el código del dispositivo).</p>
-                </Paso>
-                <Paso n={2} titulo="Confiar en el certificado">
-                  <p><strong>Ajustes &gt; General &gt; Información &gt; Ajustes de confianza de certificados</strong> y active <strong>«Asercontrol CA local»</strong>.</p>
-                  <p>Sin este paso, iPhone y iPad no permiten abrir ni instalar la app.</p>
-                </Paso>
-                <Paso n={3} titulo="Abrir la app en Safari y agregarla a la pantalla de inicio" qr={{ texto: app, etiqueta: 'app de campo' }}>
-                  <p>Escanee el código; la app se abre en <strong>Safari</strong> (en iPhone y iPad solo Safari puede instalarla).</p>
-                  <p>Toque <strong>Compartir</strong> (en iPhone, abajo; en iPad, arriba a la derecha) &gt; <strong>Agregar a pantalla de inicio</strong> &gt; <strong>Agregar</strong>.</p>
-                </Paso>
-                <Paso n={4} titulo="Abrir desde el ícono e iniciar sesión ahí">
-                  <p>Abra la app <strong>desde el ícono de la pantalla de inicio</strong> e inicie sesión con su correo y contraseña. En iPhone y iPad la app instalada guarda sus datos aparte de Safari: por eso se inicia sesión en la app instalada.</p>
-                  <p>Verá <strong>«Preparando el dispositivo»</strong> y al terminar <strong>«Listo para trabajar sin conexión»</strong>.</p>
-                </Paso>
-              </ol>
-              </div>
-            )}
-
-            <p className="text-[11px] text-ink-500 flex items-center gap-1.5">
-              <ExternalLink className="w-3 h-3" aria-hidden="true" />
-              Dirección de la app: <a className="text-brand-700 underline" href={app} target="_blank" rel="noreferrer">{app}</a>
+            <p className="text-[11px] text-ink-500 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span>Archivos del permiso de seguridad (por si prefiere enviarlos por correo):</span>
+              <a className="text-brand-700 underline inline-flex items-center gap-1" href={`/descargas/${CERT_ANDROID}`} download><Download className="w-3 h-3" aria-hidden="true" />Android</a>
+              <a className="text-brand-700 underline inline-flex items-center gap-1" href={`/descargas/${PERFIL_IOS}`}><Download className="w-3 h-3" aria-hidden="true" />iPhone y iPad</a>
             </p>
           </>
         )}
