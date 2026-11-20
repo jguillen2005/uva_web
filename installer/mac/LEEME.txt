@@ -10,10 +10,13 @@ Requisitos
 
 Instalar
   1. Descomprima el .zip y abra la carpeta.
-  2. Doble clic en «Instalar Sistema UVA.command».
-     Si macOS dice que no puede abrirlo porque es de un desarrollador no identificado:
+  2. Doble clic en «Instalar Sistema UVA» (la app con el ícono de Asercontrol). Se abre una
+     ventana de Terminal con el avance de la instalación.
+     Si macOS dice que no puede abrirla porque es de un desarrollador no identificado
+     (solo la primera vez):
        - clic derecho > Abrir > Abrir, o
        - Ajustes del Sistema > Privacidad y seguridad > «Abrir de todos modos».
+     Si macOS pregunta si «Instalar Sistema UVA» puede usar Terminal, elija Aceptar.
   3. Responda si desea datos de demostración y espere (la primera vez tarda varios minutos).
   4. macOS puede pedir su contraseña para confiar en el certificado «Asercontrol CA local»
      (sirve para abrir la app de campo en este Mac sin advertencias).
@@ -23,9 +26,9 @@ Instalar
     Actualizar todo  - web, backend Odoo y app (respalda y conserva datos y usuarios).
     Solo la app      - solo la app de campo.
 
-Si el doble clic no hace nada, o la Terminal dice «zsh: killed»
+Si la app no abre, o la Terminal dice «zsh: killed»
   macOS bloquea el instalador porque viene de internet y aún no está firmado por Apple.
-  Abra la app Terminal (Aplicaciones > Utilidades > Terminal), pegue estas dos líneas y
+  La app «Instalar Sistema UVA» ya hace sola estos pasos; si aun así no abre, abra la app Terminal (Aplicaciones > Utilidades > Terminal), pegue estas dos líneas y
   presione Enter (si descomprimió el .zip en otra carpeta que no sea Descargas, cambie la ruta):
 
     xattr -cr ~/Downloads/"Instalador Sistema UVA"

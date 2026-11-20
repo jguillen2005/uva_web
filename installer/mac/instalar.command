@@ -1,11 +1,14 @@
 #!/bin/bash
 # Asistente de instalación del Sistema UVA para Mac (Apple o Intel).
-# Doble clic en Finder. Si macOS lo bloquea: clic derecho > Abrir > Abrir.
+# Normalmente lo abre «Instalar Sistema UVA.app» (doble clic): la app lo ejecuta con bash en Terminal.
+# Este archivo también va junto a la app como alternativa (doble clic o: bash "Instalar Sistema UVA.command").
 # Opciones (Terminal): --silencioso  --demo si|no  --actualizar-sistema  --sin-abrir  --destino <carpeta>
 
 set -u
 ORIGEN="$(cd "$(dirname "$0")" && pwd)"
 CONTENIDO="$ORIGEN/contenido"
+# El contenido va dentro de la app (Contents/Resources/contenido): este .command, junto a la app, lo usa de ahí.
+[ -d "$CONTENIDO" ] || CONTENIDO="$ORIGEN/Instalar Sistema UVA.app/Contents/Resources/contenido"
 VERSION="$(cat "$CONTENIDO/version.txt" 2>/dev/null || echo 1.1)"
 DESTINO="$HOME/SistemaUVA"
 DEMO=''; SILENCIOSO=0; ACTUALIZAR_SISTEMA=0; SIN_ABRIR=0
