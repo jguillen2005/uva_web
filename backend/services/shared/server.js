@@ -1,5 +1,5 @@
 import express from 'express';
-import { OdooError, ping } from './odoo.js';
+import { OdooError, peticion, ping } from './odoo.js';
 
 /** Envuelve un handler async y traduce errores a {error} con el status correcto. */
 export const h = (fn) => async (req, res) => {
@@ -36,7 +36,8 @@ export function createService(name, mount) {
   app.use(express.json({ limit: '10mb' }));
   app.use((req, _res, next) => {
     if (process.env.LOG_REQUESTS !== '0') console.log(`${new Date().toISOString()} ${name} ${req.method} ${req.url}`);
-    next();
+    // Las llamadas a Odoo de esta petición saben si es solo lectura (para decidir si se pueden reintentar)
+    peticion.run({ lectura: req.method === 'GET' || req.method === 'HEAD' }, next);
   });
 
   app.get('/health', async (_req, res) => {
