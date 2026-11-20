@@ -1,18 +1,36 @@
 #!/bin/bash
 # Ejecutable de «Instalar Sistema UVA.app» (Contents/MacOS/instalar).
-# Abre el instalador en una ventana de Terminal leyéndolo con bash, en lugar de ejecutar el archivo
-# descargado: así macOS no lo detiene («zsh: killed») por venir de internet sin firma de Apple.
+#
+# macOS ejecuta la app descargada desde una copia aislada temporal (App Translocation) que deja de poderse
+# leer cuando la app termina. Por eso la app, MIENTRAS SIGUE ABIERTA, copia el instalador a una carpeta
+# temporal propia (sin marcas de descarga) y abre ahí una ventana de Terminal que lo ejecuta con bash.
+# No necesita permisos especiales (ni «Acceso total al disco»).
 RES="$(cd "$(dirname "$0")/../Resources" && pwd)"
-APP="$(cd "$RES/../.." && pwd)"
+TMP_BASE="${TMPDIR:-/tmp}"; TMP_BASE="${TMP_BASE%/}"
 
-# Quita la marca de «descargado de internet» de la app y de la carpeta donde está (si macOS abrió
-# la app desde una copia aislada de solo lectura, no se puede y no hace falta: bash solo lee el archivo).
-xattr -cr "$APP" 2>/dev/null || true
-xattr -cr "$(dirname "$APP")" 2>/dev/null || true
+aviso() {
+  osascript -e "display dialog \"$1\" with title \"Instalador Sistema UVA\" buttons {\"OK\"} default button \"OK\" with icon stop" >/dev/null 2>&1 || true
+}
 
-# Un .command temporal creado aquí (sin marca de descarga) que abre el instalador con bash y se borra solo.
-LANZA="$(mktemp -t sistema-uva)" || exit 1
+# 1. Copia del instalador fuera de la app (solo contenido, sin atributos de macOS)
+TRABAJO="$(mktemp -d "$TMP_BASE/sistema-uva-instalador.XXXXXX")" || { aviso 'No se pudo crear una carpeta temporal para el instalador.'; exit 1; }
+mkdir -p "$TRABAJO/instalador"
+if command -v ditto >/dev/null 2>&1; then
+  ditto --noqtn --noextattr --noacl "$RES" "$TRABAJO/instalador" 2>/dev/null
+else
+  cp -R "$RES/." "$TRABAJO/instalador/" 2>/dev/null
+fi
+xattr -cr "$TRABAJO" 2>/dev/null || true
+if [ ! -f "$TRABAJO/instalador/instalar.command" ] || [ ! -f "$TRABAJO/instalador/contenido/uva.sh" ]; then
+  rm -rf "$TRABAJO"
+  aviso 'No se pudo preparar el instalador. Mueva la carpeta «Instalador Sistema UVA» al Escritorio y vuelva a abrir «Instalar Sistema UVA».'
+  exit 1
+fi
+
+# 2. Ventana de Terminal: un .command local (sin marca de descarga) que ejecuta el instalador con bash y,
+#    al terminar, borra la copia temporal.
+LANZA="$(mktemp "$TMP_BASE/sistema-uva.XXXXXX")" || exit 1
 mv -f "$LANZA" "$LANZA.command" && LANZA="$LANZA.command"
-printf '#!/bin/bash\nrm -f "%s"\nexec bash "%s" "$@"\n' "$LANZA" "$RES/instalar.command" > "$LANZA"
+printf '#!/bin/bash\nrm -f "%s"\nbash "%s" "$@"\nr=$?\nrm -rf "%s"\nexit $r\n' "$LANZA" "$TRABAJO/instalador/instalar.command" "$TRABAJO" > "$LANZA"
 chmod +x "$LANZA"
 open -a Terminal "$LANZA"
