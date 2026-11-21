@@ -8,22 +8,33 @@ const fs = require('fs');
 const path = require('path');
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, BorderStyle,
-  HeadingLevel, AlignmentType, LevelFormat, Footer, PageNumber, ImageRun, PageBreak, TableOfContents,
+  HeadingLevel, AlignmentType, LevelFormat, Footer, Header, PageNumber, ImageRun, PageBreak, TableOfContents,
+  HeightRule, TabStopType, ExternalHyperlink,
 } = require('docx');
 
 const FIG = path.join(__dirname, 'fig');
+const MARCA = path.join(__dirname, 'marca');
 const SALIDA = path.join(__dirname, 'Manual de instalacion Sistema UVA.docx');
 const VERSION = process.argv[2] || '1.1.1';
-const FONT = 'Arial';
-const AZUL = '1F4E79';
+// Formato y paleta de AP Interfaces (sitio web: azul marino, cian y violeta; tipografía Inter / Segoe UI)
+const FONT = 'Segoe UI';
+const AZUL = '071326';        // azul marino
+const VIOLETA = '7657FF';
+const CIAN = '19D3D1';
+const CIAN_OSCURO = '0E8F8D';
+const TEXTO = '152238';
+const GRIS = '52657C';
+const LINEA = 'C6D6E8';
 const ROJO = 'E11D48';
+const WEB = 'https://www.apinterfaces.mx/';
+const WEB_TEXTO = 'www.apinterfaces.mx';
 const ANCHO = 9638;               // A4 con márgenes de 2 cm (twips)
 const ANCHO_PX = 640;             // ancho útil aproximado en píxeles (96 ppp)
 
 // ------------------------------------------------------------------ utilidades de formato
 const sinBorde = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-const borde = { style: BorderStyle.SINGLE, size: 4, color: 'BFBFBF' };
-const run = (x) => (typeof x === 'string' ? new TextRun({ text: x, font: FONT, size: 23 }) : new TextRun({ font: FONT, size: 23, ...x }));
+const borde = { style: BorderStyle.SINGLE, size: 4, color: LINEA };
+const run = (x) => (typeof x === 'string' ? new TextRun({ text: x, font: FONT, size: 22, color: TEXTO }) : new TextRun({ font: FONT, size: 22, color: TEXTO, ...x }));
 const p = (parts, opts = {}) => new Paragraph({ spacing: { after: 140, line: 300 }, ...opts, children: (Array.isArray(parts) ? parts : [parts]).map(run) });
 const b = (text) => ({ text, bold: true });
 const rojo = (text) => ({ text, bold: true, color: ROJO });
@@ -44,7 +55,7 @@ const imagen = (nombre, anchoPx, altoPx) => {
   if (altoPx) { h = altoPx; w = Math.round(m.w * h / m.h); if (w > anchoPx) { w = anchoPx; h = Math.round(m.h * w / m.w); } }
   return new ImageRun({ type: 'png', data, transformation: { width: w, height: h } });
 };
-const leyenda = (t) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: t, font: FONT, size: 19, italics: true, color: '595959' })] });
+const leyenda = (t) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: t, font: FONT, size: 18, italics: true, color: GRIS })] });
 const fig = (nombre, anchoPx, texto) => [
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: texto ? 40 : 200 }, keepNext: !!texto, children: [imagen(nombre, anchoPx)] }),
   ...(texto ? [leyenda(texto)] : []),
@@ -69,7 +80,9 @@ const celda = (contenido, ancho, { header = false, fill } = {}) => new TableCell
     spacing: { after: 60, line: 280 },
     children: (Array.isArray(linea) ? linea : [linea]).map((x) => (typeof x === 'string'
       ? new TextRun({ text: x, font: FONT, size: 21, bold: header, color: header ? 'FFFFFF' : undefined })
-      : new TextRun({ font: FONT, size: 21, ...x }))),
+      : x.link
+        ? new ExternalHyperlink({ link: x.link, children: [new TextRun({ text: x.text, font: FONT, size: x.size || 21, bold: true, color: VIOLETA, underline: {} })] })
+        : new TextRun({ font: FONT, size: 21, ...x }))),
   })),
 });
 const tabla = (anchos, encabezado, filas) => new Table({
@@ -80,12 +93,42 @@ const tabla = (anchos, encabezado, filas) => new Table({
     ...filas.map((f) => new TableRow({ cantSplit: true, children: f.map((t, i) => celda(t, anchos[i])) })),
   ],
 });
-const recuadro = (tituloR, lineas, fill = 'EAF2FB') => new Table({
+const recuadro = (tituloR, lineas, fill = 'EDF3FA') => new Table({
   width: { size: ANCHO, type: WidthType.DXA }, columnWidths: [ANCHO],
   rows: [new TableRow({ cantSplit: true, children: [celda([[b(tituloR)], ...lineas], ANCHO, { fill })] })],
 });
-const importante = (lineas) => recuadro('Importante', lineas, 'FFF4E5');
-const consejo = (lineas) => recuadro('Consejo', lineas, 'EAF6EC');
+const importante = (lineas) => recuadro('Importante', lineas, 'F1EDFF');
+const consejo = (lineas) => recuadro('Consejo', lineas, 'E6FAF9');
+const logo = (nombre, anchoPx) => {
+  const data = fs.readFileSync(path.join(MARCA, nombre + '.png'));
+  const m = medidas(data);
+  return new ImageRun({ type: 'png', data, transformation: { width: anchoPx, height: Math.round(m.h * anchoPx / m.w) } });
+};
+const nada = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+const sinBordes = { top: nada, bottom: nada, left: nada, right: nada };
+// Portada: bloque azul marino con el logo blanco y una franja violeta/cian (como el degradado del sitio)
+const portadaMarca = () => [
+  new Table({
+    width: { size: ANCHO, type: WidthType.DXA }, columnWidths: [ANCHO], borders: { ...sinBordes, insideHorizontal: nada, insideVertical: nada },
+    rows: [new TableRow({ children: [new TableCell({
+      width: { size: ANCHO, type: WidthType.DXA }, borders: sinBordes,
+      shading: { type: ShadingType.CLEAR, color: 'auto', fill: AZUL }, margins: { top: 700, bottom: 700, left: 600, right: 600 },
+      children: [
+        new Paragraph({ spacing: { after: 500 }, children: [logo('logo-ap-blanco', 190)] }),
+        new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: 'Manual de instalación', font: FONT, size: 60, bold: true, color: 'FFFFFF' })] }),
+        new Paragraph({ spacing: { after: 360 }, children: [new TextRun({ text: 'Sistema UVA y App de campo Asercontrol', font: FONT, size: 32, color: CIAN })] }),
+        new Paragraph({ children: [new TextRun({ text: `Versión ${VERSION}  ·  Windows · Mac · Linux · Android · iPhone · iPad`, font: FONT, size: 20, color: LINEA })] }),
+      ],
+    })] })],
+  }),
+  new Table({
+    width: { size: ANCHO, type: WidthType.DXA }, columnWidths: [ANCHO / 2, ANCHO / 2], borders: { ...sinBordes, insideHorizontal: nada, insideVertical: nada },
+    rows: [new TableRow({ height: { value: 110, rule: HeightRule.EXACT }, children: [VIOLETA, CIAN].map((fill) => new TableCell({
+      width: { size: ANCHO / 2, type: WidthType.DXA }, borders: sinBordes, shading: { type: ShadingType.CLEAR, color: 'auto', fill }, children: [new Paragraph({ children: [] })],
+    })) })],
+  }),
+  espacio(),
+];
 const mono = (text) => ({ text, font: 'Consolas', size: 21 });
 
 // ------------------------------------------------------------------ contenido
@@ -95,10 +138,7 @@ function contenido() {
 
   // ===== Portada
   add(
-    titulo('Manual de instalación del Sistema UVA'),
-    p([{ text: 'Sistema UVA y App de campo Asercontrol', size: 30, color: AZUL }]),
-    p([{ text: `Versión ${VERSION} · Windows, Mac, Linux, Android, iPhone y iPad`, color: '595959' }]),
-    espacio(),
+    portadaMarca(),
     recuadro('Este es el único documento que necesita', [
       ['Aquí están todas las instrucciones: cómo instalar el sistema en la computadora de la oficina, qué significa el archivo ', b('CREDENCIALES.txt'), ' que se crea al terminar y cómo instala cada verificador la app en su teléfono.'],
       ['Está escrito para personas que ', b('no son del área de sistemas'), '. Siga los pasos en orden y fíjese en las imágenes: lo marcado en ', rojo('rojo'), ' es donde debe hacer clic o tocar.'],
@@ -110,7 +150,7 @@ function contenido() {
       ['Un verificador que va a usar la app en campo', [[b('Capítulo 7'), ': instalar la app en su teléfono o tablet.']]],
       ['Quien da soporte técnico', 'El anexo «Información para soporte técnico», al final.'],
     ]),
-    espacio(),
+    new Paragraph({ children: [new PageBreak()] }),
     h2('Contenido'),
     new TableOfContents('Contenido', { hyperlink: true, headingStyleRange: '1-1' }),
   );
@@ -350,6 +390,12 @@ function contenido() {
       ['Un verificador no puede entrar aunque su contraseña es correcta.', 'Pida a soporte que le asigne su usuario en su ficha de verificador.'],
       ['Olvidó la contraseña de admin.', 'Abra «Datos de acceso» en los accesos del sistema.'],
     ]),
+    espacio(),
+    recuadro('¿Necesita ayuda?', [
+      ['Si su problema no aparece en este capítulo o no se resuelve, contacte al equipo de soporte de AP Interfaces:'],
+      ['Sitio web:  ', { text: WEB_TEXTO, link: WEB, size: 24 }],
+      ['Tenga a la mano: una foto de la pantalla con el mensaje, qué computadora usa (Windows, Mac o Linux) y la versión del Sistema UVA (', b(VERSION), ').'],
+    ], 'F1EDFF'),
   );
 
   // ===== Anexo técnico
@@ -374,26 +420,45 @@ function contenido() {
 // ------------------------------------------------------------------ documento
 const hijos = contenido();
 const doc = new Document({
-  creator: 'Asercontrol', title: 'Manual de instalación del Sistema UVA',
+  creator: 'AP Interfaces', title: 'Manual de instalación del Sistema UVA',
   features: { updateFields: true },
   styles: {
-    default: { document: { run: { font: FONT, size: 23 } } },
+    default: { document: { run: { font: FONT, size: 22, color: TEXTO } } },
     paragraphStyles: [
       { id: 'Title', name: 'Title', basedOn: 'Normal', run: { font: FONT, size: 48, bold: true, color: AZUL }, paragraph: { spacing: { before: 0, after: 100 } } },
-      { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 34, bold: true, color: AZUL }, paragraph: { spacing: { before: 0, after: 200 }, keepNext: true, outlineLevel: 0 } },
-      { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 27, bold: true, color: AZUL }, paragraph: { spacing: { before: 300, after: 120 }, keepNext: true, outlineLevel: 1 } },
-      { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 24, bold: true, color: '2E74B5' }, paragraph: { spacing: { before: 200, after: 100 }, keepNext: true, outlineLevel: 2 } },
+      { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 36, bold: true, color: AZUL }, paragraph: { spacing: { before: 0, after: 240 }, keepNext: true, outlineLevel: 0, border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: VIOLETA, space: 6 } } } },
+      { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 27, bold: true, color: VIOLETA }, paragraph: { spacing: { before: 300, after: 120 }, keepNext: true, outlineLevel: 1 } },
+      { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 24, bold: true, color: CIAN_OSCURO }, paragraph: { spacing: { before: 200, after: 100 }, keepNext: true, outlineLevel: 2 } },
     ],
   },
   numbering: {
     config: [
       { reference: 'vinetas', levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 720, hanging: 320 } } } }] },
-      ...refs.map((ref) => ({ reference: ref, levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 460, hanging: 380 } }, run: { bold: true, color: AZUL } } }] })),
+      ...refs.map((ref) => ({ reference: ref, levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 460, hanging: 380 } }, run: { bold: true, color: VIOLETA } } }] })),
     ],
   },
   sections: [{
-    properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } },
-    footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `Manual de instalación · Sistema UVA ${VERSION} · página `, font: FONT, size: 16, color: '808080' }), new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 16, color: '808080' })] })] }) },
+    properties: { titlePage: true, page: { size: { width: 11906, height: 16838 }, margin: { top: 1300, bottom: 1134, left: 1134, right: 1134, header: 500, footer: 500 } } },
+    headers: {
+      first: new Header({ children: [new Paragraph({ children: [] })] }),
+      default: new Header({ children: [new Paragraph({
+        tabStops: [{ type: TabStopType.RIGHT, position: ANCHO }],
+        border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: LINEA, space: 4 } },
+        children: [logo('logo-ap-color', 62), new TextRun({ text: '\tSistema UVA · Manual de instalación', font: FONT, size: 17, color: GRIS })],
+      })] }),
+    },
+    footers: {
+      first: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'AP Interfaces · Tu socio tecnológico · ', font: FONT, size: 17, color: GRIS }), new ExternalHyperlink({ link: WEB, children: [new TextRun({ text: WEB_TEXTO, font: FONT, size: 17, color: VIOLETA })] })] })] }),
+      default: new Footer({ children: [new Paragraph({
+        tabStops: [{ type: TabStopType.RIGHT, position: ANCHO }],
+        children: [
+          new TextRun({ text: 'AP Interfaces · Tu socio tecnológico · ', font: FONT, size: 16, color: GRIS }),
+          new ExternalHyperlink({ link: WEB, children: [new TextRun({ text: WEB_TEXTO, font: FONT, size: 16, color: VIOLETA })] }),
+          new TextRun({ text: `\tSistema UVA ${VERSION} · página `, font: FONT, size: 16, color: GRIS }),
+          new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 16, color: VIOLETA, bold: true }),
+        ],
+      })] }),
+    },
     children: hijos,
   }],
 });
