@@ -105,7 +105,7 @@ $dockerInstalado = (Get-Command docker -ErrorAction SilentlyContinue) -or (Test-
 if (-not $dockerInstalado) {
     $texto = "El Sistema UVA necesita Docker Desktop, un programa gratuito, y no está instalado en esta computadora.`n`n" +
              "El instalador lo descarga e instala por usted (unos 10 minutos, necesita Internet). Windows le pedirá permiso: elija Sí.`n`n" +
-             "Al terminar habrá que reiniciar la computadora; después la instalación del Sistema UVA continúa sola.`n`n" +
+             "Si Windows lo necesita, al terminar le pedirá reiniciar; después la instalación del Sistema UVA continúa sola.`n`n" +
              "Al continuar acepta la licencia de Docker Desktop: es gratuito para empresas de menos de 250 empleados y menos de 10 MDD de ingresos anuales."
     if ((Show-Mensaje $texto 'OKCancel' 'Information') -eq 'Cancel') { Exit-Instalador 0 }
     $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
@@ -132,6 +132,25 @@ if (-not $dockerInstalado) {
         Exit-Instalador 2
     }
     Write-Host '  OK  Docker Desktop quedó instalado.' -ForegroundColor Green
+    # Reiniciar solo si hace falta: si Windows no lo pidió (código 3010), se intenta abrir Docker y seguir.
+    $sinReinicio = $false
+    if ($p.ExitCode -eq 0) {
+        $bin = Join-Path $env:ProgramFiles 'Docker\Docker\resources\bin'
+        if (Test-Path $bin) { $env:Path += ";$bin" }
+        Write-Paso 'Abriendo Docker Desktop (tarda 1 o 2 minutos la primera vez)'
+        Start-Process (Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe') -ErrorAction SilentlyContinue
+        $limite = (Get-Date).AddMinutes(4)
+        while ((Get-Date) -lt $limite) {
+            Start-Sleep -Seconds 5
+            cmd.exe /c 'docker info >nul 2>&1'
+            if ($LASTEXITCODE -eq 0) { $sinReinicio = $true; break }
+            Write-Host '.' -NoNewline
+        }
+        Write-Host ''
+    }
+    if ($sinReinicio) {
+        Write-Host '  OK  Docker Desktop está listo: no hace falta reiniciar.' -ForegroundColor Green
+    } else {
     # Continuar solo después de reiniciar (una vez), con las mismas opciones
     if ($env:UVA_INSTALADOR_EXE -and (Test-Path $env:UVA_INSTALADOR_EXE)) {
         $opciones = @($PSBoundParameters.GetEnumerator() | ForEach-Object { if ($_.Value -is [switch]) { if ($_.Value) { "-$($_.Key)" } } else { "-$($_.Key) `"$($_.Value)`"" } }) -join ' '
@@ -144,6 +163,7 @@ if (-not $dockerInstalado) {
     if ($r -eq 'Yes') { Restart-Computer -Force }
     Write-Host '  Reinicie Windows cuando pueda: la instalación continuará sola.' -ForegroundColor Yellow
     Exit-Instalador 0
+    }
 }
 
 # ------------------------------------------------------------------ instalación nueva o actualización

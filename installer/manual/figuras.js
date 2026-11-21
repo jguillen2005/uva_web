@@ -131,7 +131,7 @@ F['w-10-escritorio'] = `<div style="width:520px;height:170px;border-radius:8px;b
 <span class="tag izq" style="left:140px;top:44px">Doble clic para abrir el sistema</span>`;
 
 F['w-docker-1'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
-<div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">ℹ️</span><div>El Sistema UVA necesita <b>Docker Desktop</b>, un programa gratuito, y no está instalado en esta computadora.<br><br>El instalador lo descarga e instala por usted (unos 10 minutos). Windows le pedirá permiso: elija Sí.<br><br>Al terminar habrá que reiniciar la computadora; después la instalación del Sistema UVA continúa sola.</div></div>
+<div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">ℹ️</span><div>El Sistema UVA necesita <b>Docker Desktop</b>, un programa gratuito, y no está instalado en esta computadora.<br><br>El instalador lo descarga e instala por usted (unos 10 minutos). Windows le pedirá permiso: elija Sí.<br><br>Si Windows lo necesita, al terminar le pedirá reiniciar; después la instalación del Sistema UVA continúa sola.</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Aceptar</span><span class="btn">Cancelar</span></div></div>
 <span class="tag aba">Clic en Aceptar</span>`;
 F['w-docker-2'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
