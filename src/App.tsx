@@ -13,6 +13,7 @@ import { FormatosView } from './views/FormatosView';
 import { InstrumentosView } from './views/InstrumentosView';
 import { VerificadoresView } from './views/VerificadoresView';
 import { UsuariosView } from './views/UsuariosView';
+import { CambiarClaveView } from './views/CambiarClaveView';
 import { AltaFormatoView } from './views/AltaFormatoView';
 import { EditorView } from './views/EditorView';
 import { TiposView } from './views/TiposView';
@@ -24,8 +25,8 @@ import { ExpedienteView } from './views/ExpedienteView';
 import { ProcesoView } from './views/ProcesoView';
 import { PerfilView } from './views/PerfilView';
 import { AppMovilView } from './views/AppMovilView';
-import { LoginScreen, LogoutDialog, SessionLoading, SignedOutScreen } from './components/SessionScreens';
-import { EVENTO_SESION_VENCIDA, requiereSesion, sesion, type PerfilSesion } from './api/sesion';
+import { CambiarClaveScreen, LoginScreen, LogoutDialog, SessionLoading, SignedOutScreen } from './components/SessionScreens';
+import { EVENTO_CAMBIAR_CLAVE, EVENTO_SESION_VENCIDA, requiereSesion, sesion, type PerfilSesion } from './api/sesion';
 import { UserMenu } from './components/UserMenu';
 import { CheckCircle2, LogOut, X } from 'lucide-react';
 
@@ -55,6 +56,7 @@ export default function App() {
       'Expediente',
       'Proceso',
       'Perfil',
+      'CambiarClave',
       'AppMovil'
     ];
     if (validScreens.includes(hash as ScreenKey)) {
@@ -101,10 +103,13 @@ export default function App() {
       setAvisoSesion('Su sesión venció. Inicie sesión nuevamente.');
       setEstadoSesion('anonima');
     };
+    const alPedirClave = () => setUsuarioSesion((u) => (u ? { ...u, cambiarClave: true } : u));
     window.addEventListener(EVENTO_SESION_VENCIDA, alVencer);
+    window.addEventListener(EVENTO_CAMBIAR_CLAVE, alPedirClave);
     return () => {
       vigente = false;
       window.removeEventListener(EVENTO_SESION_VENCIDA, alVencer);
+      window.removeEventListener(EVENTO_CAMBIAR_CLAVE, alPedirClave);
     };
   }, []);
 
@@ -212,6 +217,7 @@ export default function App() {
       case 'Verificadores':
         return <VerificadoresView onShowToast={showToast} />;
       case 'Usuarios':
+        if (requiereSesion && !usuarioSesion?.puedeGestionarUsuarios) return <TableroView onNavigate={navigateTo} />;
         return <UsuariosView onShowToast={showToast} />;
       case 'AltaFormato':
         return <AltaFormatoView onNavigate={navigateTo} onShowToast={showToast} />;
@@ -233,6 +239,8 @@ export default function App() {
         return <ProcesoView onNavigate={navigateTo} />;
       case 'AppMovil':
         return <AppMovilView />;
+      case 'CambiarClave':
+        return <CambiarClaveView onNavigate={navigateTo} onShowToast={showToast} user={usuarioSesion} />;
       case 'Perfil':
         return <PerfilView onNavigate={navigateTo} onShowToast={showToast} onLogout={requestLogout} />;
       default:
@@ -243,6 +251,23 @@ export default function App() {
   if (requiereSesion) {
     if (estadoSesion === 'cargando') return <SessionLoading />;
     if (estadoSesion === 'anonima') return <LoginScreen aviso={avisoSesion} onLoggedIn={alIniciarSesion} />;
+    if (usuarioSesion?.cambiarClave) {
+      return (
+        <CambiarClaveScreen
+          nombre={usuarioSesion.name}
+          onListo={(perfil) => {
+            alIniciarSesion(perfil);
+            setToastMessage('Contraseña guardada. Use su contraseña nueva en la web y en la app de campo.');
+          }}
+          onSalir={async () => {
+            await sesion.cerrar().catch(() => undefined);
+            setUsuarioSesion(null);
+            setAvisoSesion(null);
+            setEstadoSesion('anonima');
+          }}
+        />
+      );
+    }
   } else if (signedOut) {
     return <SignedOutScreen onSignIn={doSignIn} />;
   }
@@ -258,13 +283,14 @@ export default function App() {
         onClose={() => setIsSidebarOpen(false)}
         onLogout={requestLogout}
         user={usuarioSesion}
+        gestionaUsuarios={!requiereSesion || !!usuarioSesion?.puedeGestionarUsuarios}
       />
 
       {/* Main View Area */}
       <main className="flex-1 min-w-0 flex flex-col bg-canvas [&>*]:w-full [&>*]:min-w-0">
         {/* Desktop top bar: account menu at top-right */}
         <header className="hidden lg:flex print:hidden items-center justify-end gap-2 h-14 px-6 lg:px-8 border-b border-line-200 bg-canvas">
-          <UserMenu onProfile={() => navigateTo('Perfil')} onLogout={requestLogout} user={usuarioSesion} />
+          <UserMenu onProfile={() => navigateTo('Perfil')} onChangePassword={() => navigateTo('CambiarClave')} onLogout={requestLogout} user={usuarioSesion} />
           <span className="w-px h-6 bg-line-300" aria-hidden="true" />
           <button
             type="button"

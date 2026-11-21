@@ -112,17 +112,15 @@ Guarde este archivo en un lugar seguro: contiene contraseñas.
 1. PARA ENTRAR AL SISTEMA EN ESTA COMPUTADORA
    Haga doble clic en el ícono «Sistema UVA» del escritorio
 
-<span class="hl" style="padding:2px">   Usuario:     admin
-   Contraseña:  Xk7p-2qL9-wR4m</span>
+<span class="hl" style="padding:2px">   Usuario:     jhovani.coss@asercontrol.com
+   Contraseña:  asercontrol123456</span>
+
+   Es el mismo usuario y la misma contraseña para la web y la app.
 
 2. DIRECCIÓN PARA LOS TELÉFONOS Y LAS DEMÁS COMPUTADORAS
 <span class="hl" style="padding:2px">   http://192.168.1.50:8080</span>
 
-3. VERIFICADOR DE PRUEBA (para probar la app)
-   Correo:      jhovani.coss@asercontrol.com
-   Contraseña:  asercontrol123456
-
-4. INSTRUCCIONES COMPLETAS
+3. INSTRUCCIONES COMPLETAS
    «Manual de instalacion Sistema UVA» (PDF)</div></div>
 <span class="tag izq" style="left:330px;top:150px">Guarde este archivo en un lugar seguro</span>`;
 F['w-10-escritorio'] = `<div style="width:520px;height:170px;border-radius:8px;background:linear-gradient(135deg,#1e3a8a,#0ea5e9);position:relative;padding:18px;display:flex;gap:26px;color:#fff;font-size:12px;text-align:center">

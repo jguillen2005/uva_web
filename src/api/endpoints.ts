@@ -4,7 +4,7 @@
  */
 import { client, saveBlob, seg } from './client';
 import { mockAction, mockResolve, pick, type ActionResult } from './source';
-import type { AltaFormatoDefaults, BandejaData, CalibracionActual, CalibracionStep, CampoSesion, CargaConaguaModo, ClientItem, ClienteInput, CompletarCalibracionInput, ConaguaItem, ConfirmarVisitaInput, CreateInstrumentoInput, CreateSolicitudInput, DictamenItem, EstadisticasData, ExpedienteData, FormatoCreateInput, FormatoEstructura, FormatoItem, ImportacionAspel, InstrumentDetail, PerfilData, PerfilInput, PozoInput, PrestamosData, ProgramacionData, RegistrarDevolucionInput, RespuestaCampoInput, RevisionData, RevisionDecision, Solicitud, SolicitudStatus, TableroData, TiposData, UsuariosData, VerificadorItem, WellSite } from '../types';
+import type { AltaFormatoDefaults, BandejaData, CalibracionActual, CalibracionStep, CampoSesion, CargaConaguaModo, ClientItem, ClienteInput, CompletarCalibracionInput, ConaguaItem, ConfirmarVisitaInput, CreateInstrumentoInput, CreateSolicitudInput, DictamenItem, EstadisticasData, ExpedienteData, FormatoCreateInput, FormatoEstructura, FormatoItem, ImportacionAspel, InstrumentDetail, PerfilData, PerfilInput, PozoInput, PrestamosData, ProgramacionData, RegistrarDevolucionInput, RespuestaCampoInput, RevisionData, RevisionDecision, Solicitud, SolicitudStatus, TableroData, TiposData, RolDisponible, UsuarioInput, UsuarioItem, UsuariosData, VerificadorItem, WellSite } from '../types';
 import { mockEstadisticas, mockTablero } from '../data/reportes';
 import { mockClients, mockFormatos, mockSolicitudes, mockVerificadores } from '../data/mockData';
 import { mockAltaFormatoDefaults, mockFormatoEstructura, mockPerfil, mockTipos, mockUsuarios } from '../data/catalogos';
@@ -120,6 +120,25 @@ function emptyWell(vals: PozoInput): WellSite {
   };
 }
 
+const MOCK_ROLES: RolDisponible[] = [
+  { clave: 'group_uva_admin', nombre: 'Administrador', descripcion: 'Todo el sistema y el registro de usuarios', app: false },
+  { clave: 'group_uva_gerente', nombre: 'Gerente Técnico', descripcion: 'Revisión técnica y dictámenes', app: false },
+  { clave: 'group_uva_coordinador', nombre: 'Coordinador', descripcion: 'Solicitudes y programación de visitas', app: false },
+  { clave: 'group_uva_inspector', nombre: 'Inspector', descripcion: 'Verificador: usa la app de campo y ve sus visitas', app: true },
+  { clave: 'group_uva_conagua', nombre: 'Registro CONAGUA', descripcion: 'Carga de expedientes a CONAGUA', app: false },
+  { clave: 'group_uva_equipos', nombre: 'Resp. equipos', descripcion: 'Instrumentos y préstamos de equipo', app: false },
+  { clave: 'group_uva_consulta', nombre: 'Consulta', descripcion: 'Solo consulta', app: false },
+];
+
+function mockUsuarioDe(vals: UsuarioInput): UsuarioItem {
+  const claves = vals.roles ?? [];
+  return {
+    id: Date.now(), name: vals.name ?? '', email: vals.email ?? '', login: vals.email ?? '',
+    roles: MOCK_ROLES.filter((r) => claves.includes(r.clave)).map((r) => r.nombre), roleKeys: claves,
+    date: 'Sin acceso', st: vals.active === false ? 'Inactivo' : 'Activo', active: vals.active !== false, cambiarClave: true,
+  };
+}
+
 export const catalogos = {
   /* ---------- Clientes ---------- */
 
@@ -206,7 +225,37 @@ export const catalogos = {
   getUsuarios: (): Promise<UsuariosData> =>
     pick(
       () => client.get<UsuariosData>('/catalogos/usuarios'),
-      () => mockResolve(mockUsuarios),
+      () => mockResolve({ ...mockUsuarios, rolesDisponibles: MOCK_ROLES }),
+    ),
+
+  /** GET /catalogos/usuarios/roles — roles que se pueden asignar */
+  getRolesUsuario: (): Promise<RolDisponible[]> =>
+    pick(
+      () => client.get<RolDisponible[]>('/catalogos/usuarios/roles'),
+      () => mockResolve(MOCK_ROLES),
+    ),
+
+  /** POST /catalogos/usuarios — registra un usuario (solo Administrador); devuelve su contraseña temporal */
+  createUsuario: (vals: UsuarioInput): Promise<ActionResult<{ usuario: UsuarioItem; claveTemporal: string }>> =>
+    pick(
+      () => client.post<ActionResult<{ usuario: UsuarioItem; claveTemporal: string }>>('/catalogos/usuarios', vals),
+      () => mockAction(`Usuario ${vals.name} registrado.`, {
+        usuario: mockUsuarioDe(vals), claveTemporal: 'Temporal7Kx',
+      }),
+    ),
+
+  /** PUT /catalogos/usuarios/:id — nombre, roles o activo/inactivo */
+  updateUsuario: (id: number, vals: UsuarioInput): Promise<ActionResult<{ usuario: UsuarioItem }>> =>
+    pick(
+      () => client.put<ActionResult<{ usuario: UsuarioItem }>>(`/catalogos/usuarios/${id}`, vals),
+      () => mockAction('Usuario actualizado.', { usuario: mockUsuarioDe(vals) }),
+    ),
+
+  /** POST /catalogos/usuarios/:id/restablecer-clave — nueva contraseña temporal */
+  restablecerClaveUsuario: (id: number): Promise<ActionResult<{ usuario: UsuarioItem; claveTemporal: string }>> =>
+    pick(
+      () => client.post<ActionResult<{ usuario: UsuarioItem; claveTemporal: string }>>(`/catalogos/usuarios/${id}/restablecer-clave`),
+      () => mockAction('Contraseña temporal creada.', { usuario: mockUsuarioDe({}), claveTemporal: 'Temporal9Pq' }),
     ),
 
   /* ---------- Mi perfil ---------- */

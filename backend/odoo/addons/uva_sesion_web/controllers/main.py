@@ -189,11 +189,61 @@ class SesionWebController(http.Controller):
     def yo(self):
         return _responder(lambda: request.make_json_response({'perfil': _perfil(_usuario_de_la_cookie())}))
 
+    @http.route(['/api/sesion/acceso-predeterminado', '/api/app/acceso-predeterminado'], methods=['GET'], **RUTA)
+    def acceso_predeterminado(self):
+        """Usuario del sistema con que se prellena el inicio de sesión de la web y de la app.
+
+        Los datos viven en la base de Odoo (parámetros uva.usuario_sistema / uva.clave_sistema, que fija el
+        instalador), no en el código. La contraseña solo se entrega mientras siga siendo la original: si el
+        cliente la cambió, se devuelve únicamente el correo."""
+        def operar():
+            icp = _icp()
+            correo = (icp.get_param('uva.usuario_sistema') or '').strip()
+            clave = icp.get_param('uva.clave_sistema') or ''
+            user = request.env['res.users'].sudo().search([('login', '=', correo)], limit=1) if correo else None
+            if not user or not _puede_entrar(user):
+                return request.make_json_response({'correo': '', 'clave': ''})
+            vigente = False
+            if clave:
+                try:
+                    request.env['res.users'].sudo().authenticate(
+                        {'type': 'password', 'login': correo, 'password': clave}, {'interactive': False})
+                    vigente = True
+                except AccessDenied:
+                    vigente = False
+            return request.make_json_response({'correo': correo, 'clave': clave if vigente else ''},
+                                              headers=[('Cache-Control', 'no-store')])
+        return _responder(operar)
+
+    @http.route('/api/sesion/cambiar-clave', methods=['POST'], **RUTA)
+    def cambiar_clave(self):
+        """Contraseña nueva del usuario de la sesión (obligatoria si su contraseña es inicial o temporal)."""
+        def operar():
+            user = _usuario_de_la_cookie()
+            body = _cuerpo()
+            actual = str(body.get('actual') or '')
+            nueva = str(body.get('nueva') or '')
+            if len(nueva) < 8 or not any(c.isdigit() for c in nueva) or not any(c.isalpha() for c in nueva):
+                raise AppError(400, 'La contraseña nueva debe tener al menos 8 caracteres, con letras y números.')
+            if nueva == actual:
+                raise AppError(400, 'La contraseña nueva debe ser distinta de la actual.')
+            try:
+                request.env['res.users'].sudo().authenticate(
+                    {'type': 'password', 'login': user.login, 'password': actual}, {'interactive': False})
+            except AccessDenied:
+                raise AppError(401, 'La contraseña actual no es correcta.')
+            user.sudo().write({'password': nueva, 'uva_cambiar_clave': False})
+            return request.make_json_response({'ok': True, 'message': 'Contraseña actualizada.', 'perfil': _perfil(user)})
+        return _responder(operar)
+
     @http.route('/api/sesion/validar', methods=['GET'], **RUTA)
     def validar(self):
-        """Para el auth_request del gateway: 200 con el login en X-UVA-Login, o 401."""
+        """Para el auth_request del gateway: 200 con el login en X-UVA-Login, o 401.
+        Con contraseña inicial o temporal (uva_cambiar_clave) responde 403: primero debe crear una nueva."""
         try:
             user = _usuario_de_la_cookie()
         except AppError:
             return request.make_response('', status=401)
+        if user.uva_cambiar_clave:
+            return request.make_response('', status=403)
         return request.make_response('', headers=[('X-UVA-Login', user.login)])

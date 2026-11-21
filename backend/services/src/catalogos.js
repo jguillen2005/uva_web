@@ -19,13 +19,22 @@ createService('catalogos', (r) => {
   r.post('/clientes/:id/pozos', h((req) =>
     api('create_pozo', { cliente_id: idOrCode(req.params.id), vals: need(req.body, 'name') })));
 
+  // Usuario final de la petición: el gateway lo fija en X-UVA-User tras validar la sesión.
+  const login = (req) => req.get('x-uva-user') || undefined;
+
   // Verificadores y usuarios
   r.get('/verificadores', h(() => api('get_verificadores')));
   r.get('/usuarios', h(() => api('get_usuarios')));
+  r.get('/usuarios/roles', h(() => api('get_roles_usuario')));
+  // Registro de usuarios y roles (solo Administrador; Odoo lo verifica con el login)
+  r.post('/usuarios', h((req) =>
+    api('create_usuario', { login: login(req), vals: need(req.body, 'name', 'email', 'roles') })));
+  r.put('/usuarios/:id', h((req) =>
+    api('update_usuario', { login: login(req), usuario_id: Number(req.params.id), vals: req.body || {} })));
+  r.post('/usuarios/:id/restablecer-clave', h((req) =>
+    api('restablecer_clave_usuario', { login: login(req), usuario_id: Number(req.params.id) })));
 
-  // Mi perfil — el usuario final llega en X-UVA-User (lo fijará el SSO del gateway;
-  // hoy el gateway lo vacía y Odoo usa el parámetro uva.usuario_actual).
-  const login = (req) => req.get('x-uva-user') || undefined;
+  // Mi perfil
   r.get('/perfil', h((req) => api('get_perfil', { login: login(req) })));
   r.put('/perfil', h((req) => api('update_perfil', { login: login(req), vals: req.body || {} })));
 

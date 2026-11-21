@@ -15,6 +15,7 @@ import {
   Save,
   ShieldCheck,
   User,
+  KeyRound,
 } from 'lucide-react';
 
 interface PerfilViewProps {
@@ -52,7 +53,7 @@ function deviceLabel(): string {
   return os ? `${browser} en ${os}` : browser;
 }
 
-const PerfilContent: React.FC<PerfilViewProps & { data: PerfilData }> = ({ data, onShowToast, onLogout }) => {
+const PerfilContent: React.FC<PerfilViewProps & { data: PerfilData }> = ({ data, onShowToast, onLogout, onNavigate }) => {
   const [saved, setSaved] = useState<PerfilData>(data);
   const [phone, setPhone] = useState(data.phone);
   const [prefs, setPrefs] = useState<PerfilPrefs>(data.prefs);
@@ -97,7 +98,7 @@ const PerfilContent: React.FC<PerfilViewProps & { data: PerfilData }> = ({ data,
         <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">Cuenta / Mi perfil</span>
         <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight mt-0.5">Mi perfil</h1>
         <p className="text-sm text-ink-600 max-w-2xl leading-relaxed">
-          Tu identidad viene de tu cuenta institucional de Microsoft 365. Aquí puedes actualizar tu teléfono, elegir cómo recibir avisos y consultar qué puedes hacer en cada módulo.
+          Entras con tu correo y tu contraseña del Sistema UVA. Aquí puedes actualizar tu teléfono, elegir cómo recibir avisos y consultar qué puedes hacer en cada módulo.
         </p>
       </div>
 
@@ -168,7 +169,7 @@ const PerfilContent: React.FC<PerfilViewProps & { data: PerfilData }> = ({ data,
               </div>
               <ReadOnly icon={<Globe className="w-4 h-4" />} label="Zona horaria" value={saved.tz.replace(/_/g, ' ')} />
               <p className="sm:col-span-2 text-[11px] text-ink-500 leading-snug bg-surface-50 border border-line-200 rounded-lg px-3 py-2">
-                El nombre, el correo y los roles los administra el área de sistemas en Microsoft Entra ID. Si hay un error, pídele el cambio al administrador del Sistema UVA.
+                El nombre, el correo y los roles los registra el Administrador del Sistema UVA en «Usuarios y roles». Si hay un error, pídele el cambio.
               </p>
             </div>
           </section>
@@ -214,7 +215,15 @@ const PerfilContent: React.FC<PerfilViewProps & { data: PerfilData }> = ({ data,
                 <dd className="font-semibold text-ink-900 text-right">{saved.lastAccess}</dd>
               </div>
             </dl>
-            <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+            <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-2">
+              <button
+                type="button"
+                onClick={() => onNavigate('CambiarClave')}
+                className="w-full h-10 rounded-lg border border-line-300 text-ink-800 hover:bg-surface-50 text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors"
+              >
+                <KeyRound className="w-4 h-4" />
+                Cambiar contraseña
+              </button>
               <button
                 type="button"
                 onClick={onLogout}

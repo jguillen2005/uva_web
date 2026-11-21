@@ -30,6 +30,8 @@ interface SidebarProps {
   onLogout: () => void;
   /** Usuario en sesión para el menú de cuenta (barra móvil). */
   user?: React.ComponentProps<typeof UserMenu>['user'];
+  /** Solo un Administrador ve «Usuarios y roles». */
+  gestionaUsuarios?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -39,7 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   onClose,
   onLogout,
-  user
+  user,
+  gestionaUsuarios = true
 }) => {
   // Map child screen to its parent nav key
   const getActiveKey = (key: ScreenKey): ScreenKey => {
@@ -93,12 +96,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { key: 'AppMovil', label: 'App de campo (móvil)', icon: <Smartphone className="w-4 h-4" /> }
   ];
 
-  const catalogosItems: { key: ScreenKey; label: string; icon: React.ReactNode }[] = [
+  const catalogosItems = ([
     { key: 'Main', label: 'Formatos', icon: <Folders className="w-4 h-4" /> },
     { key: 'Instrumentos', label: 'Instrumentos de medición', icon: <Gauge className="w-4 h-4" /> },
     { key: 'Verificadores', label: 'Verificadores', icon: <Users className="w-4 h-4" /> },
     { key: 'Usuarios', label: 'Usuarios y roles', icon: <ShieldCheck className="w-4 h-4" /> }
-  ];
+  ] as { key: ScreenKey; label: string; icon: React.ReactNode }[]).filter((item) => gestionaUsuarios || item.key !== 'Usuarios');
 
   const handleSelect = (key: ScreenKey) => {
     onNavigate(key);
@@ -119,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-        <UserMenu tone="dark" showName={false} onProfile={() => handleSelect('Perfil')} onLogout={onLogout} user={user} />
+        <UserMenu tone="dark" showName={false} onProfile={() => handleSelect('Perfil')} onChangePassword={() => handleSelect('CambiarClave')} onLogout={onLogout} user={user} />
         <button
           onClick={onToggle}
           className="p-2 rounded-lg bg-side-700 text-white hover:bg-side-600 transition-colors"

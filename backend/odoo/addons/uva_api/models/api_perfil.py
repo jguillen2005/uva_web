@@ -80,8 +80,10 @@ class UvaApiPerfil(models.AbstractModel):
             'tz': u.tz or 'America/Mexico_City',
             'roles': propios,
             'lastAccess': self._fecha_acceso(u, self._hoy()),
-            'identityProvider': 'Microsoft 365 (Entra ID)',
+            'identityProvider': 'Sistema UVA (correo y contraseña)',
             'verificadorCode': verificador.code or '' if verificador else '',
+            'cambiarClave': bool(u.uva_cambiar_clave),
+            'puedeGestionarUsuarios': self._es_admin_uva(u),
             'prefs': {clave: bool(u[campo]) for clave, campo in PREFS.items()},
             'permisos': permisos,
         }

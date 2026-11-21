@@ -1,5 +1,6 @@
 export type ScreenKey =
   | 'Tablero'
+  | 'CambiarClave'
   | 'Solicitudes'
   | 'Clientes'
   | 'Programacion'
@@ -252,11 +253,35 @@ export type PozoInput = Partial<WellSite>;
 /* ---------- Usuarios y roles ---------- */
 
 export interface UsuarioItem {
+  /** Id del usuario en Odoo (no viene en los datos de la maqueta). */
+  id?: number;
   name: string;
   email: string;
+  login?: string;
   roles: string[];
+  /** Claves de los roles (p. ej. 'group_uva_inspector'). */
+  roleKeys?: string[];
   date: string;
   st: string;
+  active?: boolean;
+  /** Aún no crea su contraseña propia (tiene una temporal). */
+  cambiarClave?: boolean;
+  verificadorCode?: string;
+}
+
+/** Rol que el Administrador puede asignar desde la web. app = también da acceso a la app de campo. */
+export interface RolDisponible {
+  clave: string;
+  nombre: string;
+  descripcion: string;
+  app: boolean;
+}
+
+export interface UsuarioInput {
+  name?: string;
+  email?: string;
+  roles?: string[];
+  active?: boolean;
 }
 
 /** Fila de la matriz de permisos: V = Ver, E = Editar, A = Autorizar, — = Sin acceso. */
@@ -269,6 +294,7 @@ export interface UsuariosData {
   users: UsuarioItem[];
   rolesHeaders: string[];
   matrix: PermisoRow[];
+  rolesDisponibles?: RolDisponible[];
 }
 
 /* ---------- Mi perfil ---------- */
@@ -292,6 +318,8 @@ export interface PerfilData {
   lastAccess: string;
   identityProvider: string;
   verificadorCode: string;
+  cambiarClave?: boolean;
+  puedeGestionarUsuarios?: boolean;
   prefs: PerfilPrefs;
   /** Permiso efectivo por módulo (el mayor entre sus roles): V, E, A o —. */
   permisos: { mod: string; val: string }[];

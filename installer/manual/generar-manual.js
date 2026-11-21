@@ -18,6 +18,9 @@ const SALIDA = path.join(__dirname, 'Manual de instalacion Sistema UVA.docx');
 // Versión VISIBLE del producto y de la documentación: siempre 1.0.0 (nombres de los instaladores, portada, pie).
 // La versión interna por mejoras (1.1.1, 1.1.2…) no se muestra: queda en version-interna.txt de cada instalación.
 const VERSION = '1.0.0';
+// Usuario del sistema para la web y la app (el mismo que crean los instaladores)
+const USUARIO_SISTEMA = 'jhovani.coss@asercontrol.com';
+const CLAVE_SISTEMA = 'asercontrol123456';
 const VERSION_MANUAL = VERSION;
 // Formato y paleta de AP Interfaces (sitio web: azul marino, cian y violeta; tipografía Inter / Segoe UI)
 const FONT = 'Segoe UI';
@@ -203,7 +206,7 @@ function contenido() {
     lado([['w-7-telefonos', '1. Elija «Sí»'], ['w-8-uac', '2. Elija «Sí» otra vez']], 170),
     consejo([['Si eligió No por error: vuelva a abrir el instalador y elija «Solo la app»; le preguntará de nuevo.']]),
     h2('Paso 6 · ¡Listo!'),
-    p(['Se abren el ', b('Sistema UVA'), ' en el navegador y el archivo ', b('CREDENCIALES.txt'), ' con su usuario y contraseña. Siga con el ', b('capítulo 6'), '.']),
+    p(['Se abre el ', b('Sistema UVA'), ' en el navegador. Siga con el ', b('capítulo 6'), '.']),
     p(['En adelante, abra el sistema con el ícono ', b('Sistema UVA'), ' del escritorio. Todo lo demás está en ', b('Inicio › Sistema UVA'), ': este manual, sus datos de acceso, copias de seguridad, etc.']),
     fig('w-10-escritorio', 420),
   );
@@ -237,7 +240,7 @@ function contenido() {
     p(['A la mitad macOS le pide ', b('la contraseña de la Mac'), ' para instalar el permiso de seguridad. Escríbala y haga clic en ', b('Actualizar configuración'), '.']),
     fig('m-10-contrasena', 270),
     h2('Paso 5 · ¡Listo!'),
-    vineta(['Se abren el ', b('Sistema UVA'), ' en el navegador y ', b('CREDENCIALES.txt'), ' (capítulo 6). En la Terminal presione ', b('Enter'), ' para cerrarla.']),
+    vineta(['Se abre el ', b('Sistema UVA'), ' en el navegador (siga con el capítulo 6). En la Terminal presione ', b('Enter'), ' para cerrarla.']),
     vineta(['Para que la Mac atienda a los teléfonos: ', b('que no se duerma'), ' (Ajustes del Sistema › Batería › Opciones › «Evitar el reposo automático cuando la pantalla esté apagada») y, si macOS pregunta «¿Permitir conexiones entrantes?» para Docker, elija ', b('Permitir'), '.']),
     vineta(['Sus accesos (abrir el sistema, este manual, datos de acceso, copias de seguridad) están en la carpeta ', b('Aplicaciones › Sistema UVA'), ' de su carpeta de usuario, y en el Escritorio.']),
   );
@@ -262,7 +265,7 @@ function contenido() {
     vineta(['Las preguntas tienen opciones numeradas: ', b('escriba el número y presione Enter'), '. A «¿Cargar datos de demostración?» responda ', b('No'), ' para trabajar con datos reales. Si falta Docker, el instalador lo instala solo (le pedirá su contraseña).']),
     vineta(['Cuando pida ', b('su contraseña'), ', escríbala y presione Enter. Al escribirla ', b('no aparecen letras'), ': es normal.']),
     fig('l-4-sudo', 500),
-    vineta(['Espere entre 10 y 20 minutos sin cerrar la ventana. Al terminar se abren el ', b('Sistema UVA'), ' y ', b('CREDENCIALES.txt'), ' (capítulo 6).']),
+    vineta(['Espere entre 10 y 20 minutos sin cerrar la ventana. Al terminar se abre el ', b('Sistema UVA'), ' (siga con el capítulo 6).']),
     vineta(['Sus accesos están en el menú de aplicaciones: busque ', b('«Sistema UVA»'), '.']),
   );
 
@@ -280,21 +283,68 @@ function contenido() {
   );
 
   // ===== 6. Datos de acceso
-  add(capitulo('6. Sus datos de acceso (CREDENCIALES.txt)'),
-    p(['Al terminar la instalación se abre el archivo ', b('CREDENCIALES.txt'), '. Es el único archivo que se crea con sus datos: ', b('guárdelo en un lugar seguro'), ' (por ejemplo, imprímalo y guárdelo bajo llave) y no lo comparta.']),
-    fig('w-9-credenciales', 470),
-    tabla([3200, 6438], ['Parte del archivo', 'Para qué sirve'], [
-      [[[b('1. Para entrar al sistema')]], 'El usuario (admin) y la contraseña con que entra por primera vez.'],
-      [[[b('2. Dirección para los teléfonos')]], 'La que escriben los verificadores en su teléfono para instalar la app (capítulo 7) y las demás computadoras de la oficina para usar el sistema.'],
-      [[[b('3. Verificador de prueba')]], 'Un usuario para probar la app antes de dar de alta a sus verificadores.'],
-      [[[b('Datos técnicos')]], 'Solo para soporte técnico. No los necesita para el uso diario.'],
+  const T6 = [lista(), lista(), lista()];
+  add(capitulo('6. Primer ingreso, usuarios y roles'),
+    p(['El instalador guarda los datos de acceso de esta instalación en el archivo interno ', b('CREDENCIALES.txt'), ', dentro de la carpeta del sistema. Es solo para el encargado del sistema y para soporte técnico: no lo comparta, no lo mueva ni lo borre.']),
+    tabla([2200, 7438], ['Computadora', 'Dónde está CREDENCIALES.txt'], [
+      ['Windows', [[mono('C:\\Users\\<usuario>\\AppData\\Local\\Programs\\SistemaUVA\\CREDENCIALES.txt')], [{ text: 'También: Inicio › Sistema UVA › Datos de acceso.', size: 19, color: GRIS }]]],
+      ['Mac', [[mono('/Users/<usuario>/SistemaUVA/CREDENCIALES.txt')]]],
+      ['Linux', [[mono('/home/<usuario>/SistemaUVA/CREDENCIALES.txt')]]],
     ]),
     espacio(),
-    p(['¿Lo perdió? Ábralo otra vez desde ', b('Datos de acceso'), ' en los accesos del sistema (Windows: Inicio › Sistema UVA).']),
-    h2('Primer ingreso'),
-    vineta(['Abra el ícono ', b('Sistema UVA'), ', escriba el usuario ', b('admin'), ' y la contraseña de CREDENCIALES.txt, y haga clic en ', b('Iniciar sesión'), '.']),
+    h2('El usuario del sistema'),
+    p('Toda instalación trae un usuario listo para usar. Sirve para la web y para la app de campo, y tiene los roles Administrador (todo el sistema, incluido registrar usuarios) e Inspector (app de campo):'),
+    tabla([3200, 6438], ['Dato', 'Valor'], [
+      [[[b('Correo')]], [[mono(USUARIO_SISTEMA)]]],
+      [[[b('Contraseña')]], [[mono(CLAVE_SISTEMA)]]],
+      [[[b('Dónde sirve')]], 'En la web del Sistema UVA y en la app de campo (el mismo correo y la misma contraseña).'],
+    ]),
+    espacio(),
+    p(['Queda guardado en la base de datos del sistema (Odoo) y, la primera vez que entra desde un teléfono, también en la base local del teléfono: así la app lo recuerda aunque no haya conexión. El inicio de sesión de la web y de la app ya trae escritos el correo y la contraseña; no se le pide cambiarla.']),
+    T6[0](['Abra el ícono ', b('Sistema UVA'), '. El correo y la contraseña ya están escritos: haga clic en ', b('Iniciar sesión'), '.']),
     fig('pc-1-entrar', 500),
-    vineta(['Pida a soporte que cree un usuario para cada persona de la oficina y para cada verificador. No comparta el usuario admin.']),
+    T6[0](['Entra al Tablero del sistema. Desde aquí registre a cada persona con su propio usuario, como se explica a continuación.']),
+    recuadro('Recomendación de seguridad', [['Esta contraseña es la misma en todas las instalaciones y aparece en este manual. Si otras personas pueden usar su red, cámbiela por una propia en ', b('Cambiar contraseña'), ' (más abajo). Desde ese momento el inicio de sesión ya no la trae escrita.']]),
+    espacio(),
+
+    h2('Registrar usuarios y asignarles roles'),
+    p(['Cada persona de la oficina y cada verificador entra con ', b('su propio correo y contraseña'), '. Solo un usuario con el rol ', b('Administrador'), ' puede registrarlos.']),
+    T6[1](['En el menú de la izquierda, en ', b('Catálogos'), ', elija ', b('Usuarios y roles'), '.']),
+    T6[1](['Haga clic en ', b('Nuevo usuario'), '. Escriba el ', b('nombre completo'), ' y el ', b('correo'), ' de la persona (con ese correo entrará).']),
+    T6[1](['Marque uno o varios ', b('roles'), '. Cada rol dice qué permite y si sirve solo para la ', b('Web'), ' o para la ', b('Web y app'), ' de campo.']),
+    T6[1](['Haga clic en ', b('Registrar usuario'), '. El sistema muestra una ', b('contraseña temporal'), ' una sola vez: use ', b('Copiar datos'), ' y entréguesela a la persona (en persona o por un medio privado).']),
+    lado([['pc-usuarios', 'Usuarios y roles'], ['pc-nuevo-usuario', 'Nuevo usuario: nombre, correo y roles']], 300),
+    fig('pc-clave-temporal', 420, 'La contraseña temporal se muestra una sola vez'),
+    p(['La primera vez que esa persona entre a la web, el sistema le pedirá crear su contraseña propia (igual que al Administrador). ', b('Después'), ' podrá entrar a la app de campo con el mismo correo y su contraseña nueva.']),
+    h3('¿Qué rol le doy?'),
+    tabla([2600, 1500, 5538], ['Rol', 'Dónde', 'Qué puede hacer'], [
+      [[[b('Administrador')]], 'Web', 'Todo el sistema, incluido registrar usuarios y asignar roles.'],
+      [[[b('Gerente Técnico')]], 'Web', 'Revisión técnica y dictámenes.'],
+      [[[b('Coordinador')]], 'Web', 'Solicitudes y programación de visitas.'],
+      [[[b('Inspector')]], 'Web y app', 'Es el verificador: aparece en «Verificadores», se le programan visitas y usa la app de campo.'],
+      [[[b('Registro CONAGUA')]], 'Web', 'Carga de expedientes a CONAGUA.'],
+      [[[b('Resp. equipos')]], 'Web', 'Instrumentos de medición y préstamos de equipo.'],
+      [[[b('Consulta')]], 'Web', 'Solo puede ver la información, sin cambiarla.'],
+    ]),
+    espacio(),
+    p(['Para dar de alta a un verificador también puede usar ', b('Catálogos › Verificadores › Nuevo verificador'), ': es el mismo formulario con el rol ', b('Inspector'), ' ya marcado.']),
+    h3('Otros cambios'),
+    tabla([3200, 6438], ['Para…', 'En «Usuarios y roles», en la fila de la persona…'], [
+      ['Cambiar su nombre o sus roles', [[b('Editar'), '. El correo no se puede cambiar.']]],
+      ['Darle una contraseña nueva si la olvidó', [[b('Contraseña'), '. Se crea otra contraseña temporal; la anterior deja de servir.']]],
+      ['Quitarle el acceso (dejó la empresa)', [[b('Desactivar'), '. Ya no puede entrar a la web ni a la app; su historial se conserva. Con ', b('Activar'), ' se le devuelve el acceso.']]],
+    ]),
+    espacio(),
+
+    h2('Cambiar su contraseña'),
+    p('Cualquier persona puede cambiar su contraseña cuando quiera. La nueva sirve para la web y para la app de campo.'),
+    T6[2](['Haga clic en su nombre (arriba a la derecha) y elija ', b('Cambiar contraseña'), '. También está en ', b('Ver mi perfil'), ' › ', b('Cambiar contraseña'), '.']),
+    T6[2](['Escriba su contraseña actual y, dos veces, la nueva: ', b('al menos 8 caracteres, con letras y números'), '.']),
+    T6[2](['Mire el ', b('medidor de seguridad'), ': la barra se llena y cambia de color (rojo = muy débil, naranja = débil, verde = buena o muy segura). Debajo le da un consejo para mejorarla. Elija una que llegue por lo menos a «Buena».']),
+    T6[2](['Haga clic en ', b('Cambiar contraseña'), '.']),
+    fig('pc-cambiar-contrasena', 470),
+    p(['Las personas que registra un Administrador reciben una ', b('contraseña temporal'), ': la primera vez que entran a la web, el sistema les pide cambiarla por una propia (con el mismo medidor) antes de dejarlas usar el sistema o la app.']),
+    fig('pc-cambiar-clave', 330),
   );
 
   // ===== 7. Teléfono
@@ -304,12 +354,13 @@ function contenido() {
     espacio(),
     h2('Antes de empezar'),
     vineta(['Esté en la oficina, con el teléfono conectado al ', b('Wi-Fi de la oficina'), '.']),
-    vineta(['Tenga a la mano ', b('su correo y su contraseña'), ' del Sistema UVA.']),
-    vineta(['Pida al encargado del sistema ', b('la dirección de la oficina'), ' (está en CREDENCIALES.txt, parte 2, y en el Sistema UVA, menú ', b('App de campo (móvil)'), '). Se ve así: ', b('http://192.168.1.50:8080'), '.']),
+    vineta(['Tenga a la mano ', b('su correo y la contraseña temporal'), ' que le dio el Administrador del Sistema UVA (la cambiará al entrar la primera vez).']),
+    vineta(['Pida al encargado del sistema ', b('la dirección de la oficina'), ' (está en el Sistema UVA, menú ', b('App de campo (móvil)'), '). Se ve así: ', b('http://192.168.1.50:8080'), '.']),
     vineta(['Use ', b('Chrome'), ' en Android, o ', b('Safari'), ' en iPhone o iPad.']),
     h2('Paso 1 · Entre al Sistema UVA desde el teléfono'),
     T[0](['Abra Chrome o Safari y escriba la dirección de la oficina ', b('completa, con http://'), ' al inicio. Si dice «La conexión no es segura», toque ', b('Continuar al sitio'), '.']),
     T[0](['Escriba su correo y contraseña y toque ', b('Iniciar sesión'), '.']),
+    T[0](['Si es la ', b('primera vez'), ' que entra, el sistema le pide ', b('cambiar su contraseña temporal'), ': escriba la que le dio el Administrador y después, dos veces, una nueva (al menos 8 caracteres, con letras y números). Toque ', b('Guardar y continuar'), '. Esa contraseña nueva es la que usará también en la app.']),
     T[0](['Toque el menú ', b('☰'), ' y elija ', b('App de campo (móvil)'), '. Verá ', b('«Instalar la app en este teléfono»'), ' con 3 pasos y sus botones.']),
     lado([['t-1-entrar', 'Escriba la dirección y entre'], ['t-2-menu', 'Menú ☰ › App de campo (móvil)']], 300),
     p(['Siga el paso 2A si su teléfono es ', b('Android'), ' (Samsung, Motorola, Xiaomi…) o el 2B si es ', b('iPhone o iPad'), '.']),
@@ -352,7 +403,7 @@ function contenido() {
   // ===== 8. Uso diario
   add(capitulo('8. Uso diario'),
     vineta(['La computadora principal debe estar ', b('encendida y conectada al Wi-Fi'), ' en horario de trabajo. El sistema se abre solo al encenderla.']),
-    vineta(['Las demás computadoras de la oficina usan el sistema escribiendo en su navegador la ', b('dirección de la parte 2 de CREDENCIALES.txt'), '.']),
+    vineta(['Las demás computadoras de la oficina usan el sistema escribiendo en su navegador la ', b('dirección de la oficina'), ' (Sistema UVA › menú App de campo (móvil)).']),
     h2('Dónde están los accesos del sistema'),
     tabla([2200, 7438], ['Computadora', 'Accesos (abrir el sistema, este manual, datos de acceso, copias de seguridad…)'], [
       ['Windows', 'Menú Inicio › Sistema UVA, y el ícono «Sistema UVA» del escritorio.'],
@@ -411,8 +462,10 @@ function contenido() {
       ['Dice «La conexión no es segura» al abrir la app.', 'Repita «Dar el permiso de seguridad» (capítulo 7).'],
       ['Cambiaron el módem y los teléfonos ya no se conectan.', '«Renovar conexión de teléfonos» en los accesos del sistema.'],
       ['«Correo o contraseña incorrectos».', 'Revise el correo letra por letra. Después de 5 intentos se bloquea 5 minutos.'],
-      ['Un verificador no puede entrar aunque su contraseña es correcta.', 'Pida a soporte que le asigne su usuario en su ficha de verificador.'],
-      ['Olvidó la contraseña de admin.', 'Abra «Datos de acceso» en los accesos del sistema.'],
+      ['La app dice «Su contraseña es temporal».', 'Entre primero a la web del Sistema UVA con esa contraseña y cree la suya (capítulo 6). Después vuelva a la app.'],
+      ['Un verificador no puede entrar a la app aunque su contraseña es correcta.', 'En «Usuarios y roles», revise que esté activo y que tenga el rol Inspector.'],
+      ['Una persona olvidó su contraseña.', 'Un Administrador usa «Contraseña» en su fila de «Usuarios y roles» y le entrega la temporal nueva.'],
+      ['Cambió la contraseña de ' + USUARIO_SISTEMA + ' y la olvidó.', 'Si hay otro Administrador, que le cree una temporal nueva en «Usuarios y roles» (botón «Contraseña»). Si no, contacte a soporte.'],
     ]),
     espacio(),
     recuadro('¿Necesita ayuda?', [
@@ -428,7 +481,7 @@ function contenido() {
     tabla([2600, 7038], ['Tema', 'Detalle'], [
       ['Carpeta del sistema', [['Windows: ', mono('%LOCALAPPDATA%\\Programs\\SistemaUVA')], ['Mac y Linux: ', mono('~/SistemaUVA')]]],
       ['Componentes', 'Docker Compose (proyecto «sistema-uva»): PostgreSQL 17, Odoo 19 (4 procesos), 6 microservicios Node, gateway nginx.'],
-      ['Puertos habituales', 'Web 8080 (HTTP) · app de campo 8443 (HTTPS) · Odoo 8069. Si alguno está ocupado, el instalador elige el siguiente libre sin preguntar; las direcciones reales están en CREDENCIALES.txt.'],
+      ['Puertos habituales', 'Web 8080 (HTTP) · app de campo 8443 (HTTPS) · Odoo 8069. Si alguno está ocupado, el instalador elige el siguiente libre sin preguntar; las direcciones reales se ven en el Sistema UVA › App de campo (móvil).'],
       ['Administración (Windows)', [[mono('uva.ps1 estado | iniciar | detener | respaldar | actualizar | renovar-clave')], [mono('uva.ps1 abrir | abrir-app | abrir-odoo | agregar-app | regenerar-certificado | desinstalar')]]],
       ['Administración (Mac/Linux)', [[mono('./uva.sh estado | iniciar | detener | respaldar | actualizar | renovar-clave')], [mono('./uva.sh abrir | abrir-app | abrir-odoo | agregar-app | regenerar-certificado | desinstalar')]]],
       ['Instalación desatendida', [['Windows: ', mono('SistemaUVA-Instalador-Windows-' + VERSION + '.exe -Silencioso -Demo no')], ['Opciones: -ActualizarSistema · -Reinstalar · -SinAbrir · -Destino <carpeta>'], ['Mac/Linux: ', mono('--silencioso --demo no --actualizar-sistema --reinstalar --sin-abrir')]]],

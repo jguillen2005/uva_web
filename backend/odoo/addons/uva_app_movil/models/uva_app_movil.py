@@ -136,6 +136,10 @@ class UvaAppMovil(models.AbstractModel):
         except AppError:
             Acceso.registrar_fallo(clave)
             raise
+        if user.uva_cambiar_clave:
+            # Contraseña inicial o temporal: primero debe crear una nueva en la web (no cuenta como intento fallido)
+            raise AppError(403, 'Su contraseña es temporal. Entre primero a la web del Sistema UVA '
+                                'para crear una contraseña nueva y después vuelva a la app.')
         Acceso.registrar_exito(clave)
         perfil = self.perfil(user)  # el último acceso mostrado es el anterior
         ver.app_ultimo_acceso = fields.Datetime.now()

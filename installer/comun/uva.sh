@@ -42,7 +42,9 @@ if [ "$ES_MAC" != 1 ]; then
   AGENTE="${XDG_CONFIG_HOME:-$HOME/.config}/autostart/sistema-uva.desktop"
 fi
 DIAS_CLAVE=365
-# Verificador de campo que se crea al instalar (la app lo trae prellenado); se crea solo si no existe.
+# Usuario del sistema para la web y la app de campo (Administrador + Inspector), en toda instalación.
+# Su contraseña es fija y no se pide cambiarla; está en el manual y en CREDENCIALES.txt. A un usuario que ya
+# existe nunca se le cambia la contraseña (el cliente pudo cambiarla a propósito).
 USUARIO_CAMPO='jhovani.coss@asercontrol.com'
 CLAVE_CAMPO='asercontrol123456'
 
@@ -452,16 +454,18 @@ print('UVA_MOD_ESTADO=' + (m.state or 'ninguno'))" | sed -n 's/.*UVA_MOD_ESTADO=
 }
 
 asegurar_usuario_campo() {
-  # Verificador de la app de campo (prellenado en la app): se crea con su usuario de Odoo solo si no existe;
-  # a uno existente nunca le cambia la contraseña.
+  # Usuario del sistema (web y app): se crea solo si no existe, con la contraseña fija; a uno existente
+  # nunca le cambia la contraseña, solo le asegura los roles Administrador e Inspector y su ficha de verificador.
   local salida
   salida="$(odoo_shell "Users = env['res.users'].sudo().with_context(no_reset_password=True)
 jc = Users.with_context(active_test=False).search([('login', '=', '$USUARIO_CAMPO')], limit=1)
+grupos = [env.ref('base.group_user').id, env.ref('uva_core.group_uva_inspector').id, env.ref('uva_core.group_uva_admin').id]
 if not jc:
-    grupos = [env.ref('base.group_user').id, env.ref('uva_core.group_uva_inspector').id]
     jc = Users.create({'name': 'Eduardo Jhovani Jaime Coss', 'login': '$USUARIO_CAMPO',
                        'email': '$USUARIO_CAMPO', 'password': '$CLAVE_CAMPO',
                        'lang': 'es_MX', 'tz': 'America/Mexico_City', 'group_ids': [(6, 0, grupos)]})
+else:
+    jc.write({'group_ids': [(4, g) for g in grupos]})
 Ver = env['uva.verificador'].sudo().with_context(active_test=False)
 if not Ver.search([('user_id', '=', jc.id)], limit=1):
     ver = Ver.search([('email', '=ilike', '$USUARIO_CAMPO'), ('user_id', '=', False)], limit=1)
@@ -473,10 +477,14 @@ if not Ver.search([('user_id', '=', jc.id)], limit=1):
             n += 1; code = 'JC%d' % n
         Ver.create({'name': 'Eduardo Jhovani Jaime Coss', 'code': code, 'user_id': jc.id,
                     'email': '$USUARIO_CAMPO', 'estado': 'activo'})
+# Datos para prellenar el inicio de sesion (web y app): viven en la base de Odoo, no en el codigo
+ICP = env['ir.config_parameter'].sudo()
+ICP.set_param('uva.usuario_sistema', '$USUARIO_CAMPO')
+ICP.set_param('uva.clave_sistema', '$CLAVE_CAMPO')
 env.cr.commit()
 print('UVA_CAMPO_OK')")"
-  if printf '%s' "$salida" | grep -q UVA_CAMPO_OK; then ok "Usuario de la app de campo listo: $USUARIO_CAMPO"
-  else echo "$salida"; aviso "No se pudo crear el usuario $USUARIO_CAMPO."; fi
+  if printf '%s' "$salida" | grep -q UVA_CAMPO_OK; then ok "Usuario del sistema listo: $USUARIO_CAMPO (Administrador e Inspector)"
+  else echo "$salida"; aviso "No se pudo crear el usuario del sistema $USUARIO_CAMPO."; fi
 }
 
 # Comprueba que admin pueda entrar a la web con la contraseña de CREDENCIALES.txt y, si no, corrige su acceso
@@ -506,6 +514,27 @@ print('UVA_ADMIN_OK')")"
   if probar_login_admin; then ok 'Acceso de admin corregido: ya entra con la contraseña de CREDENCIALES.txt.'
   elif [ "${1:-}" = 'fijar_clave' ]; then aviso 'admin aún no puede entrar a la web; envíe a soporte la bitácora.'
   else aviso 'La contraseña de admin no coincide con CREDENCIALES.txt (probablemente se cambió en el sistema): use la contraseña actual.'; fi
+}
+
+# Caso PA-4: comprueba que el usuario del sistema entre de verdad a la web y a la app con la contraseña de
+# CREDENCIALES.txt. Si no puede (su contraseña se cambió en el sistema), no se le cambia: CREDENCIALES.txt lo
+# indica (UVA_CLAVE_CAMPO=-) en lugar de mostrar una contraseña que no sirve.
+probar_login_campo() {
+  curl -s -m 30 -o /dev/null -w '%{http_code}' -X POST "$(url_sistema)/api/app/auth/login" -H 'Content-Type: application/json' \
+    -d "{\"email\":\"$USUARIO_CAMPO\",\"password\":\"$CLAVE_CAMPO\"}" 2>/dev/null
+}
+comprobar_usuario_sistema() {
+  local codigo anterior; anterior="$(leer_env UVA_CLAVE_CAMPO)"
+  paso "Comprobando que $USUARIO_CAMPO pueda entrar a la web y a la app"
+  codigo="$(probar_login_campo)"
+  if [ "$codigo" = 200 ]; then
+    ok "$USUARIO_CAMPO entra a la web y a la app con la contraseña de CREDENCIALES.txt."
+    set_env UVA_CLAVE_CAMPO ok
+  else
+    aviso "$USUARIO_CAMPO no pudo entrar (respuesta $codigo): su contraseña se cambió en el sistema; no se modifica."
+    set_env UVA_CLAVE_CAMPO '-'
+  fi
+  [ "$(leer_env UVA_CLAVE_CAMPO)" = "$anterior" ] || escribir_credenciales
 }
 
 actualizar_clave_api() {  # [fijar_admin]
@@ -618,6 +647,15 @@ EOF
   chmod -R a+rX "$dir"
 }
 
+datos_usuario_sistema() {
+  # Parte 1 de CREDENCIALES.txt: el usuario del sistema (web y app)
+  if [ "$(leer_env UVA_CLAVE_CAMPO)" = '-' ]; then
+    printf '   Usuario:     %s\n   Contraseña:  (se cambió en el sistema: use la contraseña actual)\n' "$USUARIO_CAMPO"
+  else
+    printf '   Usuario:     %s\n   Contraseña:  %s\n' "$USUARIO_CAMPO" "$CLAVE_CAMPO"
+  fi
+}
+
 escribir_credenciales() {
   local web_red otras='' u
   web_red="$(urls_web_red)"
@@ -634,10 +672,11 @@ Creado el: $(date '+%d/%m/%Y %H:%M')
    Haga doble clic en el ícono «Sistema UVA» del escritorio
    (o escriba en el navegador:  $(url_sistema) ).
 
-   Usuario:     admin
-   Contraseña:  $(leer_env ODOO_ADMIN_PASSWORD)
+$(datos_usuario_sistema)
 
-   Recomendación: después de entrar, cree un usuario para cada persona.
+   Es el mismo usuario y la misma contraseña para la web y para la app de campo.
+   Tiene los roles Administrador e Inspector: con él registre a cada persona en
+   «Usuarios y roles» (manual, capítulo 6).
 
 2. DIRECCIÓN PARA LOS TELÉFONOS Y LAS DEMÁS COMPUTADORAS DE LA OFICINA
    Conectados al mismo Wi-Fi que esta computadora, escriban en el navegador:
@@ -648,16 +687,12 @@ Creado el: $(date '+%d/%m/%Y %H:%M')
    Con esa dirección cada verificador instala la app en su teléfono
    (manual, capítulo «Instalar la app en el teléfono o tablet»).
 
-3. VERIFICADOR DE PRUEBA (para probar la app)
-   Correo:      $USUARIO_CAMPO
-   Contraseña:  $CLAVE_CAMPO
-
-4. INSTRUCCIONES COMPLETAS
+3. INSTRUCCIONES COMPLETAS
    «Manual de instalacion Sistema UVA» (PDF): en los accesos del sistema, «Manual del Sistema UVA».
 
 ------------------------------------------------------------------------------
 DATOS TÉCNICOS (solo para soporte técnico; no los necesita para el uso diario)
-   Administrador de Odoo:        $(url_odoo)   (usuario admin, misma contraseña)
+   Administrador de Odoo:        $(url_odoo)   (usuario admin, contraseña: $(leer_env ODOO_ADMIN_PASSWORD))
    Contraseña maestra de Odoo:   $(leer_env ODOO_MASTER_PASSWORD)
    App de campo:                 $(url_app)   ·   desde la red:$(urls_app_red)
    Páginas legales:              $(url_sistema)/terminos-y-condiciones   ·   $(url_sistema)/aviso-de-privacidad
@@ -826,6 +861,7 @@ accion_instalar() {
   crear_accesos
   if esperar_sistema; then ok 'El sistema responde.'; else aviso 'El sistema aún no responde; revise "./uva.sh estado".'; fi
   if [ $nueva = 1 ]; then comprobar_acceso_admin fijar_clave; else comprobar_acceso_admin; fi
+  comprobar_usuario_sistema
   if esperar_app; then ok 'La app de campo responde.'; else aviso 'La app de campo aún no responde; revise "./uva.sh estado".'; fi
   printf '\n  \033[32mSistema UVA instalado.\033[0m\n  Sistema:       %s\n  Odoo:          %s\n  App de campo:  %s  (tablets:%s)\n' \
     "$(url_sistema)" "$(url_odoo)" "$(url_app)" "$(urls_app_red)"
@@ -873,6 +909,7 @@ accion_actualizar() {
   crear_accesos
   if esperar_sistema; then ok 'El sistema responde.'; else aviso 'El sistema aún no responde; revise "./uva.sh estado".'; fi
   comprobar_acceso_admin
+  comprobar_usuario_sistema
   ok 'Actualización terminada.'
 }
 

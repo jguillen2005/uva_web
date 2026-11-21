@@ -70,6 +70,12 @@ async function doFetch(method: string, path: string, body?: unknown, query?: Que
     if (res.status === 401 && !path.startsWith('/sesion/')) {
       window.dispatchEvent(new CustomEvent('uva:sesion-vencida'));
     }
+    // Contraseña inicial o temporal: el gateway responde 403 con cambiarClave hasta que cree una nueva
+    if (res.status === 403 && !path.startsWith('/sesion/')) {
+      const copia = res.clone();
+      const cuerpo = (await copia.json().catch(() => null)) as { cambiarClave?: boolean } | null;
+      if (cuerpo?.cambiarClave) window.dispatchEvent(new CustomEvent('uva:cambiar-clave'));
+    }
     throw await errorFromResponse(res, path);
   }
   return res;

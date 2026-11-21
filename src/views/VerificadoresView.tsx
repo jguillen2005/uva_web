@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useRevealDetail } from '../components/useRevealDetail';
-import { ScreenKey, VerificadorItem } from '../types';
+import { RolDisponible, ScreenKey, UsuarioInput, VerificadorItem } from '../types';
 import { catalogos } from '../api/endpoints';
-import { useApi } from '../api/useApi';
+import { errorMessage, useApi } from '../api/useApi';
+import { ClaveTemporalDialog, UsuarioFormModal } from '../components/UsuarioFormModal';
 import { AsyncState } from '../components/AsyncState';
 import { Plus, Users, Award, ShieldCheck, Calendar, Briefcase, FileText } from 'lucide-react';
 
@@ -23,6 +24,23 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
 
   const selectedInsp = verificadores.find((v) => v.id === selectedId) || verificadores[0];
 
+  // «Nuevo verificador»: se registra como usuario con el rol Inspector (web y app de campo)
+  const [roles, setRoles] = useState<RolDisponible[] | null>(null);
+  const [clave, setClave] = useState<{ nombre: string; correo: string; clave: string } | null>(null);
+  const abrirNuevo = async () => {
+    try {
+      setRoles(await catalogos.getRolesUsuario());
+    } catch (err) {
+      onShowToast(errorMessage(err));
+    }
+  };
+  const registrar = async (vals: UsuarioInput) => {
+    const r = await catalogos.createUsuario(vals);
+    setRoles(null);
+    setClave({ nombre: r.usuario.name, correo: r.usuario.email, clave: r.claveTemporal });
+    catalogos.getVerificadores().then(setVerificadores).catch(() => undefined);
+  };
+
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
@@ -35,13 +53,13 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
             Verificadores autorizados
           </h1>
           <p className="text-sm text-ink-600 max-w-2xl mt-1 leading-relaxed">
-            Inspectores de la UVA: acceso con su cuenta Microsoft 365, competencias vigentes, disponibilidad e instrumentos asignados. Esta información alimenta las sugerencias de programación.
+            Inspectores de la UVA: entran a la web y a la app de campo con su correo y contraseña. Competencias vigentes, disponibilidad e instrumentos asignados. Esta información alimenta las sugerencias de programación.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() => onShowToast('Apertura de formulario de nuevo verificador e invitación Microsoft 365')}
+          onClick={() => void abrirNuevo()}
           className="h-10 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs shrink-0"
         >
           <Plus className="w-4 h-4" />
@@ -149,7 +167,7 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
               </span>
               <div className="min-w-0">
                 <h2 className="text-base font-bold text-ink-900 truncate">{selectedInsp.name}</h2>
-                <p className="text-xs text-ink-500 truncate">{selectedInsp.email} · Microsoft 365</p>
+                <p className="text-xs text-ink-500 truncate">{selectedInsp.email}</p>
               </div>
             </div>
 
@@ -258,6 +276,16 @@ const VerificadoresContent: React.FC<VerificadoresViewProps & { initialVerificad
           </aside>
         )}
       </div>
+      {roles && (
+        <UsuarioFormModal
+          titulo="Nuevo verificador"
+          roles={roles}
+          rolesIniciales={roles.filter((r) => r.app).map((r) => r.clave)}
+          onCancelar={() => setRoles(null)}
+          onGuardar={registrar}
+        />
+      )}
+      {clave && <ClaveTemporalDialog nombre={clave.nombre} correo={clave.correo} clave={clave.clave} onCerrar={() => setClave(null)} />}
     </div>
   );
 };

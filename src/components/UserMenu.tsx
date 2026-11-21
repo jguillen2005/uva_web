@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, FileText, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import { ChevronDown, FileText, LogOut, ShieldCheck, UserRound, KeyRound } from 'lucide-react';
 import { LEGAL_LINKS } from './legalLinks';
 
 interface UserMenuProps {
   onProfile: () => void;
+  /** Abre la pantalla «Cambiar contraseña». */
+  onChangePassword?: () => void;
   onLogout: () => void;
   /** `light` para fondos claros (barra de escritorio), `dark` para la barra móvil azul. */
   tone?: 'light' | 'dark';
@@ -21,7 +23,7 @@ const iniciales = (nombre: string) => {
 };
 
 /** Menú de cuenta (esquina superior derecha): Ver mi perfil · Cerrar sesión. */
-export const UserMenu: React.FC<UserMenuProps> = ({ onProfile, onLogout, tone = 'light', showName = true, user }) => {
+export const UserMenu: React.FC<UserMenuProps> = ({ onProfile, onChangePassword, onLogout, tone = 'light', showName = true, user }) => {
   const USER = user
     ? { name: user.name, title: user.title || '', email: user.email || '', initials: iniciales(user.name) }
     : USUARIO_MAQUETA;
@@ -106,6 +108,17 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onProfile, onLogout, tone = 
               <UserRound className="w-4 h-4 text-ink-500" />
               Ver mi perfil
             </button>
+            {onChangePassword && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => choose(onChangePassword)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-ink-800 hover:bg-surface-100 focus:bg-surface-100 text-left"
+              >
+                <KeyRound className="w-4 h-4 text-ink-500" />
+                Cambiar contraseña
+              </button>
+            )}
           </div>
           <div className="p-1.5 border-t border-line-200">
             <a

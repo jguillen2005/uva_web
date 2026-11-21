@@ -540,6 +540,8 @@ function Write-Credenciales {
     $c = Read-Env; $u = Get-Urls
     # Direcciones de la web desde la red (las que se escriben en los teléfonos)
     $webRed = @($u.AppRed | ForEach-Object { ($_ -replace '^https://', 'http://') -replace ":$($c['APP_PORT'])$", ":$($c['GATEWAY_PORT'])" })
+    # Usuario del sistema (web y app); '-' = su contraseña se cambió en el sistema (caso PA-4)
+    $claveSistema = if ($c['UVA_CLAVE_CAMPO'] -eq '-') { '(se cambió en el sistema: use la contraseña actual)' } else { $Script:ClaveCampo }
     $otras = if ($webRed.Count -gt 1) { "`r`n   Si esa no abre, pruebe:  " + (($webRed | Select-Object -Skip 1) -join '   o   ') } else { '' }
     $txt = @"
 SISTEMA UVA · SUS DATOS DE ACCESO
@@ -550,10 +552,12 @@ Creado el: $(Get-Date -Format 'dd/MM/yyyy HH:mm')
    Haga doble clic en el ícono «Sistema UVA» del escritorio
    (o escriba en el navegador:  $($u.Sistema) ).
 
-   Usuario:     admin
-   Contraseña:  $($c['ODOO_ADMIN_PASSWORD'])
+   Usuario:     $($Script:UsuarioCampo)
+   Contraseña:  $claveSistema
 
-   Recomendación: después de entrar, cree un usuario para cada persona.
+   Es el mismo usuario y la misma contraseña para la web y para la app de campo.
+   Tiene los roles Administrador e Inspector: con él registre a cada persona en
+   «Usuarios y roles» (manual, capítulo 6).
 
 2. DIRECCIÓN PARA LOS TELÉFONOS Y LAS DEMÁS COMPUTADORAS DE LA OFICINA
    Conectados al mismo Wi-Fi que esta computadora, escriban en el navegador:
@@ -563,16 +567,12 @@ Creado el: $(Get-Date -Format 'dd/MM/yyyy HH:mm')
    Con esa dirección cada verificador instala la app en su teléfono
    (manual, capítulo «Instalar la app en el teléfono o tablet»).
 
-3. VERIFICADOR DE PRUEBA (para probar la app)
-   Correo:      $($Script:UsuarioCampo)
-   Contraseña:  $($Script:ClaveCampo)
-
-4. INSTRUCCIONES COMPLETAS
+3. INSTRUCCIONES COMPLETAS
    «Manual de instalacion Sistema UVA» (PDF): menú Inicio › Sistema UVA › Manual del Sistema UVA.
 
 ------------------------------------------------------------------------------
 DATOS TÉCNICOS (solo para soporte técnico; no los necesita para el uso diario)
-   Administrador de Odoo:        $($u.Odoo)   (usuario admin, misma contraseña)
+   Administrador de Odoo:        $($u.Odoo)   (usuario admin, contraseña: $($c['ODOO_ADMIN_PASSWORD']))
    Contraseña maestra de Odoo:   $($c['ODOO_MASTER_PASSWORD'])
    App de campo:                 $($u.App)   ·   desde la red: $($u.AppRed -join '  ')
    Páginas legales:              $($u.Sistema)/terminos-y-condiciones   ·   $($u.Sistema)/aviso-de-privacidad
@@ -642,8 +642,9 @@ function Invoke-AgregarApp {
     Write-Host "  Desde tablets:   $($u.AppRed -join '  ó  ')"
 }
 
-# Verificador de la app de campo (prellenado en la app y en la web): se crea con su usuario de Odoo solo si
-# no existe; a uno existente nunca le cambia la contraseña.
+# Usuario del sistema para la web y la app de campo (Administrador + Inspector), en toda instalación.
+# Su contraseña es fija y no se pide cambiarla; está en el manual y en CREDENCIALES.txt. A un usuario que ya
+# existe nunca se le cambia la contraseña (el cliente pudo cambiarla a propósito).
 $Script:UsuarioCampo = 'jhovani.coss@asercontrol.com'
 $Script:ClaveCampo = 'asercontrol123456'
 # Comprueba que admin pueda entrar a la web con la contraseña de CREDENCIALES.txt y, si no, corrige su acceso
@@ -680,16 +681,42 @@ print('UVA_ADMIN_OK')
     else { Write-Aviso 'La contraseña de admin no coincide con CREDENCIALES.txt (probablemente se cambió en el sistema): usa la contraseña actual.' }
 }
 
+# Caso PA-4: comprueba que el usuario del sistema entre de verdad a la web y a la app con la contraseña de
+# CREDENCIALES.txt. Si no puede (su contraseña se cambió en el sistema), no se le cambia: CREDENCIALES.txt lo
+# indica (UVA_CLAVE_CAMPO=-) en lugar de mostrar una contraseña que no sirve.
+function Confirm-UsuarioSistema {
+    $anterior = (Read-Env)['UVA_CLAVE_CAMPO']
+    Write-Paso "Comprobando que $($Script:UsuarioCampo) pueda entrar a la web y a la app"
+    $cuerpo = @{ email = $Script:UsuarioCampo; password = $Script:ClaveCampo } | ConvertTo-Json -Compress
+    $codigo = 0
+    try {
+        $r = Invoke-WebRequest -UseBasicParsing -Uri "$((Get-Urls).Sistema)/api/app/auth/login" -Method Post -ContentType 'application/json' -Body $cuerpo -TimeoutSec 30
+        $codigo = [int]$r.StatusCode
+    } catch { if ($_.Exception.Response) { $codigo = [int]$_.Exception.Response.StatusCode } }
+    if ($codigo -eq 200) {
+        Write-Ok "$($Script:UsuarioCampo) entra a la web y a la app con la contraseña de CREDENCIALES.txt."
+        Set-EnvValor 'UVA_CLAVE_CAMPO' 'ok'
+    } else {
+        Write-Aviso "$($Script:UsuarioCampo) no pudo entrar (respuesta $codigo): su contraseña se cambió en el sistema; no se modifica."
+        Set-EnvValor 'UVA_CLAVE_CAMPO' '-'
+    }
+    if ((Read-Env)['UVA_CLAVE_CAMPO'] -ne $anterior) { Write-Credenciales }
+}
+
 function Confirm-UsuarioCampo {
+    # Usuario del sistema (web y app): se crea solo si no existe, con la contraseña fija; a uno existente
+    # nunca le cambia la contraseña, solo le asegura los roles Administrador e Inspector y su ficha de verificador.
     $u = $Script:UsuarioCampo
     $py = @"
 Users = env['res.users'].sudo().with_context(no_reset_password=True)
 jc = Users.with_context(active_test=False).search([('login', '=', '$u')], limit=1)
+grupos = [env.ref('base.group_user').id, env.ref('uva_core.group_uva_inspector').id, env.ref('uva_core.group_uva_admin').id]
 if not jc:
-    grupos = [env.ref('base.group_user').id, env.ref('uva_core.group_uva_inspector').id]
     jc = Users.create({'name': 'Eduardo Jhovani Jaime Coss', 'login': '$u',
                        'email': '$u', 'password': '$($Script:ClaveCampo)',
                        'lang': 'es_MX', 'tz': 'America/Mexico_City', 'group_ids': [(6, 0, grupos)]})
+else:
+    jc.write({'group_ids': [(4, g) for g in grupos]})
 Ver = env['uva.verificador'].sudo().with_context(active_test=False)
 if not Ver.search([('user_id', '=', jc.id)], limit=1):
     ver = Ver.search([('email', '=ilike', '$u'), ('user_id', '=', False)], limit=1)
@@ -701,12 +728,16 @@ if not Ver.search([('user_id', '=', jc.id)], limit=1):
             n += 1; code = 'JC%d' % n
         Ver.create({'name': 'Eduardo Jhovani Jaime Coss', 'code': code, 'user_id': jc.id,
                     'email': '$u', 'estado': 'activo'})
+# Datos para prellenar el inicio de sesion (web y app): viven en la base de Odoo, no en el codigo
+ICP = env['ir.config_parameter'].sudo()
+ICP.set_param('uva.usuario_sistema', '$u')
+ICP.set_param('uva.clave_sistema', '$($Script:ClaveCampo)')
 env.cr.commit()
 print('UVA_CAMPO_OK')
 "@
     $out = Invoke-OdooShell $py
-    if ($out -match 'UVA_CAMPO_OK') { Write-Ok "Usuario de la app de campo listo: $u" }
-    else { Write-Host $out; Write-Aviso "No se pudo crear el usuario $u." }
+    if ($out -match 'UVA_CAMPO_OK') { Write-Ok "Usuario del sistema listo: $u (Administrador e Inspector)" }
+    else { Write-Host $out; Write-Aviso "No se pudo crear el usuario del sistema $u." }
 }
 
 # ----------------------------------------------------------------------------- acciones
@@ -751,6 +782,7 @@ function Invoke-Instalar {
     Write-Credenciales
     if (Wait-Sistema) { Write-Ok 'El sistema responde.' } else { Write-Aviso 'El sistema aún no responde; revisa "uva.ps1 estado".' }
     if ($nueva) { Confirm-AccesoAdmin -FijarClave } else { Confirm-AccesoAdmin }
+    Confirm-UsuarioSistema
     if (Wait-App) { Write-Ok 'La app de campo responde.' } else { Write-Aviso 'La app de campo aún no responde; revisa "uva.ps1 estado".' }
     $u = Get-Urls
     Write-Host "`n  Sistema UVA instalado." -ForegroundColor Green
@@ -808,6 +840,7 @@ function Invoke-Actualizar {
     Write-Credenciales
     if (Wait-Sistema) { Write-Ok 'El sistema responde.' } else { Write-Aviso 'El sistema aún no responde; revisa "uva.ps1 estado".' }
     Confirm-AccesoAdmin
+    Confirm-UsuarioSistema
     Write-Ok 'Actualización terminada.'
 }
 

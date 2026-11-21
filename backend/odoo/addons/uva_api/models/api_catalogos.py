@@ -460,25 +460,29 @@ class UvaApiCatalogos(models.AbstractModel):
                 grupos.append((g.sudo(), etiqueta))
         ids_grupos = [g.id for g, _e in grupos]
         Users = self.env['res.users'].sudo()
-        usuarios = Users.search([('share', '=', False), ('uva_usuario_tecnico', '=', False)], order='id')
+        # Sin OdooBot (usuario interno de Odoo) ni usuarios técnicos
+        raiz = self.env.ref('base.user_root', raise_if_not_found=False)
+        usuarios = Users.with_context(active_test=False).search(
+            [('share', '=', False), ('uva_usuario_tecnico', '=', False), ('id', '!=', raiz.id if raiz else 0)], order='id')
         filas = []
         for u in usuarios:
             propios = u.group_ids.filtered(lambda g: g.id in ids_grupos)
             if not propios:
                 continue
             roles = [e for g, e in sorted(grupos, key=lambda x: (x[0].sequence, x[0].id)) if g in propios]
-            filas.append({
-                'name': u.name or '',
-                'email': u.email or u.login or '',
+            fila = self._usuario_json(u)
+            fila.update({
                 'roles': roles,
                 'date': self._fecha_acceso(u, hoy),
                 'st': 'Activo' if u.active else 'Inactivo',
             })
+            filas.append(fila)
         Matriz = self.env['uva.matriz.permiso']
         return {
             'users': filas,
             'rolesHeaders': Matriz._uva_headers(),
             'matrix': [m._uva_json() for m in Matriz.search([])],
+            'rolesDisponibles': self._roles_disponibles(),
         }
 
     @api.model

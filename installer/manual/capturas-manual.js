@@ -5,6 +5,8 @@ const puppeteer = require('puppeteer-core');
 const [OUT, ADMIN_PW] = process.argv.slice(2);
 const WEB = 'http://localhost:8080', APP = 'https://localhost:8443';
 const CORREO = 'jhovani.coss@asercontrol.com', CLAVE = 'asercontrol123456';
+// Persona de ejemplo que se registra para las capturas de «Usuarios y roles» (bórrela después en Odoo)
+const EJEMPLO = { nombre: 'Ing. Ana López Ruiz', correo: 'ana.lopez@ejemplo.mx' };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const UA = {
   android: 'Mozilla/5.0 (Linux; Android 14; SM-A546E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36',
@@ -88,7 +90,9 @@ async function telefono(b, tipo) {
     const ctx = await b.createBrowserContext(); const p = await ctx.newPage();
     await p.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1.5 });
     await p.goto(WEB + '/', { waitUntil: 'networkidle0' });
-    await escribir(p, '#login-email', 'admin'); await escribir(p, '#login-password', ADMIN_PW);
+    // El usuario del sistema llega ya escrito (desde la base de Odoo)
+    for (let i = 0; i < 40 && !(await p.evaluate(() => document.querySelector('#login-password')?.value)); i++) await sleep(250);
+    await resaltar(p, 'Iniciar sesión', 'button');
     await foto(p, 'pc-1-entrar');
     await p.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText.trim() === 'Iniciar sesión').click());
     await esperar(p, /Cerrar sesión/);
@@ -100,7 +104,49 @@ async function telefono(b, tipo) {
     await p.evaluate(() => { const h = [...document.querySelectorAll('h2')].find((x) => /Cómo instalar la app/.test(x.innerText)); h?.closest('section')?.scrollIntoView({ block: 'start' }); window.scrollBy(0, -20); });
     await resaltar(p, 'Copiar', 'button');
     await foto(p, 'pc-3-app-de-campo');
+
+    // Cambiar contraseña con el medidor de seguridad (sin guardar)
+    await p.evaluate(() => { window.location.hash = 'CambiarClave'; });
+    await esperar(p, /Contraseña actual/);
+    await escribir(p, '#cc-actual', 'asercontrol123456');
+    await escribir(p, '#cc-nueva', 'Rio-Culiacan-2026'); await escribir(p, '#cc-repetir', 'Rio-Culiacan-2026');
+    await sleep(500);
+    await resaltar(p, 'Cambiar contraseña', 'button[type=submit]');
+    await foto(p, 'pc-cambiar-contrasena');
+
+    // Usuarios y roles: lista, formulario «Nuevo usuario» y contraseña temporal (persona de ejemplo)
+    await p.evaluate(() => { window.location.hash = 'Usuarios'; });
+    await esperar(p, /Usuarios y control de accesos/);
+    await sleep(1200);
+    await p.evaluate(() => window.scrollTo(0, 0));
+    await resaltar(p, 'Nuevo usuario', 'button');
+    await foto(p, 'pc-usuarios');
+    await p.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText.trim() === 'Nuevo usuario')?.click());
+    await esperar(p, /Registrar usuario/);
+    await escribir(p, '#usr-nombre', EJEMPLO.nombre); await escribir(p, '#usr-correo', EJEMPLO.correo);
+    await p.evaluate(() => [...document.querySelectorAll('[role=dialog] label')].find((x) => /^Inspector/.test(x.innerText.trim()))?.querySelector('input')?.click());
+    await sleep(400);
+    await resaltar(p, 'Registrar usuario', 'button');
+    await foto(p, 'pc-nuevo-usuario');
+    await p.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText.trim() === 'Registrar usuario')?.click());
+    await esperar(p, /Contraseña temporal/);
+    const temporal = await p.evaluate(() => document.querySelector('[role=dialog] dd.font-mono')?.innerText.trim() || '');
+    await foto(p, 'pc-clave-temporal');
     await ctx.close();
+
+    // Primera entrada de esa persona: el sistema le pide crear su contraseña nueva
+    const ctx2 = await b.createBrowserContext(); const p2 = await ctx2.newPage();
+    await p2.setViewport({ width: 480, height: 860, deviceScaleFactor: 2 });
+    await p2.goto(WEB + '/', { waitUntil: 'networkidle0' });
+    await escribir(p2, '#login-email', EJEMPLO.correo); await escribir(p2, '#login-password', temporal);
+    await p2.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText.trim() === 'Iniciar sesión').click());
+    await esperar(p2, /Cree su contraseña nueva/);
+    await escribir(p2, '#clave-actual', temporal);
+    await escribir(p2, '#clave-nueva', 'MiClaveNueva2026'); await escribir(p2, '#clave-repetir', 'MiClaveNueva2026');
+    await sleep(400);
+    await resaltar(p2, 'Guardar y continuar', 'button');
+    await foto(p2, 'pc-cambiar-clave');
+    await ctx2.close();
   }
   await b.close();
 })().catch((e) => { console.error('ERROR', e); process.exit(1); });

@@ -1,11 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Eye, EyeOff, Loader2, Lock, LogIn, LogOut, Mail, MailCheck } from 'lucide-react';
+import { ArrowLeft, Check, Eye, EyeOff, KeyRound, Loader2, Lock, LogIn, LogOut, Mail, MailCheck } from 'lucide-react';
 import { LEGAL_LINKS } from './legalLinks';
 import { sesion, type PerfilSesion } from '../api/sesion';
-
-// Usuario prellenado en el inicio de sesión (el mismo que trae la app de campo); el instalador lo crea.
-const USUARIO_PREDETERMINADO = 'jhovani.coss@asercontrol.com';
-const CLAVE_PREDETERMINADA = 'asercontrol123456';
+import { MedidorClave, reglasClave } from './MedidorClave';
 
 const LegalNota: React.FC = () => (
   <p className="text-[11px] text-ink-500 mt-4 leading-relaxed text-center">
@@ -34,8 +31,8 @@ export const LoginScreen: React.FC<{ aviso?: string | null; onLoggedIn: (perfil:
   onLoggedIn,
 }) => {
   const [modo, setModo] = useState<'login' | 'recuperar'>('login');
-  const [email, setEmail] = useState(USUARIO_PREDETERMINADO);
-  const [password, setPassword] = useState(CLAVE_PREDETERMINADA);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [verPassword, setVerPassword] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +42,18 @@ export const LoginScreen: React.FC<{ aviso?: string | null; onLoggedIn: (perfil:
   useEffect(() => {
     emailRef.current?.focus();
   }, [modo]);
+
+  // Usuario del sistema guardado en la base de Odoo (lo registra el instalador): prellena el formulario.
+  // La contraseña solo llega mientras sigue siendo la original.
+  useEffect(() => {
+    let vigente = true;
+    sesion.accesoPredeterminado().then((d) => {
+      if (!vigente || !d.correo) return;
+      setEmail((e) => e || d.correo);
+      if (d.clave) setPassword((p) => p || d.clave);
+    }).catch(() => undefined);
+    return () => { vigente = false; };
+  }, []);
 
   const entrar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -395,3 +404,118 @@ export const SignedOutScreen: React.FC<{ onSignIn: () => void }> = ({ onSignIn }
     </main>
   </div>
 );
+
+/**
+ * Primera entrada con una contraseña inicial o temporal (la del manual o la que dio el Administrador):
+ * el usuario crea su contraseña nueva antes de usar el sistema.
+ */
+export const CambiarClaveScreen: React.FC<{
+  nombre?: string;
+  onListo: (perfil: PerfilSesion) => void;
+  onSalir: () => void;
+}> = ({ nombre, onListo, onSalir }) => {
+  const [actual, setActual] = useState('');
+  const [nueva, setNueva] = useState('');
+  const [repetir, setRepetir] = useState('');
+  const [ver, setVer] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const actualRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    actualRef.current?.focus();
+  }, []);
+
+  const guardar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!actual) return setError('Escriba la contraseña con la que entró.');
+    if (!reglasClave(nueva, actual).every((r) => r.ok)) return setError('La contraseña nueva no cumple todos los requisitos.');
+    if (nueva !== repetir) return setError('Las dos contraseñas nuevas no son iguales.');
+    setEnviando(true);
+    try {
+      const r = await sesion.cambiarClave(actual, nueva);
+      onListo(r.perfil);
+    } catch (err) {
+      setError((err as Error).message || 'No se pudo guardar la contraseña.');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const campo = (
+    id: string,
+    etiqueta: string,
+    valor: string,
+    cambiar: (v: string) => void,
+    autoComplete: string,
+    ref?: React.Ref<HTMLInputElement>,
+  ) => (
+    <div>
+      <label htmlFor={id} className="block text-sm font-semibold text-ink-800 mb-1">
+        {etiqueta}
+      </label>
+      <div className="relative">
+        <Lock className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+        <input
+          ref={ref}
+          id={id}
+          type={ver ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          value={valor}
+          onChange={(e) => cambiar(e.target.value)}
+          disabled={enviando}
+          className={inputClase}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-dvh bg-side-900 flex items-center justify-center p-4">
+      <main className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 sm:p-8">
+        <div className="text-center">
+          <KeyRound className="w-10 h-10 text-brand-600 mx-auto" aria-hidden="true" />
+          <h1 className="text-xl font-bold text-ink-900 mt-3">Cree su contraseña nueva</h1>
+          <p className="text-sm text-ink-600 mt-1 leading-relaxed">
+            {nombre ? `Hola, ${nombre}. ` : ''}Entró con una contraseña inicial. Por seguridad, cree una propia que solo
+            usted conozca. La usará en la web y en la app de campo.
+          </p>
+        </div>
+
+        {error && (
+          <p role="alert" className="mt-5 rounded-lg bg-danger-50 text-danger-700 text-sm px-3 py-2">
+            {error}
+          </p>
+        )}
+
+        <form onSubmit={guardar} noValidate className="mt-5 space-y-4">
+          {campo('clave-actual', 'Contraseña con la que entró', actual, setActual, 'current-password', actualRef)}
+          {campo('clave-nueva', 'Contraseña nueva', nueva, setNueva, 'new-password')}
+          <MedidorClave nueva={nueva} actual={actual} />
+          {campo('clave-repetir', 'Escriba otra vez la contraseña nueva', repetir, setRepetir, 'new-password')}
+          <label className="flex items-center gap-2 text-sm text-ink-700">
+            <input type="checkbox" checked={ver} onChange={(e) => setVer(e.target.checked)} className="w-4 h-4" />
+            Mostrar contraseñas
+          </label>
+          <button
+            type="submit"
+            disabled={enviando}
+            className="w-full h-11 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-70 text-white text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors"
+          >
+            {enviando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            {enviando ? 'Guardando…' : 'Guardar y continuar'}
+          </button>
+          <button
+            type="button"
+            onClick={onSalir}
+            className="w-full h-10 rounded-lg text-sm font-semibold text-ink-600 hover:text-ink-900 inline-flex items-center justify-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Salir
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+};

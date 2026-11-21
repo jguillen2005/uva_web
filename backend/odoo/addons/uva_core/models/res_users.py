@@ -12,6 +12,10 @@ class ResUsers(models.Model):
     uva_ultimo_acceso = fields.Datetime(
         string='Último acceso (UVA)',
         help='Último acceso registrado desde la aplicación web del Sistema UVA.')
+    uva_cambiar_clave = fields.Boolean(
+        string='Debe cambiar su contraseña',
+        help='La contraseña es inicial o temporal: al entrar a la web, el sistema le pide crear una nueva '
+             'antes de dejarle usar el sistema o la app de campo.')
 
     # Preferencias de notificación (pantalla "Mi perfil" del frontend)
     uva_notif_correo = fields.Boolean(string='Avisos por correo (Outlook)', default=True)
