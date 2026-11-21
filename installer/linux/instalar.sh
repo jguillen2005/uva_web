@@ -7,7 +7,7 @@
 set -u
 ORIGEN="$(cd "$(dirname "$0")" && pwd)"
 CONTENIDO="$ORIGEN/contenido"
-VERSION="$(cat "$CONTENIDO/version.txt" 2>/dev/null || echo 1.1)"
+VERSION="$(cat "$CONTENIDO/version.txt" 2>/dev/null || echo 1.0.0)"
 DESTINO="$HOME/SistemaUVA"
 DEMO=''; SILENCIOSO=0; ACTUALIZAR_SISTEMA=0; SIN_ABRIR=0; REINSTALAR=0
 ARGS_ORIGINALES=("$@")

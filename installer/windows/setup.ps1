@@ -27,7 +27,7 @@ if (-not $Destino) {
 
 $ErrorActionPreference = 'Stop'
 $Origen = $PSScriptRoot
-$Version = if (Test-Path (Join-Path $Origen 'version.txt')) { (Get-Content (Join-Path $Origen 'version.txt') -Raw).Trim() } else { '1.1.1' }
+$Version = if (Test-Path (Join-Path $Origen 'version.txt')) { (Get-Content (Join-Path $Origen 'version.txt') -Raw).Trim() } else { '1.0.0' }
 $Host.UI.RawUI.WindowTitle = "Instalador Sistema UVA $Version"
 
 function Write-Paso([string]$Texto) { Write-Host "`n> $Texto" -ForegroundColor Cyan }

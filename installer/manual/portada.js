@@ -3,7 +3,8 @@
 //   node portada.js <versión> <node_modules con puppeteer-core>
 const path = require('path');
 const fs = require('fs');
-const [VERSION = '1.1.1', NM = path.join(__dirname, 'node_modules')] = process.argv.slice(2);
+// La versión del manual se mantiene siempre en 1.0.0 (no es la versión del software)
+const [VERSION = '1.0.0', NM = path.join(__dirname, 'node_modules')] = process.argv.slice(2);
 const puppeteer = require(path.join(NM, 'puppeteer-core'));
 const logo = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'marca', 'logo-ap-blanco.png')).toString('base64');
 
@@ -24,7 +25,7 @@ p{font-size:24px;margin-top:40px;color:#eaf2ff;letter-spacing:.3px}
 <img src="${logo}" alt="AP Interfaces">
 <h1>Manual de instalación</h1>
 <h2>Sistema UVA y App de campo Asercontrol</h2>
-<p>Versión ${VERSION} &nbsp;·&nbsp; Windows · Mac · Linux · Android · iPhone · iPad</p>
+<p>Manual versión ${VERSION} &nbsp;·&nbsp; Windows · Mac · Linux · Android · iPhone · iPad</p>
 </div></div></body></html>`;
 
 (async () => {

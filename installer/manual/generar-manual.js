@@ -15,7 +15,10 @@ const {
 const FIG = path.join(__dirname, 'fig');
 const MARCA = path.join(__dirname, 'marca');
 const SALIDA = path.join(__dirname, 'Manual de instalacion Sistema UVA.docx');
-const VERSION = process.argv[2] || '1.1.1';
+// Versión VISIBLE del producto y de la documentación: siempre 1.0.0 (nombres de los instaladores, portada, pie).
+// La versión interna por mejoras (1.1.1, 1.1.2…) no se muestra: queda en version-interna.txt de cada instalación.
+const VERSION = '1.0.0';
+const VERSION_MANUAL = VERSION;
 // Formato y paleta de AP Interfaces (sitio web: azul marino, cian y violeta; tipografía Inter / Segoe UI)
 const FONT = 'Segoe UI';
 const AZUL = '071326';        // azul marino
@@ -401,6 +404,7 @@ function contenido() {
       ['Administración (Mac/Linux)', [[mono('./uva.sh estado | iniciar | detener | respaldar | actualizar | renovar-clave')], [mono('./uva.sh abrir | abrir-app | abrir-odoo | agregar-app | regenerar-certificado | desinstalar')]]],
       ['Instalación desatendida', [['Windows: ', mono('SistemaUVA-Instalador-Windows-' + VERSION + '.exe -Silencioso -Demo no')], ['Opciones: -ActualizarSistema · -Reinstalar · -SinAbrir · -Destino <carpeta>'], ['Mac/Linux: ', mono('--silencioso --demo no --actualizar-sistema --reinstalar --sin-abrir')]]],
       ['Bitácoras y respaldos', 'Subcarpetas logs y respaldos de la carpeta del sistema.'],
+      ['Versión', [['Visible para el usuario: ' + VERSION + '. Versión interna (por mejoras): archivo ', mono('version-interna.txt'), ' en la carpeta del sistema.']]],
       ['Certificados', 'Autoridad local «Asercontrol CA local». Se conserva al desinstalar sin borrar datos y al «Reinstalar desde cero», para que los teléfonos no reinstalen el permiso.'],
       ['Usuarios', 'Se crean en el Administrador de Odoo. Para la app, el usuario se asigna en la ficha del verificador (Sistema UVA › Verificadores › Usuario).'],
       ['Correo saliente', '«¿Olvidó su contraseña?» requiere configurar Odoo › Ajustes › Técnico › Servidores de correo saliente.'],
@@ -446,7 +450,7 @@ const doc = new Document({
         children: [
           new TextRun({ text: 'AP Interfaces · Tu socio tecnológico · ', font: FONT, size: 16, color: GRIS }),
           new ExternalHyperlink({ link: WEB, children: [new TextRun({ text: WEB_TEXTO, font: FONT, size: 16, color: VIOLETA })] }),
-          new TextRun({ text: `\tSistema UVA ${VERSION} · página `, font: FONT, size: 16, color: GRIS }),
+          new TextRun({ text: `\tManual versión ${VERSION_MANUAL} · página `, font: FONT, size: 16, color: GRIS }),
           new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 16, color: VIOLETA, bold: true }),
         ],
       })] }),

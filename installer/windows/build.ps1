@@ -14,11 +14,12 @@
 .PARAMETER Nombre       Nombre base del .exe.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol
-  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol -SinInternet
+  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 -App C:\ruta\asercontrol
+  powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 -App C:\ruta\asercontrol -SinInternet
 #>
 param(
-    [string]$Version = '1.1.1',
+    [string]$Version = '1.0.0',
+    [string]$VersionInterna = '1.1.1',
     [switch]$SinInternet,
     [switch]$OmitirFrontend,
     [string]$App = '',
@@ -115,10 +116,14 @@ for ($i = 0; $i -lt $tamanos.Count; $i++) {
 foreach ($p in $pngs) { $w.Write($p) }
 $w.Flush(); [System.IO.File]::WriteAllBytes((Join-Path $Payload 'uva.ico'), $ico.ToArray()); $w.Dispose()
 
+# Versión interna (por mejoras): solo para soporte, dentro del paquete; no se muestra al usuario
+[System.IO.File]::WriteAllText((Join-Path $Payload 'version-interna.txt'), "$VersionInterna`n")
 Compress-Archive -Path (Join-Path $Payload '*') -DestinationPath (Join-Path $Etapa 'payload.zip') -CompressionLevel Optimal
 
 $setup = [System.IO.File]::ReadAllText((Join-Path $Aqui 'setup.ps1'))
 [System.IO.File]::WriteAllText((Join-Path $Etapa 'setup.ps1'), $setup, $Utf8Bom)
+# Versión VISIBLE (instalador, nombre del archivo, «Aplicaciones instaladas», manual): siempre 1.0.0.
+# La versión INTERNA (por mejoras: 1.1.1, 1.1.2…) solo queda en version-interna.txt dentro del paquete.
 [System.IO.File]::WriteAllText((Join-Path $Etapa 'version.txt'), $Version)
 
 # 3. Imágenes de Docker (opcional) ---------------------------------------------------------

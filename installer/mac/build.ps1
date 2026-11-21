@@ -10,10 +10,11 @@
 .PARAMETER Salida   Carpeta donde se deja el .zip.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.1.1 -App C:\ruta\asercontrol
+  powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 -App C:\ruta\asercontrol
 #>
 param(
-    [string]$Version = '1.1.1',
+    [string]$Version = '1.0.0',
+    [string]$VersionInterna = '1.1.1',
     [string]$App = '',
     [string]$Salida = '',
     [string]$Nombre = 'SistemaUVA-Instalador-Mac'
@@ -61,7 +62,10 @@ $manual = Join-Path $Aqui '..\manual\Manual de instalacion Sistema UVA.pdf'
 Copy-Item $manual (Join-Path $Contenido 'Manual de instalacion Sistema UVA.pdf')
 Copy-Item $manual (Join-Path $Raiz 'Manual de instalacion Sistema UVA.pdf')
 Copy-Item (Join-Path $Aqui 'instalar.command') (Join-Path $Recursos 'instalar.command')
+# Versión VISIBLE (instalador, nombre del archivo, «Aplicaciones instaladas», manual): siempre 1.0.0.
+# La versión INTERNA (por mejoras: 1.1.1, 1.1.2…) solo queda en version-interna.txt dentro del paquete.
 [System.IO.File]::WriteAllText((Join-Path $Contenido 'version.txt'), $Version)
+[System.IO.File]::WriteAllText((Join-Path $Contenido 'version-interna.txt'), "$VersionInterna`n")
 
 Write-Paso 'Armando «Instalar Sistema UVA.app»'
 $macos = Join-Path $AppMac 'Contents\MacOS'

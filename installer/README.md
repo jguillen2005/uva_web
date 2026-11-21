@@ -12,19 +12,19 @@ El instalador lleva juntos la **web del Sistema UVA**, la **app de campo** de la
 
 ```powershell
 # Con internet (~7 MB): descarga las imágenes de Docker durante la instalación
-powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 `
+powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 `
   -App C:\ruta\asercontrol -Nombre ASERCONTROL-Instalador_web
 
 # Sin internet (~1 GB): incluye las imágenes de Odoo, PostgreSQL, nginx y los microservicios
-powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.1.1 `
+powershell -ExecutionPolicy Bypass -File installer\windows\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 `
   -App C:\ruta\asercontrol -Nombre ASERCONTROL-Instalador -SinInternet
 ```
 
 `-App` es la carpeta del proyecto de la app de campo (por omisión `..\asercontrol` o `$env:ASERCONTROL_APP`).
 `-Salida` cambia la
 carpeta del `.exe`; por omisión queda en `installer\windows\salida\`. Para revisar el contenido sin instalar:
-`SistemaUVA-Instalador-Windows-1.1.1.exe /extraer C:\ruta\carpeta`. Instalación desatendida:
-`SistemaUVA-Instalador-Windows-1.1.1.exe -Silencioso -Demo no`. Requisitos del equipo que compila: Node/npm y,
+`SistemaUVA-Instalador-Windows-1.0.0.exe /extraer C:\ruta\carpeta`. Instalación desatendida:
+`SistemaUVA-Instalador-Windows-1.0.0.exe -Silencioso -Demo no`. Requisitos del equipo que compila: Node/npm y,
 para `-SinInternet`, Docker y ~5 GB libres temporales.
 
 El paquete **nunca** incluye `backend\.env` ni claves: cada instalación genera sus propias contraseñas.
@@ -90,7 +90,7 @@ Odoo 19, PostgreSQL 17, nginx y Node existen para arm64 y amd64: funciona nativo
 
 ```powershell
 # Se genera desde Windows (requiere Node/npm y Python)
-powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.1.1 `
+powershell -ExecutionPolicy Bypass -File installer\mac\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 `
   -App C:\ruta\asercontrol
 ```
 
@@ -116,7 +116,7 @@ arranque al iniciar sesión. Instala en `~/SistemaUVA`; la configuración se res
 (clic derecho > «Ejecutar como un programa», o `bash` en una terminal) y la carpeta `contenido/`.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File installer\linux\build.ps1 -Version 1.1.1 `
+powershell -ExecutionPolicy Bypass -File installer\linux\build.ps1 -Version 1.0.0 -VersionInterna 1.1.1 `
   -App C:\ruta\asercontrol
 ```
 

@@ -66,7 +66,7 @@ const F = {};
 F['w-1-descargas'] = `<div class="win"><div class="tb">📁 Descargas<span class="x">— ☐ ✕</span></div>
 <div style="display:flex"><div style="width:150px;background:#f8fafc;padding:10px;font-size:12px;line-height:2;color:#475569">⭐ Acceso rápido<br>🖥️ Escritorio<br><b style="color:#1d4ed8">⬇️ Descargas</b><br>📄 Documentos</div>
 <div style="flex:1"><div class="fila" style="font-size:11px;color:#64748b">Nombre</div>
-<div class="fila hl" style="background:#dbeafe;margin:6px"><img src="${icoUVA}" style="width:24px;height:24px"><b>SistemaUVA-Instalador-Windows-1.1.1.exe</b></div>
+<div class="fila hl" style="background:#dbeafe;margin:6px"><img src="${icoUVA}" style="width:24px;height:24px"><b>SistemaUVA-Instalador-Windows-1.0.0.exe</b></div>
 <div class="fila">📄 Manual de instalacion Sistema UVA.pdf</div></div></div></div>
 <span class="tag izq" style="left:575px;top:84px">Doble clic aquí</span>`;
 F['w-2-protegio'] = `<div style="width:520px;background:#1e4fa3;color:#fff;padding:26px 28px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25)">
@@ -78,15 +78,15 @@ F['w-2-protegio'] = `<div style="width:520px;background:#1e4fa3;color:#fff;paddi
 F['w-3-ejecutar'] = `<div style="width:520px;background:#1e4fa3;color:#fff;padding:26px 28px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25)">
 <div style="font-size:24px;font-weight:300;margin-bottom:14px">Windows protegió su PC</div>
 <div style="line-height:1.5">Windows SmartScreen impidió el inicio de una aplicación no reconocida.</div>
-<div style="margin-top:12px;line-height:1.7">Aplicación: SistemaUVA-Instalador-Windows-1.1.1.exe<br>Editor: Editor desconocido</div>
+<div style="margin-top:12px;line-height:1.7">Aplicación: SistemaUVA-Instalador-Windows-1.0.0.exe<br>Editor: Editor desconocido</div>
 <div style="text-align:right;margin-top:30px;display:flex;gap:10px;justify-content:flex-end"><span class="btn hl" style="background:transparent;color:#fff;border-color:#fff">Ejecutar de todas formas</span><span class="btn" style="background:transparent;color:#fff;border-color:#fff">No ejecutar</span></div></div>
 <span class="tag aba" style="left:250px;top:150px">2. Clic aquí</span>`;
-F['w-4-demo'] = `<div class="win" style="width:440px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
+F['w-4-demo'] = `<div class="win" style="width:440px"><div class="tb">Instalador Sistema UVA 1.0.0<span class="x">✕</span></div>
 <div style="padding:18px 20px;display:flex;gap:14px;line-height:1.55"><span style="font-size:28px">❔</span><div>¿Cargar datos de demostración?<br><br><b>Sí</b>: clientes, expedientes y usuarios de ejemplo para conocer el sistema.<br><b>No</b>: base de datos vacía, lista para operar.</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn">Sí</span><span class="btn hl">No</span><span class="btn">Cancelar</span></div></div>
 <span class="tag aba" style="left:250px;top:150px">Para trabajar de verdad: No</span>`;
-F['w-5-progreso'] = `<div class="win" style="width:600px"><div class="tb">⬛ Instalador Sistema UVA 1.1.1<span class="x">— ☐ ✕</span></div>
-<div class="term" style="min-height:230px">  ==============================================<br>    Sistema UVA 1.1.1 - Instalador<br>  ==============================================<br><br>
+F['w-5-progreso'] = `<div class="win" style="width:600px"><div class="tb">⬛ Instalador Sistema UVA 1.0.0<span class="x">— ☐ ✕</span></div>
+<div class="term" style="min-height:230px">  ==============================================<br>    Sistema UVA 1.0.0 - Instalador<br>  ==============================================<br><br>
 <span class="c">&gt; Revisando requisitos del equipo</span><br>  Windows 10.0.19045 · RAM 16 GB · disco libre 80 GB<br><span class="c">&gt; Copiando archivos</span><br>  Archivos copiados.<br>
 <span class="c">&gt; Creando la base 'uva' e instalando módulos. Tarda varios minutos...</span><br>  <span class="y">▌</span></div></div>
 <span class="tag arr fijo" style="left:300px;top:250px">No cierre esta ventana: espere (10 a 20 minutos)</span>`;
@@ -94,7 +94,7 @@ F['w-6-certificado'] = `<div class="win" style="width:470px"><div class="tb">Adv
 <div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">⚠️</span><div>Está a punto de instalar un certificado desde una entidad de certificación que afirma representar a:<br><br><b>Asercontrol CA local</b><br><br>¿Desea instalar este certificado?</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Sí</span><span class="btn">No</span></div></div>
 <span class="tag aba" style="left:250px;top:180px">Clic en Sí</span>`;
-F['w-7-telefonos'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
+F['w-7-telefonos'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.0.0<span class="x">✕</span></div>
 <div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">❔</span><div><b>Último paso: permitir que los teléfonos y tablets se conecten a esta computadora.</b><br><br>Al elegir Sí, Windows mostrará una ventana que pregunta «¿Quiere permitir que esta aplicación haga cambios en el dispositivo?». Elija Sí.</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Sí</span><span class="btn">No</span></div></div>
 <span class="tag aba" style="left:270px;top:170px">1. Clic en Sí</span>`;
@@ -130,11 +130,11 @@ F['w-10-escritorio'] = `<div style="width:520px;height:170px;border-radius:8px;b
 <div style="width:90px;padding:6px"><div style="position:relative;width:56px;height:56px;margin:0 auto 6px"><img src="${icoUVA}" style="width:56px;height:56px">${flecha}</div>App de campo Asercontrol</div></div>
 <span class="tag izq" style="left:140px;top:44px">Doble clic para abrir el sistema</span>`;
 
-F['w-docker-1'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
+F['w-docker-1'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.0.0<span class="x">✕</span></div>
 <div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">ℹ️</span><div>El Sistema UVA necesita <b>Docker Desktop</b>, un programa gratuito, y no está instalado en esta computadora.<br><br>El instalador lo descarga e instala por usted (unos 10 minutos). Windows le pedirá permiso: elija Sí.<br><br>Si Windows lo necesita, al terminar le pedirá reiniciar; después la instalación del Sistema UVA continúa sola.</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Aceptar</span><span class="btn">Cancelar</span></div></div>
 <span class="tag aba">Clic en Aceptar</span>`;
-F['w-docker-2'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
+F['w-docker-2'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.0.0<span class="x">✕</span></div>
 <div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">❔</span><div>Docker Desktop quedó instalado. Para terminar, Windows necesita reiniciar.<br><br>Al volver a entrar a Windows, la instalación del Sistema UVA continuará sola.<br><br>¿Reiniciar ahora? (Guarde antes su trabajo abierto.)</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Sí</span><span class="btn">No</span></div></div>
 <span class="tag aba">Clic en Sí</span>`;
@@ -142,7 +142,7 @@ F['w-docker-2'] = `<div class="win" style="width:470px"><div class="tb">Instalad
 // ============================================================ MAC
 const finder = (titulo, filas, ancho = 560) => `<div class="mac" style="width:${ancho}px"><div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span style="margin-left:14px">${titulo}</span></div>
 <div style="display:flex"><div style="width:140px;background:#f5f5f7;padding:10px;font-size:12px;line-height:2;color:#475569">Favoritos<br>🖥️ Escritorio<br><b style="color:#2563eb">⬇️ Descargas</b><br>📄 Documentos<br>🅰️ Aplicaciones</div><div style="flex:1;padding:6px 0">${filas}</div></div></div>`;
-F['m-1-zip'] = finder('Descargas', `<div class="fila hl" style="margin:6px;background:#dbeafe">🗜️ <b>SistemaUVA-Instalador-Mac-1.1.1.zip</b></div><div class="fila">📁 Instalador Sistema UVA</div>`) + `<span class="tag izq" style="left:575px;top:58px">Doble clic: se descomprime</span>`;
+F['m-1-zip'] = finder('Descargas', `<div class="fila hl" style="margin:6px;background:#dbeafe">🗜️ <b>SistemaUVA-Instalador-Mac-1.0.0.zip</b></div><div class="fila">📁 Instalador Sistema UVA</div>`) + `<span class="tag izq" style="left:575px;top:58px">Doble clic: se descomprime</span>`;
 F['m-2-app'] = finder('Instalador Sistema UVA', `<div class="fila hl" style="margin:6px;background:#dbeafe"><img src="${icoApp}" style="width:24px;height:24px;border-radius:5px"><b>Instalar Sistema UVA</b><span style="margin-left:auto;color:#6b7280">Aplicación</span></div><div class="fila">📄 Manual de instalacion Sistema UVA.pdf</div>`) + `<span class="tag izq" style="left:575px;top:58px">Doble clic aquí</span>`;
 F['m-3-bloqueo'] = `<div class="alerta"><div style="font-size:34px">⚠️</div><b>No se puede abrir «Instalar Sistema UVA» porque Apple no puede comprobar si contiene software malicioso.</b>Esta aplicación es de un desarrollador no identificado.<span class="mbtn pri">Aceptar</span><span class="mbtn">Trasladar a la papelera</span></div>
 <span class="tag arr fijo" style="left:30px;top:300px">Si ve este aviso: Aceptar y siga el paso de abajo</span>`;
@@ -154,9 +154,9 @@ F['m-5-abrir'] = `<div class="alerta"><div style="font-size:34px">⚠️</div><b
 F['m-6-privacidad'] = `<div class="mac" style="width:560px"><div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span style="margin-left:14px">Privacidad y seguridad</span></div>
 <div style="padding:16px 20px;line-height:1.6"><b>Seguridad</b><div style="background:#f5f5f7;border-radius:10px;padding:12px 14px;margin-top:8px">Se ha bloqueado el uso de «Instalar Sistema UVA» porque no es de un desarrollador identificado.<div style="text-align:right;margin-top:8px"><span class="btn hl">Abrir igualmente</span></div></div></div></div>
 <span class="tag aba" style="left:300px;top:70px">En macOS reciente: aquí</span>`;
-F['m-7-opciones'] = `<div class="alerta" style="width:470px;text-align:left"><b style="margin-top:0">Instalador Sistema UVA 1.1.1</b>Se detectó el Sistema UVA ya instalado. ¿Qué desea hacer?
+F['m-7-opciones'] = `<div class="alerta" style="width:470px;text-align:left"><b style="margin-top:0">Instalador Sistema UVA 1.0.0</b>Se detectó el Sistema UVA ya instalado. ¿Qué desea hacer?
 <div style="background:#fff;border:1px solid #d4d4d4;border-radius:6px;margin-top:8px;font-size:12px">
-<div class="hl" style="padding:7px 9px;background:#2f7cf6;color:#fff">Actualizar todo: instala la versión 1.1.1 y conserva clientes, visitas y usuarios.</div>
+<div class="hl" style="padding:7px 9px;background:#2f7cf6;color:#fff">Actualizar todo: instala la versión 1.0.0 y conserva clientes, visitas y usuarios.</div>
 <div style="padding:7px 9px">Reinstalar desde cero: respaldo en Documentos, borra todo e instala limpio.</div>
 <div style="padding:7px 9px">Solo la app: actualiza solo la app de campo.</div>
 <div style="padding:7px 9px">Cancelar: salir sin hacer cambios.</div></div>
@@ -171,7 +171,7 @@ F['m-8-demo'] =`<div class="alerta" style="width:340px"><div style="font-size:30
 <div style="display:flex;gap:6px;margin-top:10px"><span class="mbtn">Cancelar</span><span class="mbtn pri hl">No</span><span class="mbtn">Sí</span></div></div>
 <span class="tag arr" style="left:120px;top:210px">Para trabajar de verdad: No</span>`;
 F['m-9-terminal'] = `<div class="mac" style="width:600px"><div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span style="margin-left:14px">Terminal — instalar.command</span></div>
-<div class="term">  Sistema UVA 1.1.1 - Instalador para Mac<br><br><span class="c">&gt; Revisando requisitos del equipo</span><br>  macOS 15.5 · chip Apple (arm64) · RAM 16 GB · disco libre 80 GB<br><span class="c">&gt; Copiando archivos a /Users/oficina/SistemaUVA</span><br>  Archivos copiados.<br><span class="c">&gt; Creando la base 'uva' e instalando módulos. Tarda varios minutos...</span><br>  <span class="y">▌</span></div></div>
+<div class="term">  Sistema UVA 1.0.0 - Instalador para Mac<br><br><span class="c">&gt; Revisando requisitos del equipo</span><br>  macOS 15.5 · chip Apple (arm64) · RAM 16 GB · disco libre 80 GB<br><span class="c">&gt; Copiando archivos a /Users/oficina/SistemaUVA</span><br>  Archivos copiados.<br><span class="c">&gt; Creando la base 'uva' e instalando módulos. Tarda varios minutos...</span><br>  <span class="y">▌</span></div></div>
 <span class="tag arr fijo" style="left:280px;top:250px">No cierre esta ventana: espere (10 a 20 minutos)</span>`;
 F['m-10-contrasena'] = `<div class="alerta" style="width:320px"><div style="font-size:30px">🔒</div><b>Estás haciendo cambios en la configuración de confianza de certificados.</b>Introduce tu contraseña para permitirlo.
 <div style="background:#fff;border:1px solid #cfcfcf;border-radius:6px;padding:6px;margin-top:10px;text-align:left;color:#9ca3af">Contraseña de la Mac</div>
@@ -183,7 +183,7 @@ F['m-11-credenciales'] = `<div class="mac" style="width:560px"><div class="tb"><
 
 // ============================================================ LINUX
 F['l-1-extraer'] = `<div class="win" style="width:560px;border-radius:10px;overflow:hidden"><div class="tb" style="background:#2b2b2b;color:#fff">Descargas<span class="x">✕</span></div>
-<div style="padding:8px;position:relative;height:150px"><div class="fila" style="background:#e5e7eb;border-radius:6px">🗜️ <b>SistemaUVA-Instalador-Linux-1.1.1.tar.gz</b></div>
+<div style="padding:8px;position:relative;height:150px"><div class="fila" style="background:#e5e7eb;border-radius:6px">🗜️ <b>SistemaUVA-Instalador-Linux-1.0.0.tar.gz</b></div>
 <div style="position:absolute;left:250px;top:30px;width:200px;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.18);padding:4px;font-size:12.5px;line-height:1.9">
 <div style="padding:0 10px">Abrir con Gestor de archivadores</div><div class="hl" style="padding:0 10px;background:#e95420;color:#fff">Extraer aquí</div><div style="padding:0 10px">Mover a la papelera</div></div></div></div>
 <span class="tag izq" style="left:470px;top:84px">Clic derecho › Extraer aquí</span>`;
@@ -193,7 +193,7 @@ F['l-2-terminal'] = `<div class="win" style="width:560px;border-radius:10px;over
 <div style="padding:0 10px">Abrir</div><div class="hl" style="padding:0 10px;background:#e95420;color:#fff">Abrir en una terminal</div><div style="padding:0 10px">Copiar</div></div></div></div>
 <span class="tag izq" style="left:470px;top:84px">Clic derecho › Abrir en una terminal</span>`;
 F['l-3-comando'] = `<div class="win" style="width:620px;border-radius:10px;overflow:hidden"><div class="tb" style="background:#2b2b2b;color:#fff">Terminal<span class="x">✕</span></div>
-<div class="term" style="background:#300a24">oficina@pc:~/Descargas/Instalador Sistema UVA$ <span class="hl" style="color:#fff;padding:1px 4px">bash "Instalar Sistema UVA.sh"</span><br><br>  Sistema UVA 1.1.1 - Instalador para Linux<br><span class="c">&gt; Revisando requisitos del equipo</span><br><br>¿Cargar datos de demostración?<br><br>   1) Cancelar<br>   2) No<br>   3) Sí (Enter)<br><br>Elija una opción [1-3]: <span class="y">2</span></div></div>
+<div class="term" style="background:#300a24">oficina@pc:~/Descargas/Instalador Sistema UVA$ <span class="hl" style="color:#fff;padding:1px 4px">bash "Instalar Sistema UVA.sh"</span><br><br>  Sistema UVA 1.0.0 - Instalador para Linux<br><span class="c">&gt; Revisando requisitos del equipo</span><br><br>¿Cargar datos de demostración?<br><br>   1) Cancelar<br>   2) No<br>   3) Sí (Enter)<br><br>Elija una opción [1-3]: <span class="y">2</span></div></div>
 <span class="tag aba" style="left:230px;top:8px">Escriba esto y presione Enter</span>`;
 F['l-4-sudo'] = `<div class="win" style="width:620px;border-radius:10px;overflow:hidden"><div class="tb" style="background:#2b2b2b;color:#fff">Terminal<span class="x">✕</span></div>
 <div class="term" style="background:#300a24;min-height:120px"><span class="c">&gt; Instalando el certificado de confianza</span><br>[sudo] contraseña para oficina: <span class="hl" style="padding:1px 30px"> </span><br><br><span class="y">(al escribir la contraseña no aparecen letras: es normal)</span></div></div>
