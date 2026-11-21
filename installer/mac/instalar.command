@@ -40,6 +40,23 @@ salir() {
   if [ "$SILENCIOSO" != 1 ]; then printf '\nPresione Enter para cerrar...'; read -r _; fi
   exit "$1"
 }
+# Bitácora del instalador: existe desde el inicio (aunque falle antes de copiar) y fuera de la carpeta del
+# sistema (no se pierde al reinstalar). Guarda todo lo que se ve en la Terminal, incluido el trabajo de uva.sh.
+BITACORA_DIR="$HOME/Library/Logs/SistemaUVA"
+mkdir -p "$BITACORA_DIR" 2>/dev/null
+BITACORA="$BITACORA_DIR/instalador-$(date '+%Y%m%d-%H%M%S').log"
+if : > "$BITACORA" 2>/dev/null; then exec > >(tee -a "$BITACORA") 2>&1; else BITACORA=''; fi
+fallo() {  # fallo "mensaje": avisa con la ruta de la bitácora y ofrece abrirla
+  local r texto="$1"
+  [ -n "$BITACORA" ] && texto="$texto
+
+Bitácora de la instalación (para soporte):
+$BITACORA"
+  printf '\n  %s\n' "$1"
+  r="$(dialogo "$texto" 'Abrir bitácora,OK' 'OK')"
+  [ "$r" = 'Abrir bitácora' ] && [ -n "$BITACORA" ] && open -a TextEdit "$BITACORA" 2>/dev/null
+  return 0
+}
 
 printf '\n  ==============================================\n'
 printf '    Sistema UVA %s - Instalador para Mac\n' "$VERSION"
@@ -129,7 +146,7 @@ Si continúa, los datos actuales se borran SIN respaldo.' 'Cancelar,Continuar si
     [ "$r" = 'Continuar sin respaldo' ] || salir 1
   fi
   paso 'Desinstalando la versión anterior'
-  bash "$UVA" desinstalar --silencioso --eliminar-datos --conservar-certificado || { printf '  La desinstalación anterior no terminó: revise ~/SistemaUVA/logs.\n'; salir 1; }
+  bash "$UVA" desinstalar --silencioso --eliminar-datos --conservar-certificado || { fallo 'No se pudo desinstalar la versión anterior. Sus datos están en el respaldo de Documentos.'; salir 1; }
   rm -rf "$DESTINO" 2>/dev/null
   printf '  \033[32mOK\033[0m  Versión anterior desinstalada. Se instala la versión %s desde cero.\n' "$VERSION"
   EXISTENTE=0; REINSTALADO=1
@@ -257,10 +274,11 @@ for f in $existen; do
 done
 if [ $error_copia = 1 ] || [ -n "$faltan" ]; then
   echo "  No se pudieron copiar todos los archivos.$faltan"
-  dialogo "No se pudieron copiar los archivos a:
+  fallo "No se pudieron copiar los archivos a:
 $DESTINO
 
-La base de datos y los usuarios no se modificaron. Cierre esta ventana y vuelva a abrir «Instalar Sistema UVA». Si se repite, envíe a soporte una captura de la ventana de Terminal." 'OK' 'OK' >/dev/null
+La base de datos y los usuarios no se modificaron. Cierre esta ventana y vuelva a abrir «Instalar Sistema UVA». Si se repite, envíe a soporte la bitácora."
+
   salir 1
 fi
 echo '  Archivos copiados.'
@@ -272,10 +290,10 @@ elif [ $ACTUALIZACION = 1 ]; then args=(actualizar)
 else args=(instalar); [ "$DEMO" = si ] && args+=(--demo); fi
 [ "$SILENCIOSO" = 1 ] && args+=(--silencioso)
 if ! /bin/bash "$UVA" "${args[@]}"; then
-  dialogo "La instalación no terminó. Revise la bitácora en:
-$DESTINO/logs
+  fallo "La instalación no terminó.
 
-Puede reintentar ejecutando de nuevo este instalador." 'OK' 'OK' >/dev/null
+Vuelva a abrir «Instalar Sistema UVA»: continúa donde se quedó, sin perder nada. Si se repite, envíe a soporte la bitácora."
+
   salir 1
 fi
 

@@ -29,6 +29,9 @@ $ErrorActionPreference = 'Stop'
 $Origen = $PSScriptRoot
 $Version = if (Test-Path (Join-Path $Origen 'version.txt')) { (Get-Content (Join-Path $Origen 'version.txt') -Raw).Trim() } else { '1.0.0' }
 $Host.UI.RawUI.WindowTitle = "Instalador Sistema UVA $Version"
+# Bitácora del instalador: existe desde el inicio, fuera de la carpeta del sistema (no se pierde al reinstalar)
+$Bitacora = Join-Path $env:LOCALAPPDATA ("SistemaUVA-bitacoras\instalador-" + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.log')
+try { New-Item -ItemType Directory -Force (Split-Path $Bitacora) | Out-Null; Start-Transcript -Path $Bitacora | Out-Null } catch { $Bitacora = $null }
 
 function Write-Paso([string]$Texto) { Write-Host "`n> $Texto" -ForegroundColor Cyan }
 function Show-Mensaje([string]$Texto, [string]$Botones = 'OK', [string]$Icono = 'Information') {
@@ -344,6 +347,12 @@ else { $argumentos += 'instalar'; if ($Demo -eq 'si') { $argumentos += '-Demo' }
 if ($Silencioso) { $argumentos += '-Silencioso' }
 & $ps @argumentos
 if ($LASTEXITCODE -ne 0) {
+    if ($Bitacora -and -not $Silencioso) {
+        $r = Show-Mensaje ("La instalación no terminó. Vuelva a abrir el instalador: continúa donde se quedó, sin perder nada.`n`n" +
+            "Bitácoras (para soporte):`n$Bitacora`n$(Join-Path $Destino 'logs')`n`n¿Abrir la bitácora?") 'YesNo' 'Error'
+        if ($r -eq 'Yes') { Start-Process notepad.exe $Bitacora }
+        Exit-Instalador 1
+    }
     Show-Mensaje "La instalación no terminó. Revisa la bitácora en:`n$(Join-Path $Destino 'logs')`n`nPuedes reintentar con el acceso «Iniciar Sistema UVA» o ejecutando de nuevo el instalador." 'OK' 'Error' | Out-Null
     Exit-Instalador 1
 }

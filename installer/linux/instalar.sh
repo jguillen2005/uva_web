@@ -58,6 +58,24 @@ salir() {
   if [ "$SILENCIOSO" != 1 ] && { : </dev/tty; } 2>/dev/null; then printf '\nPresione Enter para cerrar...'; read -r _ </dev/tty; fi
   exit "$1"
 }
+# Bitácora del instalador: existe desde el inicio (aunque falle antes de copiar) y fuera de la carpeta del
+# sistema (no se pierde al reinstalar). Guarda todo lo que se ve en la terminal, incluido el trabajo de uva.sh.
+BITACORA_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/SistemaUVA"
+mkdir -p "$BITACORA_DIR" 2>/dev/null
+BITACORA="$BITACORA_DIR/instalador-$(date '+%Y%m%d-%H%M%S').log"
+if : > "$BITACORA" 2>/dev/null; then exec > >(tee -a "$BITACORA") 2>&1; else BITACORA=''; fi
+fallo() {  # fallo "mensaje": avisa con la ruta de la bitácora y ofrece abrirla
+  local r texto="$1"
+  [ -n "$BITACORA" ] && texto="$texto
+
+Bitácora de la instalación (para soporte):
+$BITACORA"
+  r="$(dialogo "$texto" 'Abrir bitácora,Cerrar' 'Cerrar')"
+  [ -z "$BITACORA" ] && return 0
+  if [ "$r" = 'Abrir bitácora' ] && command -v xdg-open >/dev/null 2>&1; then xdg-open "$BITACORA" >/dev/null 2>&1 & fi
+  [ "$SILENCIOSO" = 1 ] && printf '  %s\n  Bitácora: %s\n' "$1" "$BITACORA"
+  return 0
+}
 
 printf '\n  ==============================================\n'
 printf '    Sistema UVA %s - Instalador para Linux\n' "$VERSION"
@@ -147,7 +165,7 @@ Antes se guarda un respaldo de la base de datos en su carpeta Documentos. ¿Cont
     [ "$r" = 'Continuar sin respaldo' ] || salir 1
   fi
   paso 'Desinstalando la versión anterior'
-  bash "$UVA" desinstalar --silencioso --eliminar-datos --conservar-certificado || { aviso "La desinstalación anterior no terminó: revise $DESTINO/logs."; salir 1; }
+  bash "$UVA" desinstalar --silencioso --eliminar-datos --conservar-certificado || { fallo 'No se pudo desinstalar la versión anterior. Sus datos están en el respaldo de Documentos.'; salir 1; }
   rm -rf "$DESTINO" 2>/dev/null
   ok "Versión anterior desinstalada. Se instala la versión $VERSION desde cero."
   EXISTENTE=0; REINSTALADO=1
@@ -248,7 +266,7 @@ for f in $existen; do
 done
 if [ $error_copia = 1 ] || [ -n "$faltan" ]; then
   echo "  No se pudieron copiar todos los archivos a $DESTINO.$faltan"
-  echo '  Revise los permisos de esa carpeta y vuelva a ejecutar el instalador. La base de datos no se modificó.'
+  fallo "No se pudieron copiar los archivos a $DESTINO. La base de datos no se modificó. Vuelva a ejecutar el instalador; si se repite, envíe a soporte la bitácora."
   salir 1
 fi
 ok 'Archivos copiados.'
@@ -266,8 +284,7 @@ else
   bash "$UVA" "${args[@]}"; r=$?
 fi
 if [ $r != 0 ]; then
-  echo "  La instalación no terminó. Revise la bitácora en $DESTINO/logs"
-  echo '  Puede reintentar ejecutando de nuevo este instalador: retoma sin perder lo avanzado.'
+  fallo 'La instalación no terminó. Vuelva a ejecutar el instalador: continúa donde se quedó, sin perder nada. Si se repite, envíe a soporte la bitácora.'
   salir 1
 fi
 
