@@ -81,10 +81,9 @@ fi
 COMO_GRUPO=0   # 1 = el usuario se acaba de agregar al grupo docker: usar «sg docker» en esta sesión
 docker_ok() { docker info >/dev/null 2>&1; }
 if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
-  r="$(dialogo "El Sistema UVA necesita Docker (Docker Engine y Docker Compose) y no está instalado completo en este equipo.
-
-¿Instalarlo ahora? Se usan los paquetes oficiales de Ubuntu (docker.io y docker-compose-v2); pedirá su contraseña de administrador." 'Cancelar,Instalar Docker' 'Instalar Docker')"
-  [ "$r" = 'Instalar Docker' ] || { echo '  Instale Docker y vuelva a ejecutar el instalador:  sudo apt install docker.io docker-compose-v2'; salir 2; }
+  # Se instala solo (paquetes oficiales de Ubuntu: docker.io y docker-compose-v2); pide la contraseña una vez.
+  echo '  El Sistema UVA necesita Docker (programa gratuito) y no está instalado: se instala ahora.'
+  echo '  Si se lo pide, escriba su contraseña (al escribirla no aparecen letras: es normal).'
   paso 'Instalando Docker (puede tardar unos minutos)'
   sudo apt-get update -qq || true
   if ! sudo apt-get install -y docker.io docker-compose-v2; then

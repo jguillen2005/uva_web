@@ -108,6 +108,8 @@ namespace SistemaUva
                 ProcessStartInfo psi = new ProcessStartInfo(ps, a.ToString());
                 psi.UseShellExecute = false;
                 psi.WorkingDirectory = temp;
+                // Ruta de este .exe: el asistente la usa para continuar solo después de reiniciar (p. ej. al instalar Docker).
+                psi.EnvironmentVariables["UVA_INSTALADOR_EXE"] = exe;
                 using (Process p = Process.Start(psi))
                 {
                     p.WaitForExit();

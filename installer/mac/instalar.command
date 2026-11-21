@@ -58,17 +58,39 @@ if [ -n "${libre_gb:-}" ] && [ "$libre_gb" -lt 8 ]; then
   dialogo "Se necesitan al menos 8 GB libres en el disco (hay $libre_gb GB)." 'OK' 'OK' >/dev/null; salir 1
 fi
 
+# Docker Desktop: si falta, se descarga del sitio oficial (versión para el chip de esta Mac) y se instala solo.
+# macOS pide la contraseña de la Mac una vez.
+instalar_docker_mac() {
+  local url dir vol
+  if [ "$(uname -m)" = arm64 ]; then url='https://desktop.docker.com/mac/main/arm64/Docker.dmg'; else url='https://desktop.docker.com/mac/main/amd64/Docker.dmg'; fi
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/docker-desktop.XXXXXX")" || return 1
+  paso 'Descargando Docker Desktop (unos 600 MB; puede tardar varios minutos)'
+  curl -fL --progress-bar -o "$dir/Docker.dmg" "$url" || { rm -rf "$dir"; return 1; }
+  paso 'Instalando Docker Desktop (macOS le pedirá la contraseña de la Mac)'
+  vol="$(hdiutil attach -nobrowse -noverify "$dir/Docker.dmg" 2>/dev/null | awk -F'\t' '/\/Volumes\// {print $NF; exit}')"
+  if [ -z "$vol" ] || [ ! -d "$vol/Docker.app" ]; then rm -rf "$dir"; return 1; fi
+  osascript -e "do shell script quoted form of \"$vol/Docker.app/Contents/MacOS/install\" & \" --accept-license --user=\" & quoted form of \"$USER\" with administrator privileges" >/dev/null 2>&1
+  hdiutil detach "$vol" -quiet 2>/dev/null; rm -rf "$dir"
+  [ -d /Applications/Docker.app ] || return 1
+  open -a Docker 2>/dev/null || true
+  return 0
+}
 if ! command -v docker >/dev/null 2>&1 && [ ! -d /Applications/Docker.app ]; then
-  r="$(dialogo "El Sistema UVA necesita Docker Desktop y no está instalado en este Mac.
+  r="$(dialogo "El Sistema UVA necesita Docker Desktop, un programa gratuito, y no está instalado en esta Mac.
 
-¿Abrir la página de descarga? Elija la versión para su chip: $chip.
+El instalador lo descarga e instala por usted (unos 10 minutos, necesita Internet). macOS le pedirá la contraseña de la Mac.
 
-Después de instalarlo, abra Docker Desktop una vez, acepte sus términos y vuelva a ejecutar este instalador.
+Al continuar acepta la licencia de Docker Desktop: es gratuito para empresas de menos de 250 empleados y menos de 10 MDD de ingresos anuales." 'Cancelar,Continuar' 'Continuar')"
+  [ "$r" = 'Continuar' ] || salir 0
+  if instalar_docker_mac; then
+    printf '  \033[32mOK\033[0m  Docker Desktop quedó instalado. La primera vez tarda 1 o 2 minutos en abrir.\n'
+  else
+    dialogo "No se pudo instalar Docker Desktop automáticamente (quizá no se escribió la contraseña o falló la descarga).
 
-Docker Desktop es gratuito para empresas de menos de 250 empleados y menos de 10 MDD de ingresos anuales." 'Cancelar,Abrir descarga' 'Abrir descarga')"
-  [ "$r" = 'Abrir descarga' ] && open 'https://www.docker.com/products/docker-desktop/'
-  echo '  Instale Docker Desktop y vuelva a ejecutar el instalador.'
-  salir 2
+Se abrirá la página de Docker para instalarlo a mano (elija la versión para su chip: $chip). Después vuelva a abrir este instalador." 'OK' 'OK' >/dev/null
+    [ "$SILENCIOSO" = 1 ] || open 'https://www.docker.com/products/docker-desktop/'
+    salir 2
+  fi
 fi
 # Docker Desktop instalado pero sin el comando en el PATH de esta sesión
 command -v docker >/dev/null 2>&1 || export PATH="$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin"

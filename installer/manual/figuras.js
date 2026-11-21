@@ -6,6 +6,10 @@ const fs = require('fs');
 const [CAPT, OUT, NM] = process.argv.slice(2);
 const puppeteer = require(path.join(NM, 'puppeteer-core'));
 const img = (n) => 'data:image/png;base64,' + fs.readFileSync(path.join(CAPT, n + '.png')).toString('base64');
+// Íconos reales: Sistema UVA (uva.ico de los accesos de Windows) y app Asercontrol (app de Mac y teléfonos)
+const icoUVA = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'marca', 'icono-sistema-uva.png')).toString('base64');
+const icoApp = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'marca', 'icono-app-asercontrol.png')).toString('base64');
+const flecha = '<span style="position:absolute;left:0;bottom:0;width:16px;height:16px;background:#fff;border:1px solid #94a3b8;font-size:11px;line-height:14px;color:#1d4ed8;text-align:center">↗</span>';
 
 const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
@@ -62,8 +66,8 @@ const F = {};
 F['w-1-descargas'] = `<div class="win"><div class="tb">📁 Descargas<span class="x">— ☐ ✕</span></div>
 <div style="display:flex"><div style="width:150px;background:#f8fafc;padding:10px;font-size:12px;line-height:2;color:#475569">⭐ Acceso rápido<br>🖥️ Escritorio<br><b style="color:#1d4ed8">⬇️ Descargas</b><br>📄 Documentos</div>
 <div style="flex:1"><div class="fila" style="font-size:11px;color:#64748b">Nombre</div>
-<div class="fila hl" style="background:#dbeafe;margin:6px"><span class="ico" style="background:#2563eb">UVA</span><b>SistemaUVA-Instalador-Windows-1.1.1.exe</b></div>
-<div class="fila">📄 Guia-rápida-instalación.pdf</div></div></div></div>
+<div class="fila hl" style="background:#dbeafe;margin:6px"><img src="${icoUVA}" style="width:24px;height:24px"><b>SistemaUVA-Instalador-Windows-1.1.1.exe</b></div>
+<div class="fila">📄 Manual de instalacion Sistema UVA.pdf</div></div></div></div>
 <span class="tag izq" style="left:575px;top:84px">Doble clic aquí</span>`;
 F['w-2-protegio'] = `<div style="width:520px;background:#1e4fa3;color:#fff;padding:26px 28px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25)">
 <div style="font-size:24px;font-weight:300;margin-bottom:14px">Windows protegió su PC</div>
@@ -122,18 +126,27 @@ Guarde este archivo en un lugar seguro: contiene contraseñas.
    «Manual de instalacion Sistema UVA» (PDF)</div></div>
 <span class="tag izq" style="left:330px;top:150px">Guarde este archivo en un lugar seguro</span>`;
 F['w-10-escritorio'] = `<div style="width:520px;height:170px;border-radius:8px;background:linear-gradient(135deg,#1e3a8a,#0ea5e9);position:relative;padding:18px;display:flex;gap:26px;color:#fff;font-size:12px;text-align:center">
-<div class="hl" style="width:90px;padding:6px"><div style="width:52px;height:52px;margin:0 auto 6px;border-radius:12px;background:#fff;color:#1d4ed8;font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center">UVA</div>Sistema UVA</div>
-<div style="width:90px;padding:6px"><div style="width:52px;height:52px;margin:0 auto 6px;border-radius:12px;background:#fff;color:#0f766e;font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center">📱</div>App de campo Asercontrol</div></div>
+<div class="hl" style="width:90px;padding:6px"><div style="position:relative;width:56px;height:56px;margin:0 auto 6px"><img src="${icoUVA}" style="width:56px;height:56px">${flecha}</div>Sistema UVA</div>
+<div style="width:90px;padding:6px"><div style="position:relative;width:56px;height:56px;margin:0 auto 6px"><img src="${icoUVA}" style="width:56px;height:56px">${flecha}</div>App de campo Asercontrol</div></div>
 <span class="tag izq" style="left:140px;top:44px">Doble clic para abrir el sistema</span>`;
+
+F['w-docker-1'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
+<div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">ℹ️</span><div>El Sistema UVA necesita <b>Docker Desktop</b>, un programa gratuito, y no está instalado en esta computadora.<br><br>El instalador lo descarga e instala por usted (unos 10 minutos). Windows le pedirá permiso: elija Sí.<br><br>Al terminar habrá que reiniciar la computadora; después la instalación del Sistema UVA continúa sola.</div></div>
+<div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Aceptar</span><span class="btn">Cancelar</span></div></div>
+<span class="tag aba">Clic en Aceptar</span>`;
+F['w-docker-2'] = `<div class="win" style="width:470px"><div class="tb">Instalador Sistema UVA 1.1.1<span class="x">✕</span></div>
+<div style="padding:18px 20px;display:flex;gap:14px;line-height:1.5"><span style="font-size:28px">❔</span><div>Docker Desktop quedó instalado. Para terminar, Windows necesita reiniciar.<br><br>Al volver a entrar a Windows, la instalación del Sistema UVA continuará sola.<br><br>¿Reiniciar ahora? (Guarde antes su trabajo abierto.)</div></div>
+<div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn hl">Sí</span><span class="btn">No</span></div></div>
+<span class="tag aba">Clic en Sí</span>`;
 
 // ============================================================ MAC
 const finder = (titulo, filas, ancho = 560) => `<div class="mac" style="width:${ancho}px"><div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span style="margin-left:14px">${titulo}</span></div>
 <div style="display:flex"><div style="width:140px;background:#f5f5f7;padding:10px;font-size:12px;line-height:2;color:#475569">Favoritos<br>🖥️ Escritorio<br><b style="color:#2563eb">⬇️ Descargas</b><br>📄 Documentos<br>🅰️ Aplicaciones</div><div style="flex:1;padding:6px 0">${filas}</div></div></div>`;
 F['m-1-zip'] = finder('Descargas', `<div class="fila hl" style="margin:6px;background:#dbeafe">🗜️ <b>SistemaUVA-Instalador-Mac-1.1.1.zip</b></div><div class="fila">📁 Instalador Sistema UVA</div>`) + `<span class="tag izq" style="left:575px;top:58px">Doble clic: se descomprime</span>`;
-F['m-2-app'] = finder('Instalador Sistema UVA', `<div class="fila hl" style="margin:6px;background:#dbeafe"><span class="ico" style="background:#1d4ed8">💧</span><b>Instalar Sistema UVA</b><span style="margin-left:auto;color:#6b7280">Aplicación</span></div><div class="fila">📄 LEEME.txt</div>`) + `<span class="tag izq" style="left:575px;top:58px">Doble clic aquí</span>`;
+F['m-2-app'] = finder('Instalador Sistema UVA', `<div class="fila hl" style="margin:6px;background:#dbeafe"><img src="${icoApp}" style="width:24px;height:24px;border-radius:5px"><b>Instalar Sistema UVA</b><span style="margin-left:auto;color:#6b7280">Aplicación</span></div><div class="fila">📄 Manual de instalacion Sistema UVA.pdf</div>`) + `<span class="tag izq" style="left:575px;top:58px">Doble clic aquí</span>`;
 F['m-3-bloqueo'] = `<div class="alerta"><div style="font-size:34px">⚠️</div><b>No se puede abrir «Instalar Sistema UVA» porque Apple no puede comprobar si contiene software malicioso.</b>Esta aplicación es de un desarrollador no identificado.<span class="mbtn pri">Aceptar</span><span class="mbtn">Trasladar a la papelera</span></div>
 <span class="tag arr fijo" style="left:30px;top:300px">Si ve este aviso: Aceptar y siga el paso de abajo</span>`;
-F['m-4-clic-derecho'] = finder('Instalador Sistema UVA', `<div class="fila" style="margin:6px;background:#dbeafe"><span class="ico" style="background:#1d4ed8">💧</span><b>Instalar Sistema UVA</b></div><div class="fila">📄 LEEME.txt</div>
+F['m-4-clic-derecho'] = finder('Instalador Sistema UVA', `<div class="fila" style="margin:6px;background:#dbeafe"><img src="${icoApp}" style="width:24px;height:24px;border-radius:5px"><b>Instalar Sistema UVA</b></div><div class="fila">📄 Manual de instalacion Sistema UVA.pdf</div>
 <div style="position:absolute;left:250px;top:62px;width:190px;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.18);padding:4px;font-size:12.5px;line-height:1.9">
 <div class="hl" style="padding:0 10px;background:#2f7cf6;color:#fff">Abrir</div><div style="padding:0 10px">Mostrar contenido del paquete</div><div style="padding:0 10px">Trasladar a la papelera</div><div style="padding:0 10px">Obtener información</div></div>`) + `<span class="tag izq" style="left:455px;top:66px">Clic derecho › Abrir</span>`;
 F['m-5-abrir'] = `<div class="alerta"><div style="font-size:34px">⚠️</div><b>macOS no puede comprobar el desarrollador de «Instalar Sistema UVA». ¿Seguro que quieres abrirla?</b>Al abrir esta aplicación, se anulará la protección del sistema.<span class="mbtn">Cancelar</span><span class="mbtn pri hl">Abrir</span></div>
@@ -148,7 +161,13 @@ F['m-7-opciones'] = `<div class="alerta" style="width:470px;text-align:left"><b 
 <div style="padding:7px 9px">Solo la app: actualiza solo la app de campo.</div>
 <div style="padding:7px 9px">Cancelar: salir sin hacer cambios.</div></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><span class="mbtn" style="width:90px">Cancelar</span><span class="mbtn pri" style="width:90px">Continuar</span></div></div>`;
-F['m-8-demo'] = `<div class="alerta" style="width:340px"><div style="font-size:30px">❔</div><b>¿Cargar datos de demostración?</b>Sí: clientes y usuarios de ejemplo para conocer el sistema.<br>No: base de datos vacía, lista para operar.
+F['m-docker'] = `<div style="display:flex;gap:26px;align-items:flex-start"><div class="alerta" style="width:330px"><div style="font-size:30px">ℹ️</div><b>El Sistema UVA necesita Docker Desktop, un programa gratuito, y no está instalado en esta Mac.</b>El instalador lo descarga e instala por usted (unos 10 minutos). macOS le pedirá la contraseña de la Mac.
+<div style="display:flex;gap:6px;margin-top:10px"><span class="mbtn">Cancelar</span><span class="mbtn pri hl">Continuar</span></div></div>
+<div class="alerta" style="width:300px"><div style="font-size:30px">🔒</div><b>«osascript» quiere hacer cambios.</b>Introduce tu contraseña para permitirlo.
+<div style="background:#fff;border:1px solid #cfcfcf;border-radius:6px;padding:6px;margin-top:10px;text-align:left;color:#9ca3af">Contraseña de la Mac</div>
+<span class="mbtn">Cancelar</span><span class="mbtn pri">OK</span></div></div>
+<span class="tag aba">1. Continuar · 2. Contraseña de la Mac y OK</span>`;
+F['m-8-demo'] =`<div class="alerta" style="width:340px"><div style="font-size:30px">❔</div><b>¿Cargar datos de demostración?</b>Sí: clientes y usuarios de ejemplo para conocer el sistema.<br>No: base de datos vacía, lista para operar.
 <div style="display:flex;gap:6px;margin-top:10px"><span class="mbtn">Cancelar</span><span class="mbtn pri hl">No</span><span class="mbtn">Sí</span></div></div>
 <span class="tag arr" style="left:120px;top:210px">Para trabajar de verdad: No</span>`;
 F['m-9-terminal'] = `<div class="mac" style="width:600px"><div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span style="margin-left:14px">Terminal — instalar.command</span></div>
@@ -188,11 +207,11 @@ F['a-2-aviso'] = ajustesAndroid(`<div style="padding:40px 22px;font-size:13px;li
 <div style="margin-top:30px;display:flex;flex-direction:column;gap:12px"><span style="color:#1a73e8;font-weight:700;text-align:right">No instalar</span><span class="hl" style="color:#1a73e8;font-weight:700;text-align:right;padding:4px">Instalar de todos modos</span></div></div>`) + `<span class="tag izq" style="left:300px;top:250px">Toque aquí</span>`;
 F['a-3-archivo'] = ajustesAndroid(`<div class="tit">Descargas</div><div class="grupo"><div class="it hl" style="margin:4px">📄 <div><b>Certificado-Android-Asercontrol.crt</b><div style="font-size:11px;color:#6b7280">1.2 kB · hoy</div></div></div><div class="it">📄 Otro archivo.pdf</div></div>`) + `<span class="tag izq" style="left:300px;top:110px">Elija este archivo</span>`;
 F['a-4-instalar'] = telefono(`<img src="${img('app-1-entrar')}" style="height:520px;object-fit:cover;object-position:top;filter:brightness(.55)">
-<div style="position:absolute;left:14px;right:14px;bottom:20px;background:#fff;border-radius:18px;padding:16px;box-shadow:0 -4px 20px rgba(0,0,0,.25)"><div style="display:flex;gap:10px;align-items:center"><span class="ico" style="background:#1d4ed8;width:38px;height:38px">💧</span><div><b>Instalar app</b><div style="font-size:11px;color:#6b7280">App Asercontrol · 192.168.1.50</div></div></div>
+<div style="position:absolute;left:14px;right:14px;bottom:20px;background:#fff;border-radius:18px;padding:16px;box-shadow:0 -4px 20px rgba(0,0,0,.25)"><div style="display:flex;gap:10px;align-items:center"><img src="${icoApp}" style="width:38px;height:38px;border-radius:9px"><div><b>Instalar app</b><div style="font-size:11px;color:#6b7280">App Asercontrol · 192.168.1.50</div></div></div>
 <div style="display:flex;justify-content:flex-end;gap:16px;margin-top:14px;font-weight:700;color:#1a73e8;font-size:13px"><span>Cancelar</span><span class="hl" style="padding:3px 8px">Instalar</span></div></div>`, { url: '192.168.1.50:8443' }) + `<span class="tag izq" style="left:300px;top:540px">Toque Instalar</span>`;
 F['a-5-icono'] = telefono(`<div style="background:linear-gradient(160deg,#0f172a,#1e40af);height:100%;padding:30px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;color:#fff;font-size:10px;text-align:center;align-content:start">
 ${['📷 Cámara', '💬 Mensajes', '🌐 Chrome', '⚙️ Ajustes', '📞 Teléfono', '📧 Correo'].map((x) => `<div><div style="font-size:26px">${x.split(' ')[0]}</div>${x.split(' ')[1]}</div>`).join('')}
-<div class="hl" style="padding:2px"><div style="width:44px;height:44px;margin:0 auto 3px;border-radius:12px;background:#fff;color:#1d4ed8;font-size:22px;display:flex;align-items:center;justify-content:center">💧</div>Asercontrol</div></div>`) + `<span class="tag izq" style="left:300px;top:150px">Su app instalada</span>`;
+<div class="hl" style="padding:2px"><img src="${icoApp}" style="width:44px;height:44px;border-radius:11px;display:block;margin:0 auto 3px">Asercontrol</div></div>`) + `<span class="tag izq" style="left:300px;top:150px">Su app instalada</span>`;
 // ============================================================ iPHONE / iPAD
 const ajustesIos = (contenido) => telefono(`<div class="aj" style="background:#f2f2f7;height:100%">${contenido}</div>`);
 F['i-1-permitir'] = telefono(`<img src="${img('tel-web-3-permiso-iphone')}" style="height:520px;object-fit:cover;object-position:top;filter:brightness(.55)">

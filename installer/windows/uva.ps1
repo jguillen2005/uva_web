@@ -334,6 +334,9 @@ function Test-Docker {
 }
 
 function Assert-Docker {
+    # Recién instalado, el comando docker puede no estar aún en el PATH de esta sesión
+    $binDocker = Join-Path $env:ProgramFiles 'Docker\Docker\resources\bin'
+    if (-not (Get-Command docker -ErrorAction SilentlyContinue) -and (Test-Path (Join-Path $binDocker 'docker.exe'))) { $env:Path += ";$binDocker" }
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
         Stop-ConError 'Docker Desktop no está instalado. Descárgalo de https://www.docker.com/products/docker-desktop/ e intenta de nuevo.'
     }

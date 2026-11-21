@@ -98,23 +98,52 @@ if ($libreGb -lt $minimo) {
     Exit-Instalador 1
 }
 
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-    $texto = "El Sistema UVA necesita Docker Desktop y no está instalado en este equipo.`n`n" +
-             "¿Instalarlo ahora? Se descarga del sitio oficial de Docker (requiere internet y permisos " +
-             "de administrador; al terminar puede pedir reiniciar Windows).`n`n" +
-             "Después de instalarlo, abre Docker Desktop una vez, acepta sus términos y vuelve a ejecutar este instalador.`n`n" +
-             "Nota: Docker Desktop es gratuito para empresas de menos de 250 empleados y menos de 10 MDD de ingresos anuales; " +
-             "para empresas mayores requiere suscripción."
-    if ((Show-Mensaje $texto 'YesNo' 'Warning') -eq 'Yes') {
-        if (Get-Command winget -ErrorAction SilentlyContinue) {
-            Write-Paso 'Instalando Docker Desktop con winget'
-            winget install --id Docker.DockerDesktop -e --accept-package-agreements --accept-source-agreements
-        } else {
-            Start-Process 'https://www.docker.com/products/docker-desktop/'
-        }
+# ------------------------------------------------------------------ Docker Desktop (se instala solo si falta)
+# Se descarga del sitio oficial y se instala sin ventanas (con WSL 2, que Docker necesita en Windows). Windows pide
+# permiso una vez. Al terminar hay que reiniciar: el instalador queda programado para continuar solo al volver a entrar.
+$dockerInstalado = (Get-Command docker -ErrorAction SilentlyContinue) -or (Test-Path "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe")
+if (-not $dockerInstalado) {
+    $texto = "El Sistema UVA necesita Docker Desktop, un programa gratuito, y no está instalado en esta computadora.`n`n" +
+             "El instalador lo descarga e instala por usted (unos 10 minutos, necesita Internet). Windows le pedirá permiso: elija Sí.`n`n" +
+             "Al terminar habrá que reiniciar la computadora; después la instalación del Sistema UVA continúa sola.`n`n" +
+             "Al continuar acepta la licencia de Docker Desktop: es gratuito para empresas de menos de 250 empleados y menos de 10 MDD de ingresos anuales."
+    if ((Show-Mensaje $texto 'OKCancel' 'Information') -eq 'Cancel') { Exit-Instalador 0 }
+    $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $docker = Join-Path $env:TEMP 'Docker Desktop Installer.exe'
+    $url = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'https://desktop.docker.com/win/main/arm64/Docker%20Desktop%20Installer.exe' } else { 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe' }
+    $ok = $false
+    try {
+        Write-Paso 'Descargando Docker Desktop (unos 600 MB; puede tardar varios minutos)'
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri $url -OutFile $docker -UseBasicParsing
+        Write-Paso 'Instalando Docker Desktop (Windows pedirá permiso: elija Sí)'
+        $cmd = "wsl.exe --install --no-distribution | Out-Null; " +
+               "`$p = Start-Process -FilePath '$docker' -ArgumentList 'install','--quiet','--accept-license','--backend=wsl-2' -Wait -PassThru; exit `$p.ExitCode"
+        $cod = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cmd))
+        $p = Start-Process $psExe -Verb RunAs -Wait -PassThru -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $cod
+        $ok = ($p.ExitCode -eq 0 -or $p.ExitCode -eq 3010) -and (Test-Path "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe")
+    } catch { $ok = $false }
+    Remove-Item $docker -Force -ErrorAction SilentlyContinue
+    if (-not $ok) {
+        Show-Mensaje ("No se pudo instalar Docker Desktop automáticamente (quizá se eligió No en el permiso de Windows o falló la descarga).`n`n" +
+            "Se abrirá la página de Docker para instalarlo a mano. Después vuelva a abrir este instalador.") 'OK' 'Warning' | Out-Null
+        if (-not $Silencioso) { Start-Process 'https://www.docker.com/products/docker-desktop/' }
+        Exit-Instalador 2
     }
-    Write-Host '  Instala Docker Desktop y vuelve a ejecutar el instalador.' -ForegroundColor Yellow
-    Exit-Instalador 2
+    Write-Host '  OK  Docker Desktop quedó instalado.' -ForegroundColor Green
+    # Continuar solo después de reiniciar (una vez), con las mismas opciones
+    if ($env:UVA_INSTALADOR_EXE -and (Test-Path $env:UVA_INSTALADOR_EXE)) {
+        $opciones = @($PSBoundParameters.GetEnumerator() | ForEach-Object { if ($_.Value -is [switch]) { if ($_.Value) { "-$($_.Key)" } } else { "-$($_.Key) `"$($_.Value)`"" } }) -join ' '
+        New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'SistemaUVA' -Value "`"$env:UVA_INSTALADOR_EXE`" $opciones".Trim() -PropertyType String -Force | Out-Null
+    }
+    if ($Silencioso) { Write-Host '  Reinicie Windows: la instalación continuará sola.'; Exit-Instalador 3 }
+    $r = Show-Mensaje ("Docker Desktop quedó instalado. Para terminar, Windows necesita reiniciar.`n`n" +
+        "Al volver a entrar a Windows, la instalación del Sistema UVA continuará sola (Docker Desktop tarda 1 o 2 minutos en abrir).`n`n" +
+        "¿Reiniciar ahora? (Guarde antes su trabajo abierto.)") 'YesNo' 'Question'
+    if ($r -eq 'Yes') { Restart-Computer -Force }
+    Write-Host '  Reinicie Windows cuando pueda: la instalación continuará sola.' -ForegroundColor Yellow
+    Exit-Instalador 0
 }
 
 # ------------------------------------------------------------------ instalación nueva o actualización
