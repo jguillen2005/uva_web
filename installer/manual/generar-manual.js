@@ -21,6 +21,10 @@ const FONT = 'Segoe UI';
 const AZUL = '071326';        // azul marino
 const VIOLETA = '7657FF';
 const CIAN = '19D3D1';
+const AZUL_WEB = '0058CE';      // azul del degradado de la web
+const VIOLETA_WEB = '6F1CE6';   // violeta del degradado de la web
+// Encabezados de tabla: un color por columna, de violeta a azul (imita el degradado; Word no admite degradados en celdas)
+const tonoColumna = (i, n) => { if (n <= 1) return AZUL_WEB; const t = i / (n - 1); const a = [0x6f, 0x1c, 0xe6], z = [0x00, 0x58, 0xce]; return a.map((v, k) => Math.round(v + (z[k] - v) * t).toString(16).padStart(2, '0')).join('').toUpperCase(); };
 const CIAN_OSCURO = '0E8F8D';
 const TEXTO = '152238';
 const GRIS = '52657C';
@@ -74,7 +78,7 @@ const lado = (items, altoPx = 300) => new Table({
 const celda = (contenido, ancho, { header = false, fill } = {}) => new TableCell({
   width: { size: ancho, type: WidthType.DXA },
   borders: { top: borde, bottom: borde, left: borde, right: borde },
-  shading: header ? { type: ShadingType.CLEAR, color: 'auto', fill: AZUL } : fill ? { type: ShadingType.CLEAR, color: 'auto', fill } : undefined,
+  shading: header ? { type: ShadingType.CLEAR, color: 'auto', fill: fill || AZUL_WEB } : fill ? { type: ShadingType.CLEAR, color: 'auto', fill } : undefined,
   margins: { top: 90, bottom: 90, left: 140, right: 140 },
   children: (Array.isArray(contenido) ? contenido : [contenido]).map((linea) => new Paragraph({
     spacing: { after: 60, line: 280 },
@@ -89,7 +93,7 @@ const tabla = (anchos, encabezado, filas) => new Table({
   width: { size: anchos.reduce((a, c) => a + c, 0), type: WidthType.DXA },
   columnWidths: anchos,
   rows: [
-    new TableRow({ tableHeader: true, children: encabezado.map((t, i) => celda(t, anchos[i], { header: true })) }),
+    new TableRow({ tableHeader: true, children: encabezado.map((t, i) => celda(t, anchos[i], { header: true, fill: tonoColumna(i, encabezado.length) })) }),
     ...filas.map((f) => new TableRow({ cantSplit: true, children: f.map((t, i) => celda(t, anchos[i])) })),
   ],
 });
@@ -106,29 +110,15 @@ const logo = (nombre, anchoPx) => {
 };
 const nada = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 const sinBordes = { top: nada, bottom: nada, left: nada, right: nada };
-// Portada: bloque azul marino con el logo blanco y una franja violeta/cian (como el degradado del sitio)
-const portadaMarca = () => [
-  new Table({
-    width: { size: ANCHO, type: WidthType.DXA }, columnWidths: [ANCHO], borders: { ...sinBordes, insideHorizontal: nada, insideVertical: nada },
-    rows: [new TableRow({ children: [new TableCell({
-      width: { size: ANCHO, type: WidthType.DXA }, borders: sinBordes,
-      shading: { type: ShadingType.CLEAR, color: 'auto', fill: AZUL }, margins: { top: 700, bottom: 700, left: 600, right: 600 },
-      children: [
-        new Paragraph({ spacing: { after: 500 }, children: [logo('logo-ap-blanco', 190)] }),
-        new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: 'Manual de instalación', font: FONT, size: 60, bold: true, color: 'FFFFFF' })] }),
-        new Paragraph({ spacing: { after: 360 }, children: [new TextRun({ text: 'Sistema UVA y App de campo Asercontrol', font: FONT, size: 32, color: CIAN })] }),
-        new Paragraph({ children: [new TextRun({ text: `Versión ${VERSION}  ·  Windows · Mac · Linux · Android · iPhone · iPad`, font: FONT, size: 20, color: LINEA })] }),
-      ],
-    })] })],
-  }),
-  new Table({
-    width: { size: ANCHO, type: WidthType.DXA }, columnWidths: [ANCHO / 2, ANCHO / 2], borders: { ...sinBordes, insideHorizontal: nada, insideVertical: nada },
-    rows: [new TableRow({ height: { value: 110, rule: HeightRule.EXACT }, children: [VIOLETA, CIAN].map((fill) => new TableCell({
-      width: { size: ANCHO / 2, type: WidthType.DXA }, borders: sinBordes, shading: { type: ShadingType.CLEAR, color: 'auto', fill }, children: [new Paragraph({ children: [] })],
-    })) })],
-  }),
-  espacio(),
-];
+// Portada: imagen con el degradado de la web de AP Interfaces, el logo blanco y el título (marca/portada.png,
+// generada con portada.js; Word no admite fondos con degradado)
+const portadaMarca = () => {
+  const data = fs.readFileSync(path.join(MARCA, 'portada.png'));
+  const m = medidas(data);
+  return [
+    new Paragraph({ spacing: { after: 240 }, children: [new ImageRun({ type: 'png', data, transformation: { width: ANCHO_PX, height: Math.round(m.h * ANCHO_PX / m.w) }, altText: { title: 'Portada', description: 'Manual de instalación · Sistema UVA y App de campo Asercontrol', name: 'portada' } })] }),
+  ];
+};
 const mono = (text) => ({ text, font: 'Consolas', size: 21 });
 
 // ------------------------------------------------------------------ contenido
@@ -426,7 +416,7 @@ const doc = new Document({
     default: { document: { run: { font: FONT, size: 22, color: TEXTO } } },
     paragraphStyles: [
       { id: 'Title', name: 'Title', basedOn: 'Normal', run: { font: FONT, size: 48, bold: true, color: AZUL }, paragraph: { spacing: { before: 0, after: 100 } } },
-      { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 36, bold: true, color: AZUL }, paragraph: { spacing: { before: 0, after: 240 }, keepNext: true, outlineLevel: 0, border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: VIOLETA, space: 6 } } } },
+      { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 36, bold: true, color: AZUL_WEB }, paragraph: { spacing: { before: 0, after: 240 }, keepNext: true, outlineLevel: 0, border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: VIOLETA, space: 6 } } } },
       { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 27, bold: true, color: VIOLETA }, paragraph: { spacing: { before: 300, after: 120 }, keepNext: true, outlineLevel: 1 } },
       { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: FONT, size: 24, bold: true, color: CIAN_OSCURO }, paragraph: { spacing: { before: 200, after: 100 }, keepNext: true, outlineLevel: 2 } },
     ],

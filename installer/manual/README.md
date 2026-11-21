@@ -18,7 +18,8 @@ node capturas-manual.js capturas <contraseña de admin>
 # 2. Ilustraciones (ventanas de Windows/Mac/Linux, ajustes de Android/iPhone) y marcos de teléfono
 node figuras.js capturas fig node_modules
 #    fig/w-opciones.png es una captura de la ventana de opciones de setup.ps1 (Show-Opciones)
-# 3. Word
+# 3. Portada con el degradado de la web (marca/portada.png) y Word
+node portada.js 1.1.1
 node generar-manual.js 1.1.1
 ```
 
