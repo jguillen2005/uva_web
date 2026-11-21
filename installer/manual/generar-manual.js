@@ -132,11 +132,6 @@ function contenido() {
   // ===== Portada
   add(
     portadaMarca(),
-    recuadro('Este es el único documento que necesita', [
-      ['Aquí están todas las instrucciones: cómo instalar el sistema en la computadora de la oficina, qué significa el archivo ', b('CREDENCIALES.txt'), ' que se crea al terminar y cómo instala cada verificador la app en su teléfono.'],
-      ['Está escrito para personas que ', b('no son del área de sistemas'), '. Siga los pasos en orden y fíjese en las imágenes: lo marcado en ', rojo('rojo'), ' es donde debe hacer clic o tocar.'],
-    ]),
-    espacio(),
     h2('¿Qué capítulo leo?'),
     tabla([4200, 5438], ['Si usted es…', 'Lea'], [
       ['La persona que instala el sistema en la oficina', [['Capítulo 1 y ', b('solo uno'), ' de los capítulos 2, 3 o 4 (el de su computadora). Después, los capítulos 5, 6 y 8.']]],
