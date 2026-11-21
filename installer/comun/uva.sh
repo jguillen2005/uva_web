@@ -479,6 +479,35 @@ print('UVA_CAMPO_OK')")"
   else echo "$salida"; aviso "No se pudo crear el usuario $USUARIO_CAMPO."; fi
 }
 
+# Comprueba que admin pueda entrar a la web con la contraseña de CREDENCIALES.txt y, si no, corrige su acceso
+# (activo, administrador de Odoo). Con «fijar_clave» (instalación nueva) también le pone esa contraseña; al
+# actualizar nunca la cambia (el cliente pudo haberla cambiado a propósito).
+probar_login_admin() {
+  local clave; clave="$(leer_env ODOO_ADMIN_PASSWORD)"
+  curl -s -m 30 -X POST "$(url_sistema)/api/sesion/login" -H 'Content-Type: application/json' \
+    -d "{\"email\":\"admin\",\"password\":\"$clave\"}" 2>/dev/null | grep -q '"ok": *true'
+}
+comprobar_acceso_admin() {  # [fijar_clave]
+  local clave salida; clave="$(leer_env ODOO_ADMIN_PASSWORD)"
+  paso 'Comprobando que admin pueda entrar con los datos de CREDENCIALES.txt'
+  if probar_login_admin; then ok 'admin entra a la web con la contraseña de CREDENCIALES.txt.'; return 0; fi
+  aviso 'admin no pudo entrar a la web: se corrige su acceso.'
+  salida="$(odoo_shell "admin = env.ref('base.user_admin').sudo().with_context(active_test=False)
+vals = {'active': True}
+if '${1:-}' == 'fijar_clave':
+    vals['password'] = '$clave'
+admin.write(vals)
+grupo = env.ref('base.group_system')
+if grupo not in admin.group_ids:
+    admin.write({'group_ids': [(4, grupo.id)]})
+env.cr.commit()
+print('UVA_ADMIN_OK')")"
+  printf '%s' "$salida" | grep -q UVA_ADMIN_OK || echo "$salida"
+  if probar_login_admin; then ok 'Acceso de admin corregido: ya entra con la contraseña de CREDENCIALES.txt.'
+  elif [ "${1:-}" = 'fijar_clave' ]; then aviso 'admin aún no puede entrar a la web; envíe a soporte la bitácora.'
+  else aviso 'La contraseña de admin no coincide con CREDENCIALES.txt (probablemente se cambió en el sistema): use la contraseña actual.'; fi
+}
+
 actualizar_clave_api() {  # [fijar_admin]
   local admin_pw='' base_url salida clave vence
   [ "${1:-}" = "fijar_admin" ] && admin_pw="$(leer_env ODOO_ADMIN_PASSWORD)"
@@ -796,6 +825,7 @@ accion_instalar() {
   escribir_credenciales
   crear_accesos
   if esperar_sistema; then ok 'El sistema responde.'; else aviso 'El sistema aún no responde; revise "./uva.sh estado".'; fi
+  if [ $nueva = 1 ]; then comprobar_acceso_admin fijar_clave; else comprobar_acceso_admin; fi
   if esperar_app; then ok 'La app de campo responde.'; else aviso 'La app de campo aún no responde; revise "./uva.sh estado".'; fi
   printf '\n  \033[32mSistema UVA instalado.\033[0m\n  Sistema:       %s\n  Odoo:          %s\n  App de campo:  %s  (tablets:%s)\n' \
     "$(url_sistema)" "$(url_odoo)" "$(url_app)" "$(urls_app_red)"
@@ -842,6 +872,7 @@ accion_actualizar() {
   escribir_credenciales
   crear_accesos
   if esperar_sistema; then ok 'El sistema responde.'; else aviso 'El sistema aún no responde; revise "./uva.sh estado".'; fi
+  comprobar_acceso_admin
   ok 'Actualización terminada.'
 }
 

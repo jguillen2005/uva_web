@@ -646,6 +646,40 @@ function Invoke-AgregarApp {
 # no existe; a uno existente nunca le cambia la contraseña.
 $Script:UsuarioCampo = 'jhovani.coss@asercontrol.com'
 $Script:ClaveCampo = 'asercontrol123456'
+# Comprueba que admin pueda entrar a la web con la contraseña de CREDENCIALES.txt y, si no, corrige su acceso
+# (activo, administrador de Odoo). Con -FijarClave (instalación nueva) también le pone esa contraseña; al
+# actualizar nunca la cambia (el cliente pudo haberla cambiado a propósito).
+function Test-LoginAdmin {
+    $cuerpo = @{ email = 'admin'; password = (Read-Env)['ODOO_ADMIN_PASSWORD'] } | ConvertTo-Json -Compress
+    try {
+        $r = Invoke-RestMethod -Uri "$((Get-Urls).Sistema)/api/sesion/login" -Method Post -ContentType 'application/json' -Body $cuerpo -TimeoutSec 30
+        return [bool]$r.ok
+    } catch { return $false }
+}
+function Confirm-AccesoAdmin([switch]$FijarClave) {
+    Write-Paso 'Comprobando que admin pueda entrar con los datos de CREDENCIALES.txt'
+    if (Test-LoginAdmin) { Write-Ok 'admin entra a la web con la contraseña de CREDENCIALES.txt.'; return }
+    Write-Aviso 'admin no pudo entrar a la web: se corrige su acceso.'
+    $clave = if ($FijarClave) { (Read-Env)['ODOO_ADMIN_PASSWORD'] } else { '' }
+    $py = @"
+admin = env.ref('base.user_admin').sudo().with_context(active_test=False)
+vals = {'active': True}
+if '$clave':
+    vals['password'] = '$clave'
+admin.write(vals)
+grupo = env.ref('base.group_system')
+if grupo not in admin.group_ids:
+    admin.write({'group_ids': [(4, grupo.id)]})
+env.cr.commit()
+print('UVA_ADMIN_OK')
+"@
+    $salida = Invoke-OdooShell $py
+    if ($salida -notmatch 'UVA_ADMIN_OK') { Write-Host $salida }
+    if (Test-LoginAdmin) { Write-Ok 'Acceso de admin corregido: ya entra con la contraseña de CREDENCIALES.txt.' }
+    elseif ($FijarClave) { Write-Aviso 'admin aún no puede entrar a la web; envía a soporte la bitácora.' }
+    else { Write-Aviso 'La contraseña de admin no coincide con CREDENCIALES.txt (probablemente se cambió en el sistema): usa la contraseña actual.' }
+}
+
 function Confirm-UsuarioCampo {
     $u = $Script:UsuarioCampo
     $py = @"
@@ -716,6 +750,7 @@ function Invoke-Instalar {
 
     Write-Credenciales
     if (Wait-Sistema) { Write-Ok 'El sistema responde.' } else { Write-Aviso 'El sistema aún no responde; revisa "uva.ps1 estado".' }
+    if ($nueva) { Confirm-AccesoAdmin -FijarClave } else { Confirm-AccesoAdmin }
     if (Wait-App) { Write-Ok 'La app de campo responde.' } else { Write-Aviso 'La app de campo aún no responde; revisa "uva.ps1 estado".' }
     $u = Get-Urls
     Write-Host "`n  Sistema UVA instalado." -ForegroundColor Green
@@ -772,6 +807,7 @@ function Invoke-Actualizar {
     Invoke-Compose restart odoo gateway
     Write-Credenciales
     if (Wait-Sistema) { Write-Ok 'El sistema responde.' } else { Write-Aviso 'El sistema aún no responde; revisa "uva.ps1 estado".' }
+    Confirm-AccesoAdmin
     Write-Ok 'Actualización terminada.'
 }
 

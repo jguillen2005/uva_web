@@ -79,6 +79,9 @@ def _puede_entrar(user):
     que los técnicos con permisos de administrador de Odoo sí pueden entrar."""
     if not user.active or user.share:
         return False
+    # El administrador principal de Odoo (admin) entra siempre, aunque esté marcado como técnico.
+    if user == request.env.ref('base.user_admin', raise_if_not_found=False):
+        return True
     return not user.uva_usuario_tecnico or user.has_group('base.group_system')
 
 
