@@ -1,0 +1,15 @@
+{
+  "name": "manual-instalacion-sistema-uva",
+  "private": true,
+  "type": "commonjs",
+  "description": "Genera el Manual de instalacion Sistema UVA (único documento de instrucciones de los instaladores)",
+  "scripts": {
+    "capturas": "node capturas-manual.js capturas",
+    "figuras": "node figuras.js capturas fig node_modules",
+    "manual": "node generar-manual.js"
+  },
+  "dependencies": {
+    "docx": "9.5.1",
+    "puppeteer-core": "^24.0.0"
+  }
+}

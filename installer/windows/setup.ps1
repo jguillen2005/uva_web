@@ -203,7 +203,7 @@ if ($soloApp) {
         if (Test-Path $p) { Remove-Item $p -Recurse -Force }
         Copy-Item (Join-Path $tmp $d) $p -Recurse -Force
     }
-    foreach ($f in @('backend\gateway\app.conf', 'backend\docker-compose.app.yml', 'uva.ps1', 'LEEME.txt')) {
+    foreach ($f in @('backend\gateway\app.conf', 'backend\docker-compose.app.yml', 'uva.ps1', 'Manual de instalacion Sistema UVA.pdf')) {
         if (Test-Path (Join-Path $tmp $f)) { Copy-Item (Join-Path $tmp $f) (Join-Path $Destino $f) -Force }
     }
 } else {
@@ -223,6 +223,7 @@ if ($soloApp) {
     }
 }
 Remove-Item $tmp -Recurse -Force
+Remove-Item (Join-Path $Destino 'LEEME.txt') -Force -ErrorAction SilentlyContinue   # reemplazado por el manual en PDF
 if (-not $soloApp -and (Test-Path (Join-Path $Origen 'imagenes.tar.gz'))) {
     $img = Join-Path $Destino 'imagenes'
     New-Item -ItemType Directory -Force $img | Out-Null
@@ -259,6 +260,8 @@ New-Acceso (Join-Path $menu 'Estado del Sistema UVA.lnk') 'estado' 'Ver el estad
 New-Acceso (Join-Path $menu 'Respaldar base de datos.lnk') 'respaldar' 'Respaldar base de datos y archivos' 'Normal'
 New-Acceso (Join-Path $menu 'Renovar conexión de teléfonos.lnk') 'regenerar-certificado' 'Si cambió el módem o la red de la oficina: los teléfonos vuelven a conectarse' 'Normal'
 New-Acceso (Join-Path $menu 'Desinstalar Sistema UVA.lnk') 'desinstalar' 'Quitar el Sistema UVA' 'Normal'
+$manual = $shell.CreateShortcut((Join-Path $menu 'Manual del Sistema UVA.lnk'))
+$manual.TargetPath = Join-Path $Destino 'Manual de instalacion Sistema UVA.pdf'; $manual.Description = 'Instrucciones de instalación y uso'; $manual.Save()
 $cred = $shell.CreateShortcut((Join-Path $menu 'Datos de acceso.lnk'))
 $cred.TargetPath = Join-Path $Destino 'CREDENCIALES.txt'; $cred.Save()
 New-Acceso (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Sistema UVA.lnk') 'abrir' 'Abrir el Sistema UVA'

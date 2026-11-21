@@ -512,18 +512,15 @@ print('UVA_API_KEY_EXPIRA=' + vence.strftime('%Y-%m-%d'))")"
 url_sistema() { echo "http://localhost:$(leer_env GATEWAY_PORT)"; }
 url_odoo()    { echo "http://localhost:$(leer_env ODOO_PORT)"; }
 url_app()     { echo "https://localhost:$(leer_env APP_PORT)"; }
+urls_web_red() {  # direcciones de la web desde la red (las que se escriben en los teléfonos), una por línea
+  local p ip; p="$(leer_env GATEWAY_PORT)"
+  for ip in $(ips_equipo); do echo "http://$ip:$p"; done
+  echo "http://$(nombre_equipo):$p"
+}
 urls_app_red() {
   local p ip lista; p="$(leer_env APP_PORT)"; lista=''
   for ip in $(ips_equipo); do lista="$lista  https://$ip:$p"; done
   echo "$lista  https://$(nombre_equipo):$p"
-}
-
-texto_firewall() {
-  if [ "$ES_MAC" = 1 ]; then
-    printf '  Firewall del Mac: si está activado, permite las conexiones entrantes de Docker\n    (Ajustes del Sistema > Red > Firewall > Opciones).'
-  else
-    printf '  Firewall: Docker publica los puertos directamente (ufw no los bloquea). Si las tablets no\n    conectan, revisa que estén en la misma red y la dirección (https:// y puerto).'
-  fi
 }
 
 # Descargas para instalar la app de campo en teléfonos y tablets (las publica la web en /descargas/):
@@ -585,34 +582,49 @@ EOF
 }
 
 escribir_credenciales() {
+  local web_red otras='' u
+  web_red="$(urls_web_red)"
+  for u in $(printf '%s
+' $web_red | sed 1d); do otras="$otras   o   $u"; done
+  [ -n "$otras" ] && otras="
+   Si esa no abre, pruebe: ${otras#   o   }"
   cat > "$RAIZ/CREDENCIALES.txt" <<EOF
-SISTEMA UVA - DATOS DE ACCESO
-Generado: $(date '+%Y-%m-%d %H:%M')
+SISTEMA UVA · SUS DATOS DE ACCESO
+Guarde este archivo en un lugar seguro: contiene contraseñas. No lo comparta.
+Creado el: $(date '+%d/%m/%Y %H:%M')
 
-Sistema (usuarios):            $(url_sistema)
-  Inicio de sesión con los usuarios de Odoo (correo o usuario y contraseña).
-  Al principio: usuario admin con la contraseña de abajo; después crea un usuario por persona.
-  «¿Olvidó su contraseña?» envía el enlace por correo: requiere configurar el servidor de
-  correo saliente en Odoo (Ajustes > Técnico > Servidores de correo saliente).
-Administrador de Odoo:         $(url_odoo)
-  Usuario:                     admin
-  Contraseña:                  $(leer_env ODOO_ADMIN_PASSWORD)
-Contraseña maestra de Odoo:    $(leer_env ODOO_MASTER_PASSWORD)
-  (gestión de bases de datos; guárdala en un lugar seguro)
+1. PARA ENTRAR AL SISTEMA EN ESTA COMPUTADORA
+   Haga doble clic en el ícono «Sistema UVA» del escritorio
+   (o escriba en el navegador:  $(url_sistema) ).
 
-App de campo (tablets de los verificadores):
-  En este equipo:              $(url_app)
-  Desde las tablets (misma red):$(urls_app_red)
-  Usuarios: los de Odoo ligados a un verificador (Sistema UVA > Verificadores > Usuario).
-  Verificador predeterminado:  $USUARIO_CAMPO / $CLAVE_CAMPO
-    (también entra a la web; cambia su contraseña desde Odoo cuando quieras)
-  Certificado para las tablets: $CERT_TABLETS (en esta carpeta)
-    Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
-    Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
-    "Agregar a la pantalla de inicio". Más fácil: web del Sistema UVA > «App de campo (móvil)».
-$(texto_firewall)
+   Usuario:     admin
+   Contraseña:  $(leer_env ODOO_ADMIN_PASSWORD)
 
-Cambia la contraseña de admin al primer ingreso. Este archivo contiene contraseñas: no lo compartas.
+   Recomendación: después de entrar, cree un usuario para cada persona.
+
+2. DIRECCIÓN PARA LOS TELÉFONOS Y LAS DEMÁS COMPUTADORAS DE LA OFICINA
+   Conectados al mismo Wi-Fi que esta computadora, escriban en el navegador:
+
+   $(printf '%s
+' $web_red | head -1)$otras
+
+   Con esa dirección cada verificador instala la app en su teléfono
+   (manual, capítulo «Instalar la app en el teléfono o tablet»).
+
+3. VERIFICADOR DE PRUEBA (para probar la app)
+   Correo:      $USUARIO_CAMPO
+   Contraseña:  $CLAVE_CAMPO
+
+4. INSTRUCCIONES COMPLETAS
+   «Manual de instalacion Sistema UVA» (PDF): en los accesos del sistema, «Manual del Sistema UVA».
+
+------------------------------------------------------------------------------
+DATOS TÉCNICOS (solo para soporte técnico; no los necesita para el uso diario)
+   Administrador de Odoo:        $(url_odoo)   (usuario admin, misma contraseña)
+   Contraseña maestra de Odoo:   $(leer_env ODOO_MASTER_PASSWORD)
+   App de campo:                 $(url_app)   ·   desde la red:$(urls_app_red)
+   Páginas legales:              $(url_sistema)/terminos-y-condiciones   ·   $(url_sistema)/aviso-de-privacidad
+   Correo para «¿Olvidó su contraseña?»: Odoo › Ajustes › Técnico › Servidores de correo saliente.
 EOF
   chmod 600 "$RAIZ/CREDENCIALES.txt"
   publicar_descargas || aviso 'No se pudieron preparar las descargas de la app.'
@@ -657,6 +669,7 @@ Renovar conexión de teléfonos|regenerar-certificado
 Desinstalar Sistema UVA|desinstalar
 EOF
   ln -sf "$RAIZ/CREDENCIALES.txt" "$ACCESOS_DIR/Datos de acceso.txt"
+  ln -sf "$RAIZ/Manual de instalacion Sistema UVA.pdf" "$ACCESOS_DIR/Manual del Sistema UVA.pdf"
   ln -sf "$RAIZ" "$ACCESOS_DIR/Carpeta del sistema (certificado)"
   cp "$ACCESOS_DIR/Sistema UVA.command" "$HOME/Desktop/Sistema UVA.command" 2>/dev/null || true
   cp "$ACCESOS_DIR/App de campo (tablets).command" "$HOME/Desktop/App de campo Asercontrol.command" 2>/dev/null || true
@@ -706,6 +719,7 @@ estado|Estado del Sistema UVA|"$RAIZ/uva.sh" estado --pausa|true
 respaldar|Respaldar base de datos (Sistema UVA)|"$RAIZ/uva.sh" respaldar --pausa|true
 renovar|Renovar conexión de teléfonos (Sistema UVA)|"$RAIZ/uva.sh" regenerar-certificado --pausa|true
 credenciales|Datos de acceso (Sistema UVA)|xdg-open "$RAIZ/CREDENCIALES.txt"|false
+manual|Manual del Sistema UVA|xdg-open "$RAIZ/Manual de instalacion Sistema UVA.pdf"|false
 carpeta|Carpeta del Sistema UVA (certificado)|xdg-open "$RAIZ"|false
 desinstalar|Desinstalar Sistema UVA|"$RAIZ/uva.sh" desinstalar --pausa|true
 EOF

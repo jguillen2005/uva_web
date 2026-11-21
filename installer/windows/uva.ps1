@@ -535,38 +535,45 @@ function Publish-Descargas {
 
 function Write-Credenciales {
     $c = Read-Env; $u = Get-Urls
+    # Direcciones de la web desde la red (las que se escriben en los teléfonos)
+    $webRed = @($u.AppRed | ForEach-Object { ($_ -replace '^https://', 'http://') -replace ":$($c['APP_PORT'])$", ":$($c['GATEWAY_PORT'])" })
+    $otras = if ($webRed.Count -gt 1) { "`r`n   Si esa no abre, pruebe:  " + (($webRed | Select-Object -Skip 1) -join '   o   ') } else { '' }
     $txt = @"
-SISTEMA UVA - DATOS DE ACCESO
-Generado: $(Get-Date -Format 'yyyy-MM-dd HH:mm')
+SISTEMA UVA · SUS DATOS DE ACCESO
+Guarde este archivo en un lugar seguro: contiene contraseñas. No lo comparta.
+Creado el: $(Get-Date -Format 'dd/MM/yyyy HH:mm')
 
-Sistema (usuarios):            $($u.Sistema)
-  Inicio de sesión con los usuarios de Odoo (correo o usuario y contraseña).
-  Al principio: usuario admin con la contraseña de abajo; después crea un usuario por persona.
-  «¿Olvidó su contraseña?» envía el enlace por correo: requiere configurar el servidor de
-  correo saliente en Odoo (Ajustes > Técnico > Servidores de correo saliente).
-Administrador de Odoo:         $($u.Odoo)
-  Usuario:                     admin
-  Contraseña:                  $($c['ODOO_ADMIN_PASSWORD'])
-Contraseña maestra de Odoo:    $($c['ODOO_MASTER_PASSWORD'])
-  (gestión de bases de datos; guárdala en un lugar seguro)
+1. PARA ENTRAR AL SISTEMA EN ESTA COMPUTADORA
+   Haga doble clic en el ícono «Sistema UVA» del escritorio
+   (o escriba en el navegador:  $($u.Sistema) ).
 
-App de campo (tablets de los verificadores):
-  En este equipo:              $($u.App)
-  Desde las tablets (misma red): $($u.AppRed -join '  ó  ')
-  Usuarios: los de Odoo ligados a un verificador (Sistema UVA > Verificadores > Usuario).
-  Verificador predeterminado:  $($Script:UsuarioCampo) / $($Script:ClaveCampo)
-    (también entra a la web; cambia su contraseña desde Odoo cuando quieras)
-  Certificado para las tablets: $CertTablets (en esta carpeta)
-    Instálalo una vez en cada tablet: Ajustes > Seguridad > Cifrado y credenciales >
-    Instalar un certificado > Certificado de CA. Luego abre la dirección en Chrome y elige
-    "Agregar a la pantalla de inicio" para usarla como aplicación (también sin internet).
-    Más fácil: web del Sistema UVA > «App de campo (móvil)» (códigos QR para Android, iPhone y iPad).
+   Usuario:     admin
+   Contraseña:  $($c['ODOO_ADMIN_PASSWORD'])
 
-Páginas legales (editables en Odoo > Sitio web):
-  $($u.Sistema)/terminos-y-condiciones
-  $($u.Sistema)/aviso-de-privacidad
+   Recomendación: después de entrar, cree un usuario para cada persona.
 
-Cambia la contraseña de admin al primer ingreso. Este archivo contiene contraseñas: no lo compartas.
+2. DIRECCIÓN PARA LOS TELÉFONOS Y LAS DEMÁS COMPUTADORAS DE LA OFICINA
+   Conectados al mismo Wi-Fi que esta computadora, escriban en el navegador:
+
+   $($webRed[0])$otras
+
+   Con esa dirección cada verificador instala la app en su teléfono
+   (manual, capítulo «Instalar la app en el teléfono o tablet»).
+
+3. VERIFICADOR DE PRUEBA (para probar la app)
+   Correo:      $($Script:UsuarioCampo)
+   Contraseña:  $($Script:ClaveCampo)
+
+4. INSTRUCCIONES COMPLETAS
+   «Manual de instalacion Sistema UVA» (PDF): menú Inicio › Sistema UVA › Manual del Sistema UVA.
+
+------------------------------------------------------------------------------
+DATOS TÉCNICOS (solo para soporte técnico; no los necesita para el uso diario)
+   Administrador de Odoo:        $($u.Odoo)   (usuario admin, misma contraseña)
+   Contraseña maestra de Odoo:   $($c['ODOO_MASTER_PASSWORD'])
+   App de campo:                 $($u.App)   ·   desde la red: $($u.AppRed -join '  ')
+   Páginas legales:              $($u.Sistema)/terminos-y-condiciones   ·   $($u.Sistema)/aviso-de-privacidad
+   Correo para «¿Olvidó su contraseña?»: Odoo › Ajustes › Técnico › Servidores de correo saliente.
 "@
     [System.IO.File]::WriteAllText((Join-Path $Raiz 'CREDENCIALES.txt'), $txt, (New-Object System.Text.UTF8Encoding $true))
     try { Publish-Descargas } catch { Write-Aviso "No se pudieron preparar las descargas de la app: $($_.Exception.Message)" }

@@ -56,8 +56,10 @@ Invoke-Nativo { robocopy (Join-Path $Repo 'backend') (Join-Path $Contenido 'back
 if ($LASTEXITCODE -ge 8) { throw "robocopy backend falló ($LASTEXITCODE)." }
 Get-ChildItem $Contenido -Recurse -Force -Filter '.env' | Remove-Item -Force   # nunca empaquetar secretos
 Copy-Item (Join-Path $Aqui '..\comun\uva.sh') (Join-Path $Contenido 'uva.sh')
-Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Contenido 'LEEME.txt')
-Copy-Item (Join-Path $Aqui 'LEEME.txt') (Join-Path $Raiz 'LEEME.txt')
+# Manual de instalación (único documento de instrucciones; reemplaza al antiguo LEEME.txt)
+$manual = Join-Path $Aqui '..\manual\Manual de instalacion Sistema UVA.pdf'
+Copy-Item $manual (Join-Path $Contenido 'Manual de instalacion Sistema UVA.pdf')
+Copy-Item $manual (Join-Path $Raiz 'Manual de instalacion Sistema UVA.pdf')
 Copy-Item (Join-Path $Aqui 'instalar.command') (Join-Path $Recursos 'instalar.command')
 [System.IO.File]::WriteAllText((Join-Path $Contenido 'version.txt'), $Version)
 

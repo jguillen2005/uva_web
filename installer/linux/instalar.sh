@@ -196,9 +196,10 @@ if [ $SOLO_APP = 1 ]; then
   for m in uva_app_movil uva_sesion_web; do
     [ -d "$CONTENIDO/backend/odoo/addons/$m" ] && { cp -R "$CONTENIDO/backend/odoo/addons/$m" "$DESTINO/backend/odoo/addons/$m" || error_copia=1; }
   done
-  for f in backend/gateway/app.conf backend/docker-compose.app.yml uva.sh LEEME.txt; do
+  for f in backend/gateway/app.conf backend/docker-compose.app.yml uva.sh; do
     copiar_archivo "$CONTENIDO/$f" "$DESTINO/$f" || error_copia=1
   done
+  copiar_archivo "$CONTENIDO/Manual de instalacion Sistema UVA.pdf" "$DESTINO/Manual de instalacion Sistema UVA.pdf" || error_copia=1
 else
   # Se reemplazan código, web, app y scripts; se conservan .env, certificados, CREDENCIALES, respaldos y bitácoras.
   rm -rf "$DESTINO/dist" "$DESTINO/app" "$DESTINO/backend/odoo/addons" "$DESTINO/backend/services" "$DESTINO/backend/gateway"
@@ -212,6 +213,7 @@ else
   [ -f "$conf" ] && sed -i.bak 's/^workers = 2$/workers = 4/' "$conf" && rm -f "$conf.bak"
 fi
 chmod +x "$UVA" 2>/dev/null
+rm -f "$DESTINO/LEEME.txt"   # reemplazado por el manual en PDF
 faltan=''
 # Copiados en esta ejecución: deben ser idénticos al paquete. El resto (solo la app): deben existir.
 iguales='uva.sh backend/docker-compose.app.yml backend/gateway/app.conf backend/odoo/addons/uva_app_movil/__manifest__.py app/index.html'

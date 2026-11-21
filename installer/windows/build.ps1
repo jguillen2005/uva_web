@@ -82,10 +82,12 @@ Invoke-Nativo { robocopy $appDist (Join-Path $Payload 'app') /E /NFL /NDL /NJH /
 if ($LASTEXITCODE -ge 8) { throw "robocopy app falló ($LASTEXITCODE)." }
 Copy-Item (Join-Path $Repo 'backend\.env.example') (Join-Path $Payload 'backend\.env.example')
 Get-ChildItem $Payload -Recurse -Force -Filter '.env' | Remove-Item -Force   # nunca empaquetar secretos
-foreach ($f in 'uva.ps1', 'LEEME.txt') {
+foreach ($f in 'uva.ps1') {
     $texto = [System.IO.File]::ReadAllText((Join-Path $Aqui $f))
     [System.IO.File]::WriteAllText((Join-Path $Payload $f), $texto, $Utf8Bom)   # PS 5.1 necesita BOM
 }
+# Manual de instalación (único documento de instrucciones; reemplaza al antiguo LEEME.txt)
+Copy-Item (Join-Path $Aqui '..\manual\Manual de instalacion Sistema UVA.pdf') (Join-Path $Payload 'Manual de instalacion Sistema UVA.pdf')
 
 # Ícono (PNG dentro de un .ico, válido desde Windows Vista)
 Add-Type -AssemblyName System.Drawing
