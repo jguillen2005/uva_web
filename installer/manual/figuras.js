@@ -85,7 +85,7 @@ F['w-4-demo'] = `<div class="win" style="width:440px"><div class="tb">Instalador
 <div style="padding:18px 20px;display:flex;gap:14px;line-height:1.55"><span style="font-size:28px">❔</span><div>¿Cargar datos de demostración?<br><br><b>Sí</b>: clientes, expedientes y usuarios de ejemplo para conocer el sistema.<br><b>No</b>: base de datos vacía, lista para operar.</div></div>
 <div style="background:#f3f4f6;padding:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><span class="btn">Sí</span><span class="btn hl">No</span><span class="btn">Cancelar</span></div></div>
 <span class="tag aba" style="left:250px;top:150px">Para trabajar de verdad: No</span>`;
-F['w-5-progreso'] = `<div class="win" style="width:600px"><div class="tb">⬛ Instalador Sistema UVA 1.0.0<span class="x">— ☐ ✕</span></div>
+F['w-5-progreso'] = `<div class="win" style="width:600px"><div class="tb"><img src="${icoUVA}" style="width:16px;height:16px"> Instalador Sistema UVA 1.0.0<span class="x">— ☐ ✕</span></div>
 <div class="term" style="min-height:230px">  ==============================================<br>    Sistema UVA 1.0.0 - Instalador<br>  ==============================================<br><br>
 <span class="c">&gt; Revisando requisitos del equipo</span><br>  Windows 10.0.19045 · RAM 16 GB · disco libre 80 GB<br><span class="c">&gt; Copiando archivos</span><br>  Archivos copiados.<br>
 <span class="c">&gt; Creando la base 'uva' e instalando módulos. Tarda varios minutos...</span><br>  <span class="y">▌</span></div></div>

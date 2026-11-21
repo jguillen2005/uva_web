@@ -1,5 +1,6 @@
 #!/bin/bash
-# Asistente de instalación del Sistema UVA para Linux (Ubuntu 22.04 o superior, amd64 o arm64).
+# Asistente de instalación del Sistema UVA para Linux: Ubuntu, Debian y derivadas (apt) o Fedora, Red Hat, Rocky,
+# AlmaLinux y CentOS Stream (dnf); 64 bits (amd64 o arm64), con systemd.
 # En el explorador de archivos: clic derecho > «Ejecutar como un programa», o en una terminal:
 #   bash "Instalar Sistema UVA.sh"
 # Opciones: --silencioso  --demo si|no  --actualizar-sistema  --sin-abrir  --destino <carpeta>
@@ -81,14 +82,27 @@ fi
 COMO_GRUPO=0   # 1 = el usuario se acaba de agregar al grupo docker: usar «sg docker» en esta sesión
 docker_ok() { docker info >/dev/null 2>&1; }
 if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
-  # Se instala solo (paquetes oficiales de Ubuntu: docker.io y docker-compose-v2); pide la contraseña una vez.
+  # Se instala solo (apt: docker.io y docker-compose-v2; dnf: repositorio oficial de Docker); pide la contraseña una vez.
   echo '  El Sistema UVA necesita Docker (programa gratuito) y no está instalado: se instala ahora.'
   echo '  Si se lo pide, escriba su contraseña (al escribirla no aparecen letras: es normal).'
   paso 'Instalando Docker (puede tardar unos minutos)'
-  sudo apt-get update -qq || true
-  if ! sudo apt-get install -y docker.io docker-compose-v2; then
-    aviso 'No se pudieron instalar los paquetes de Ubuntu; se intenta con el instalador oficial de Docker.'
-    curl -fsSL https://get.docker.com | sudo sh || { echo '  No se pudo instalar Docker.'; salir 2; }
+  if command -v apt-get >/dev/null 2>&1; then
+    # Ubuntu, Debian, Linux Mint, Pop!_OS…: paquetes de la distribución
+    sudo apt-get update -qq || true
+    docker_instalado=0; sudo apt-get install -y docker.io docker-compose-v2 && docker_instalado=1
+  elif command -v dnf >/dev/null 2>&1; then
+    # Fedora, Red Hat, Rocky, AlmaLinux, CentOS Stream: repositorio oficial de Docker
+    id_distro="$( . /etc/os-release 2>/dev/null; printf '%s' "${ID:-}")"
+    case "$id_distro" in fedora) repo=fedora ;; rhel) repo=rhel ;; *) repo=centos ;; esac
+    docker_instalado=0
+    sudo curl -fsSL -o /etc/yum.repos.d/docker-ce.repo "https://download.docker.com/linux/$repo/docker-ce.repo" &&
+      sudo dnf install -y --allowerasing docker-ce docker-ce-cli containerd.io docker-compose-plugin && docker_instalado=1
+  else
+    docker_instalado=0
+  fi
+  if [ "$docker_instalado" != 1 ]; then
+    aviso 'No se pudieron instalar los paquetes de la distribución; se intenta con el instalador oficial de Docker.'
+    curl -fsSL https://get.docker.com | sudo sh || { echo '  No se pudo instalar Docker. Instálelo (docs.docker.com/engine/install) y vuelva a ejecutar el instalador.'; salir 2; }
   fi
 fi
 if ! docker_ok; then
@@ -213,6 +227,12 @@ else
 fi
 chmod +x "$UVA" 2>/dev/null
 rm -f "$DESTINO/LEEME.txt"   # reemplazado por el manual en PDF
+# SELinux (Fedora, Red Hat, Rocky, AlmaLinux): los contenedores solo pueden leer archivos con la etiqueta
+# container_file_t. Se etiqueta la carpeta del sistema; los archivos que se creen después heredan la etiqueta.
+if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" != Disabled ]; then
+  chcon -R -t container_file_t "$DESTINO" 2>/dev/null || sudo chcon -R -t container_file_t "$DESTINO" 2>/dev/null ||
+    aviso 'No se pudo preparar la carpeta para SELinux: si los servicios no arrancan, ejecute  sudo chcon -R -t container_file_t ~/SistemaUVA'
+fi
 faltan=''
 # Copiados en esta ejecución: deben ser idénticos al paquete. El resto (solo la app): deben existir.
 iguales='uva.sh backend/docker-compose.app.yml backend/gateway/app.conf backend/odoo/addons/uva_app_movil/__manifest__.py app/index.html'

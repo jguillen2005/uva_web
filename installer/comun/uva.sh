@@ -271,7 +271,7 @@ asegurar_docker() {
     command -v docker >/dev/null 2>&1 || falla 'Docker no está instalado. Ejecute de nuevo el instalador del Sistema UVA (ofrece instalarlo) o: sudo apt install docker.io docker-compose-v2'
   fi
   if docker_listo; then
-    docker compose version >/dev/null 2>&1 || falla 'Falta Docker Compose. En Ubuntu: sudo apt install docker-compose-v2'
+    docker compose version >/dev/null 2>&1 || falla 'Falta Docker Compose. Ubuntu/Debian: sudo apt install docker-compose-v2 · Fedora/Red Hat: sudo dnf install docker-compose-plugin'
     return
   fi
   if [ "$ES_MAC" = 1 ]; then
@@ -390,7 +390,14 @@ EOF
 }
 
 # Linux: la CA local en el sistema (curl, apps) y en la base NSS de Chrome/Chromium del usuario.
+# Debian/Ubuntu: update-ca-certificates. Fedora/Red Hat/Rocky/AlmaLinux: update-ca-trust.
 CA_SISTEMA='/usr/local/share/ca-certificates/asercontrol-ca-local.crt'
+CA_SISTEMA_RH='/etc/pki/ca-trust/source/anchors/asercontrol-ca-local.crt'
+instalar_paquete() {  # instalar_paquete <nombre en apt> <nombre en dnf>
+  if command -v apt-get >/dev/null 2>&1; then sudo apt-get install -y -qq "$1" >/dev/null 2>&1
+  elif command -v dnf >/dev/null 2>&1; then sudo dnf install -y -q "$2" >/dev/null 2>&1
+  else return 1; fi
+}
 bases_nss() {
   printf '%s\n' "$HOME/.pki/nssdb"
   [ -d "$HOME/snap/chromium" ] && printf '%s\n' "$HOME/snap/chromium/current/.pki/nssdb"
@@ -401,12 +408,12 @@ confiar_ca_linux() {
   paso 'Instalando el certificado «Asercontrol CA local» en este equipo (puede pedir su contraseña)'
   if command -v update-ca-certificates >/dev/null 2>&1 && sudo install -m 644 "$ca" "$CA_SISTEMA" && sudo update-ca-certificates >/dev/null 2>&1; then
     ok 'Certificado de confianza instalado en el sistema.'
+  elif command -v update-ca-trust >/dev/null 2>&1 && sudo install -m 644 "$ca" "$CA_SISTEMA_RH" && sudo update-ca-trust >/dev/null 2>&1; then
+    ok 'Certificado de confianza instalado en el sistema.'
   else
     aviso 'No se instaló el certificado en el sistema.'
   fi
-  if ! command -v certutil >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
-    sudo apt-get install -y -qq libnss3-tools >/dev/null 2>&1 || true
-  fi
+  command -v certutil >/dev/null 2>&1 || instalar_paquete libnss3-tools nss-tools || true
   if command -v certutil >/dev/null 2>&1; then
     for d in $(bases_nss); do
       mkdir -p "$d"
@@ -416,12 +423,13 @@ confiar_ca_linux() {
     done
     ok 'Chrome/Chromium confiarán en la app de campo (reinicie el navegador si estaba abierto).'
   else
-    aviso 'Sin certutil (paquete libnss3-tools): Chrome mostrará una advertencia la primera vez.'
+    aviso 'Sin certutil (paquete libnss3-tools o nss-tools): Chrome mostrará una advertencia la primera vez.'
   fi
 }
 quitar_ca_linux() {
   local d
   if [ -f "$CA_SISTEMA" ]; then sudo rm -f "$CA_SISTEMA" && sudo update-ca-certificates --fresh >/dev/null 2>&1 || true; fi
+  if [ -f "$CA_SISTEMA_RH" ]; then sudo rm -f "$CA_SISTEMA_RH" && sudo update-ca-trust >/dev/null 2>&1 || true; fi
   if command -v certutil >/dev/null 2>&1; then
     for d in $(bases_nss); do certutil -d "sql:$d" -D -n 'Asercontrol CA local' >/dev/null 2>&1 || true; done
   fi
@@ -670,7 +678,8 @@ Desinstalar Sistema UVA|desinstalar
 EOF
   ln -sf "$RAIZ/CREDENCIALES.txt" "$ACCESOS_DIR/Datos de acceso.txt"
   ln -sf "$RAIZ/Manual de instalacion Sistema UVA.pdf" "$ACCESOS_DIR/Manual del Sistema UVA.pdf"
-  ln -sf "$RAIZ" "$ACCESOS_DIR/Carpeta del sistema (certificado)"
+  rm -f "$ACCESOS_DIR/Carpeta del sistema (certificado)"   # nombre anterior
+  ln -sfn "$RAIZ" "$ACCESOS_DIR/Carpeta del Sistema UVA"
   cp "$ACCESOS_DIR/Sistema UVA.command" "$HOME/Desktop/Sistema UVA.command" 2>/dev/null || true
   cp "$ACCESOS_DIR/App de campo (tablets).command" "$HOME/Desktop/App de campo Asercontrol.command" 2>/dev/null || true
   # Arranque automático al iniciar sesión (Docker Desktop debe estar configurado para abrir al iniciar).
@@ -720,7 +729,7 @@ respaldar|Respaldar base de datos (Sistema UVA)|"$RAIZ/uva.sh" respaldar --pausa
 renovar|Renovar conexión de teléfonos (Sistema UVA)|"$RAIZ/uva.sh" regenerar-certificado --pausa|true
 credenciales|Datos de acceso (Sistema UVA)|xdg-open "$RAIZ/CREDENCIALES.txt"|false
 manual|Manual del Sistema UVA|xdg-open "$RAIZ/Manual de instalacion Sistema UVA.pdf"|false
-carpeta|Carpeta del Sistema UVA (certificado)|xdg-open "$RAIZ"|false
+carpeta|Carpeta del Sistema UVA|xdg-open "$RAIZ"|false
 desinstalar|Desinstalar Sistema UVA|"$RAIZ/uva.sh" desinstalar --pausa|true
 EOF
   command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$ACCESOS_DIR" >/dev/null 2>&1

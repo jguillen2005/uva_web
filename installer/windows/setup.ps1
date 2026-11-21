@@ -301,8 +301,9 @@ New-Item -ItemType Directory -Force $menu | Out-Null
 New-Acceso (Join-Path $menu 'Sistema UVA.lnk') 'abrir' 'Abrir el Sistema UVA en el navegador'
 New-Acceso (Join-Path $menu 'Administrador de Odoo.lnk') 'abrir-odoo' 'Abrir el administrador de Odoo'
 New-Acceso (Join-Path $menu 'App de campo (tablets).lnk') 'abrir-app' 'Abrir la app de campo de los verificadores'
-$certLnk = $shell.CreateShortcut((Join-Path $menu 'Certificado para tablets.lnk'))
-$certLnk.TargetPath = $Destino; $certLnk.Description = 'Carpeta con Certificado-tablets-Asercontrol.crt'; $certLnk.Save()
+Remove-Item (Join-Path $menu 'Certificado para tablets.lnk') -Force -ErrorAction SilentlyContinue   # nombre anterior
+$certLnk = $shell.CreateShortcut((Join-Path $menu 'Carpeta del Sistema UVA.lnk'))
+$certLnk.TargetPath = $Destino; $certLnk.Description = 'Respaldos, datos de acceso, manual, bitácoras y permiso de seguridad'; $certLnk.Save()
 New-Acceso (Join-Path $menu 'Iniciar Sistema UVA.lnk') 'iniciar' 'Arrancar los servicios' 'Normal'
 New-Acceso (Join-Path $menu 'Detener Sistema UVA.lnk') 'detener' 'Detener los servicios' 'Normal'
 New-Acceso (Join-Path $menu 'Estado del Sistema UVA.lnk') 'estado' 'Ver el estado de los servicios' 'Normal'
